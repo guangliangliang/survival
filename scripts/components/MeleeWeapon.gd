@@ -8,8 +8,9 @@ extends Area2D
 var attack_timer: Timer = Timer.new()
 var can_attack: bool = true
 var attack_collision: CollisionShape2D = null
+var weapon_sprite = null
 
-func _ready() -> void:
+func _ready():
 	add_child(attack_timer)
 	attack_timer.timeout.connect(_on_attack_cooldown_finished)
 	
@@ -21,21 +22,31 @@ func _ready() -> void:
 	add_child(attack_collision)
 	
 	body_entered.connect(_on_body_entered)
+	
+	weapon_sprite = get_node_or_null("Sprite2D")
 
-func attack() -> void:
+func attack():
 	if not can_attack:
 		return
 	
 	can_attack = false
 	attack_timer.start(attack_cooldown)
+	
+	_play_attack_animation()
 	attack_collision.set_deferred("disabled", false)
 	await get_tree().create_timer(0.2).timeout
 	attack_collision.set_deferred("disabled", true)
 
-func _on_attack_cooldown_finished() -> void:
+func _play_attack_animation():
+	if weapon_sprite:
+		pass
+		# 这里将来可以播放动画
+		# weapon_sprite.frame = 1
+
+func _on_attack_cooldown_finished():
 	can_attack = true
 
-func _on_body_entered(body: Node) -> void:
+func _on_body_entered(body):
 	if body.is_in_group("enemy"):
 		var health_comp = body.get_node_or_null("HealthComponent")
 		if health_comp:

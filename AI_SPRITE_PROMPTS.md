@@ -30,7 +30,31 @@ pixel art, 32x32, bandit enemy, wearing mask and ragged clothes, holding knife, 
 
 ## 🗡️ 精英强盗（敌人）
 ```
-pixel art, 32x32, elite bandit enemy, bigger and tougher than regular bandit, wearing armor, holding long sword, more detailed sprite, 4 directions (down, left, right, up), 4 walking animation frames per direction, simple pixel style, white background, retro game sprite --style raw
+pixel art, 32x32, elite bandit enemy, bigger and tougher than regular bandit, wearing armor, holding long sword, 4 directions (down, left, right, up), 4 walking animation frames per direction, simple pixel style, white background, retro game sprite --style raw
+```
+
+---
+
+## ⚔️ 大刀挥砍动画（重点）
+```
+pixel art, 64x64, melee weapon slash animation, 6 frames of baseball bat swinging in an arc, attacking motion, white background, retro game sprite --style raw
+```
+
+### 大刀简化版（4帧）
+```
+pixel art, 32x32, sword slash animation facing down, 4 frames: idle -> swing -> impact -> recover, white background --style raw
+```
+
+---
+
+## 🔫 机枪射击动画（简单）
+```
+pixel art, 32x32, gun muzzle flash animation, 2 frames: idle and shooting with flash, simple, white background --style raw
+```
+
+### 子弹
+```
+pixel art, 8x8, yellow bullet sprite, simple, white background --style raw
 ```
 
 ---

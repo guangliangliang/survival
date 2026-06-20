@@ -15,8 +15,18 @@ var game_time: float = 0.0
 var kill_count: int = 0
 var run_active: bool = false
 var result: StringName = &""
+var selected_level: Resource = preload("res://resources/levels/village_outskirts.tres")
+var last_run_result: Resource
 
-func start_game() -> void:
+var level_catalog: Array[Resource] = [
+	preload("res://resources/levels/village_outskirts.tres"),
+	preload("res://resources/levels/dark_forest.tres"),
+	preload("res://resources/levels/bandit_camp.tres")
+]
+
+func start_run(level_data: Resource = null) -> void:
+	if level_data != null:
+		selected_level = level_data
 	current_level = 1
 	current_exp = 0
 	exp_to_next_level = 10
@@ -24,15 +34,39 @@ func start_game() -> void:
 	kill_count = 0
 	run_active = true
 	result = &""
+	last_run_result = null
 	game_started.emit()
 	experience_changed.emit(current_exp, exp_to_next_level)
+
+func start_game() -> void:
+	start_run(selected_level)
 
 func end_game(end_result: StringName = &"defeat") -> void:
 	if not run_active:
 		return
 	run_active = false
 	result = end_result
+	last_run_result = RunResult.create(selected_level, result, game_time, kill_count, current_level)
 	game_ended.emit(result)
+
+func finish_run(end_result: StringName) -> Resource:
+	end_game(end_result)
+	return last_run_result
+
+func select_level(level_data: Resource) -> void:
+	selected_level = level_data
+
+func get_level_by_id(level_id: StringName) -> Resource:
+	for level_data in level_catalog:
+		if level_data.level_id == level_id:
+			return level_data
+	return null
+
+func get_next_level() -> Resource:
+	var index := level_catalog.find(selected_level)
+	if index >= 0 and index + 1 < level_catalog.size():
+		return level_catalog[index + 1]
+	return null
 
 func add_exp(amount: int) -> void:
 	if not run_active:

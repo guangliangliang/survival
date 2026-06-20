@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="LevelData" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/LevelData.gd" id="1"]
+[ext_resource type="Resource" path="res://resources/enemies/wolf.tres" id="2"]
+[ext_resource type="Resource" path="res://resources/enemies/boar.tres" id="3"]
+[ext_resource type="Resource" path="res://resources/enemies/bandit.tres" id="4"]
+[ext_resource type="Resource" path="res://resources/enemies/alpha_wolf.tres" id="5"]
+
+[resource]
+script = ExtResource("1")
+level_id = &"village_outskirts"
+title = "村庄外围"
+description = "清理村口、农田和道路附近的野兽。适合熟悉移动、自动射击与升级。"
+duration = 360.0
+boss_spawn_time = 300.0
+map_variant = &"village"
+enemy_catalog = Array[Resource]([ExtResource("2"), ExtResource("3"), ExtResource("4")])
+boss_data = ExtResource("5")
+spawn_interval = 1.45
+active_enemy_limit = 100
+difficulty_multiplier = 0.9
+accent_color = Color(0.72, 0.58, 0.28, 1)

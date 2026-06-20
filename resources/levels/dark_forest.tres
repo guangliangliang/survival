@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="LevelData" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/LevelData.gd" id="1"]
+[ext_resource type="Resource" path="res://resources/enemies/wolf.tres" id="2"]
+[ext_resource type="Resource" path="res://resources/enemies/boar.tres" id="3"]
+[ext_resource type="Resource" path="res://resources/enemies/bandit.tres" id="4"]
+[ext_resource type="Resource" path="res://resources/enemies/elite.tres" id="5"]
+[ext_resource type="Resource" path="res://resources/enemies/forest_beast.tres" id="6"]
+
+[resource]
+script = ExtResource("1")
+level_id = &"dark_forest"
+title = "幽暗森林"
+description = "穿过狭窄林道，在高密度兽潮和精英围攻中坚持下来。"
+duration = 480.0
+boss_spawn_time = 420.0
+map_variant = &"forest"
+enemy_catalog = Array[Resource]([ExtResource("2"), ExtResource("3"), ExtResource("4"), ExtResource("5")])
+boss_data = ExtResource("6")
+spawn_interval = 1.25
+active_enemy_limit = 110
+difficulty_multiplier = 1.1
+accent_color = Color(0.24, 0.52, 0.3, 1)

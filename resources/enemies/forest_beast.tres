@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/EnemyData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+enemy_id = &"forest_beast"
+display_name = "森林巨兽"
+color = Color(0.24, 0.62, 0.28, 1)
+size = 40.0
+max_health = 3000.0
+move_speed = 95.0
+damage = 28.0
+exp_reward = 160
+spawn_weight = 0.0
+spawn_region = &"forest"
+attack_range = 68.0
+attack_cooldown = 1.0
+elite = true
+boss = true

@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/EnemyData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+enemy_id = &"alpha_wolf"
+display_name = "狼王"
+color = Color(0.82, 0.72, 0.42, 1)
+size = 36.0
+max_health = 1800.0
+move_speed = 125.0
+damage = 24.0
+exp_reward = 120
+spawn_weight = 0.0
+spawn_region = &"forest"
+attack_range = 60.0
+attack_cooldown = 0.8
+elite = true
+boss = true

@@ -34,10 +34,9 @@ func _check_hit(node: Node) -> void:
 		return
 	
 	if node.is_in_group("enemy") and not hit_ids.has(node.get_instance_id()):
-		var health_comp = node.get_node_or_null("HealthComponent")
-		if health_comp:
+		if node.has_method("receive_hit"):
 			hit_ids[node.get_instance_id()] = true
-			health_comp.take_damage(damage)
+			node.call("receive_hit", damage, direction)
 			if remaining_pierce <= 0:
 				_deactivate()
 			else:

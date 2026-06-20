@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+[ext_resource type="Script" path="res://scripts/data/EnemyData.gd" id="1"]
+[resource]
+script = ExtResource("1")
+enemy_id = &"elite_bandit"
+display_name = "强盗精英"
+color = Color(0.85, 0.35, 0.08, 1)
+size = 28.0
+max_health = 350.0
+move_speed = 100.0
+damage = 24.0
+exp_reward = 35
+min_spawn_time = 510.0
+max_spawn_time = 660.0
+spawn_weight = 0.35
+spawn_region = &"camp"
+attack_range = 52.0
+attack_cooldown = 1.1
+elite = true

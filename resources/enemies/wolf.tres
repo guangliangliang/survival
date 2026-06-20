@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+[ext_resource type="Script" path="res://scripts/data/EnemyData.gd" id="1"]
+[resource]
+script = ExtResource("1")
+enemy_id = &"wolf"
+display_name = "野狼"
+color = Color(0.65, 0.48, 0.3, 1)
+size = 17.0
+max_health = 35.0
+move_speed = 150.0
+damage = 8.0
+exp_reward = 4
+min_spawn_time = 0.0
+max_spawn_time = 480.0
+spawn_weight = 4.0
+spawn_region = &"forest"
+attack_range = 38.0
+attack_cooldown = 0.9

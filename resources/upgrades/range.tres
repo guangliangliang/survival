@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="UpgradeData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/UpgradeData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+upgrade_id = &"range"
+title = "远射训练"
+description = "射程提高 20%"
+stat_key = &"range_multiplier"
+amount = 0.2
+max_level = 4

@@ -1,94 +1,88 @@
 extends Node2D
 
-@export var damage: float = 10.0
-@export var fire_rate: float = 10.0
-@export var bullet_speed: float = 500.0
+@export var weapon_data: WeaponData
 @export var bullet_scene: PackedScene
-@export var bullet_pool_size: int = 50
-@export var fire_range: float = 400.0
+@export var bullet_pool_size: int = 200
 
-var fire_timer: Timer = Timer.new()
-var can_fire: bool = true
-var bullet_pool = []
-var weapon_sprite = null
-var current_angle = 0.0
+var runtime_data: WeaponData
+var cooldown: float = 0.0
+var bullet_pool: Array[Area2D] = []
 
-func _ready():
-	add_child(fire_timer)
-	fire_timer.wait_time = 1.0 / fire_rate
-	fire_timer.timeout.connect(_on_fire_cooldown_finished)
-	
-	for i in range(bullet_pool_size):
-		var bullet = bullet_scene.instantiate()
-		bullet.visible = false
-		bullet.active = false
-		get_tree().root.add_child(bullet)
-		bullet_pool.append(bullet)
-	
-	weapon_sprite = get_node_or_null("Sprite2D")
+func _ready() -> void:
+	if weapon_data == null:
+		weapon_data = WeaponData.new()
+	runtime_data = weapon_data.duplicate(true) as WeaponData
+	_build_pool()
 
-func fire():
-	if not can_fire:
+func _process(delta: float) -> void:
+	if cooldown > 0.0:
+		cooldown -= delta
+	if cooldown <= 0.0:
+		fire()
+
+func _build_pool() -> void:
+	if bullet_scene == null:
 		return
-	
-	# 找最近的敌人
-	var target = null
-	var min_dist = INF
-	
+	var owner_node := get_tree().get_first_node_in_group("game_world")
+	if owner_node == null:
+		owner_node = get_tree().current_scene
+	for index in bullet_pool_size:
+		var bullet := bullet_scene.instantiate() as Area2D
+		bullet.visible = false
+		bullet.set("active", false)
+		bullet.monitoring = false
+		owner_node.add_child.call_deferred(bullet)
+		bullet_pool.append(bullet)
+
+func fire() -> void:
+	var target := _find_nearest_enemy()
+	if target == null:
+		return
+	var base_direction := (target.global_position - global_position).normalized()
+	var count := maxi(1, runtime_data.projectile_count)
+	for index in count:
+		var bullet := _get_bullet_from_pool()
+		if bullet == null:
+			break
+		var offset := float(index) - float(count - 1) * 0.5
+		var direction := base_direction.rotated(deg_to_rad(offset * runtime_data.spread_degrees))
+		bullet.call("activate", global_position, direction, runtime_data.bullet_speed, runtime_data.damage, runtime_data.pierce)
+	cooldown = 1.0 / maxf(runtime_data.fire_rate, 0.1)
+
+func _find_nearest_enemy() -> Node2D:
+	var nearest: Node2D = null
+	var min_distance_sq: float = runtime_data.fire_range * runtime_data.fire_range
 	for node in get_tree().get_nodes_in_group("enemy"):
-		var dist = global_position.distance_to(node.global_position)
-		if dist < min_dist:
-			min_dist = dist
-			target = node
-	
-	# 如果有敌人，检查射程
-	if target:
-		if min_dist > fire_range:
-			return  # 超出射程，不开火
-	else:
-		return  # 没有敌人，不开火
-	
-	can_fire = false
-	fire_timer.start()
-	
-	_play_fire_animation()
-	
-	var bullet = _get_bullet_from_pool()
-	if bullet:
-		bullet.global_position = global_position
-		var direction = (target.global_position - global_position).normalized()
-		
-		bullet.direction = direction
-		bullet.speed = bullet_speed
-		bullet.damage = damage
-		bullet.active = true
-		bullet.visible = true
+		if not is_instance_valid(node) or not node.get("is_alive"):
+			continue
+		var distance_sq := global_position.distance_squared_to(node.global_position)
+		if distance_sq < min_distance_sq:
+			min_distance_sq = distance_sq
+			nearest = node as Node2D
+	return nearest
 
-func _play_fire_animation():
-	if weapon_sprite:
-		pass
-
-func _get_bullet_from_pool():
+func _get_bullet_from_pool() -> Area2D:
 	for bullet in bullet_pool:
-		if not bullet.active:
+		if is_instance_valid(bullet) and not bullet.get("active"):
 			return bullet
 	return null
 
-func _find_nearest_enemy():
-	var nearest = null
-	var min_distance = INF
-	
-	# 获取所有敌人组的节点
-	var enemies = get_tree().get_nodes_in_group("enemy")
-	for enemy in enemies:
-		# 检查敌人是否有生命值组件并且还活着
-		var health_comp = enemy.get_node_or_null("HealthComponent")
-		if health_comp and health_comp.current_health > 0:
-			var distance = global_position.distance_to(enemy.global_position)
-			if distance < min_distance:
-				min_distance = distance
-				nearest = enemy
-	return nearest
+func apply_upgrade(stat_key: StringName, amount: float) -> void:
+	match stat_key:
+		&"damage_multiplier":
+			runtime_data.damage *= 1.0 + amount
+		&"fire_rate_multiplier":
+			runtime_data.fire_rate *= 1.0 + amount
+		&"range_multiplier":
+			runtime_data.fire_range *= 1.0 + amount
+		&"projectile_count":
+			runtime_data.projectile_count += int(amount)
+		&"pierce":
+			runtime_data.pierce += int(amount)
 
-func _on_fire_cooldown_finished():
-	can_fire = true
+func get_active_bullet_count() -> int:
+	var count := 0
+	for bullet in bullet_pool:
+		if is_instance_valid(bullet) and bullet.get("active"):
+			count += 1
+	return count

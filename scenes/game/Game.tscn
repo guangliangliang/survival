@@ -1,180 +1,307 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=8 format=3]
 
-[ext_resource type="PackedScene" path="res://scenes/game/Player.tscn" id="1"]
-[ext_resource type="PackedScene" path="res://scenes/game/AnimalEnemy.tscn" id="2"]
-[ext_resource type="PackedScene" path="res://scenes/game/BanditEnemy.tscn" id="3"]
-[ext_resource type="Script" path="res://scenes/game/Game.gd" id="4"]
-[ext_resource type="Script" path="res://scripts/managers/EnemySpawner.gd" id="5"]
+[ext_resource type="Script" path="res://scenes/game/Game.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/systems/WorldMap.gd" id="2"]
+[ext_resource type="Script" path="res://scripts/managers/EnemySpawner.gd" id="3"]
+[ext_resource type="Script" path="res://scripts/managers/ExperiencePool.gd" id="4"]
+[ext_resource type="PackedScene" path="res://scenes/game/ExperienceOrb.tscn" id="5"]
+[ext_resource type="PackedScene" path="res://scenes/game/Enemy.tscn" id="6"]
+[ext_resource type="Script" path="res://scripts/ui/VirtualJoystick.gd" id="7"]
 
 [node name="Game" type="Node"]
-script = ExtResource("4")
+process_mode = 3
+script = ExtResource("1")
 
 [node name="Camera2D" type="Camera2D" parent="."]
+position_smoothing_enabled = true
+position_smoothing_speed = 8.0
+limit_left = -1800
+limit_top = -1100
+limit_right = 1800
+limit_bottom = 1100
 make_current = true
 
-[node name="GameWorld" type="Node2D" parent="."]
+[node name="GameWorld" type="Node2D" parent="." groups=["game_world"]]
+process_mode = 1
 
-[node name="Background" type="ColorRect" parent="GameWorld"]
-offset_left = -2000.0
-offset_top = -2000.0
-offset_right = 2000.0
-offset_bottom = 2000.0
-color = Color(0.2, 0.25, 0.2, 1)
+[node name="WorldMap" type="Node2D" parent="GameWorld"]
+script = ExtResource("2")
+
+[node name="ExperiencePool" type="Node2D" parent="GameWorld"]
+script = ExtResource("4")
+orb_scene = ExtResource("5")
+pool_size = 180
 
 [node name="EnemySpawner" type="Node" parent="."]
-script = ExtResource("5")
-spawn_radius = 600.0
-base_spawn_interval = 2.0
+process_mode = 1
+script = ExtResource("3")
+enemy_scene = ExtResource("6")
+pool_size = 130
+active_enemy_limit = 120
+base_spawn_interval = 1.4
+boss_spawn_time = 660.0
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
+process_mode = 3
 
 [node name="GameUI" type="Control" parent="CanvasLayer"]
+layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
 
-[node name="HealthBar" type="ProgressBar" parent="CanvasLayer/GameUI"]
-anchors_preset = 2
-anchor_left = 0.666
+[node name="TopHUD" type="VBoxContainer" parent="CanvasLayer/GameUI"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
 anchor_right = 1.0
-offset_left = 20.0
-offset_top = 20.0
-offset_right = -20.0
-offset_bottom = 50.0
-max_value = 100.0
+offset_left = -350.0
+offset_top = 18.0
+offset_right = -18.0
+offset_bottom = 214.0
+grow_horizontal = 0
+theme_override_constants/separation = 3
+
+[node name="ObjectiveLabel" type="Label" parent="CanvasLayer/GameUI/TopHUD"]
+layout_mode = 2
+text = "任务：坚持到强盗头目出现"
+horizontal_alignment = 2
+
+[node name="TimeLabel" type="Label" parent="CanvasLayer/GameUI/TopHUD"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "00:00 / 12:00"
+horizontal_alignment = 2
+
+[node name="HealthBar" type="ProgressBar" parent="CanvasLayer/GameUI/TopHUD"]
+custom_minimum_size = Vector2(0, 26)
+layout_mode = 2
 value = 100.0
+show_percentage = false
 
-[node name="HealthLabel" type="Label" parent="CanvasLayer/GameUI"]
-anchors_preset = 2
-anchor_left = 0.666
-anchor_right = 1.0
-offset_left = 20.0
-offset_top = 55.0
-offset_right = -20.0
-offset_bottom = 75.0
-text = "生命值: 100 / 100"
+[node name="HealthLabel" type="Label" parent="CanvasLayer/GameUI/TopHUD"]
+layout_mode = 2
+text = "生命 100 / 100"
+horizontal_alignment = 2
 
-[node name="ExpBar" type="ProgressBar" parent="CanvasLayer/GameUI"]
-anchors_preset = 2
-anchor_left = 0.666
-anchor_right = 1.0
-offset_left = 20.0
-offset_top = 80.0
-offset_right = -20.0
-offset_bottom = 110.0
+[node name="ExpBar" type="ProgressBar" parent="CanvasLayer/GameUI/TopHUD"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
 max_value = 10.0
-value = 0.0
+show_percentage = false
 
-[node name="ExpLabel" type="Label" parent="CanvasLayer/GameUI"]
-anchors_preset = 2
-anchor_left = 0.666
-anchor_right = 1.0
-offset_left = 20.0
-offset_top = 115.0
-offset_right = -20.0
-offset_bottom = 135.0
-text = "经验: 0 / 10 - 等级 1"
+[node name="ExpLabel" type="Label" parent="CanvasLayer/GameUI/TopHUD"]
+layout_mode = 2
+text = "等级 1   经验 0 / 10"
+horizontal_alignment = 2
 
-[node name="TimeLabel" type="Label" parent="CanvasLayer/GameUI"]
-anchors_preset = 2
-anchor_left = 0.666
-anchor_right = 1.0
-offset_left = 20.0
-offset_top = 140.0
-offset_right = -20.0
-offset_bottom = 160.0
-text = "时间: 00:00"
+[node name="KillLabel" type="Label" parent="CanvasLayer/GameUI/TopHUD"]
+layout_mode = 2
+text = "击败 0"
+horizontal_alignment = 2
 
-[node name="KillLabel" type="Label" parent="CanvasLayer/GameUI"]
+[node name="PauseButton" type="Button" parent="CanvasLayer/GameUI"]
+layout_mode = 1
+offset_left = 18.0
+offset_top = 18.0
+offset_right = 112.0
+offset_bottom = 68.0
+text = "暂停"
+
+[node name="VirtualJoystick" type="Control" parent="CanvasLayer/GameUI"]
+layout_mode = 1
 anchors_preset = 2
-anchor_left = 0.666
-anchor_right = 1.0
-offset_left = 20.0
-offset_top = 165.0
-offset_right = -20.0
-offset_bottom = 185.0
-text = "击杀: 0"
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 28.0
+offset_top = -214.0
+offset_right = 208.0
+offset_bottom = -34.0
+grow_vertical = 0
+mouse_filter = 0
+script = ExtResource("7")
+radius = 82.0
+knob_radius = 34.0
 
 [node name="GameOverScreen" type="Control" parent="CanvasLayer/GameUI"]
 visible = false
+layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
 
-[node name="ColorRect" type="ColorRect" parent="CanvasLayer/GameUI/GameOverScreen"]
+[node name="Dim" type="ColorRect" parent="CanvasLayer/GameUI/GameOverScreen"]
+layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-color = Color(0, 0, 0, 0.8)
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.02, 0.03, 0.03, 0.82)
 
-[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/GameUI/GameOverScreen"]
+[node name="Panel" type="PanelContainer" parent="CanvasLayer/GameUI/GameOverScreen"]
+layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -150.0
-offset_top = -80.0
-offset_right = 150.0
-offset_bottom = 80.0
+offset_left = -210.0
+offset_top = -175.0
+offset_right = 210.0
+offset_bottom = 175.0
+grow_horizontal = 2
+grow_vertical = 2
 
-[node name="GameOverLabel" type="Label" parent="CanvasLayer/GameUI/GameOverScreen/VBoxContainer"]
-offset_right = 300.0
-offset_bottom = 60.0
-text = "游戏结束"
+[node name="VBox" type="VBoxContainer" parent="CanvasLayer/GameUI/GameOverScreen/Panel"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="ResultLabel" type="Label" parent="CanvasLayer/GameUI/GameOverScreen/Panel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 34
+text = "任务完成"
 horizontal_alignment = 1
-vertical_alignment = 1
 
-[node name="RestartButton" type="Button" parent="CanvasLayer/GameUI/GameOverScreen/VBoxContainer"]
-offset_top = 68.0
-offset_right = 300.0
-offset_bottom = 120.0
+[node name="SummaryLabel" type="Label" parent="CanvasLayer/GameUI/GameOverScreen/Panel/VBox"]
+layout_mode = 2
+text = "坚持时间\n击败敌人\n守卫等级"
+horizontal_alignment = 1
+
+[node name="RestartButton" type="Button" parent="CanvasLayer/GameUI/GameOverScreen/Panel/VBox"]
+custom_minimum_size = Vector2(0, 54)
+layout_mode = 2
 text = "重新开始"
 
-[node name="MenuButton" type="Button" parent="CanvasLayer/GameUI/GameOverScreen/VBoxContainer"]
-offset_top = 128.0
-offset_right = 300.0
-offset_bottom = 180.0
-text = "返回主菜单"
+[node name="MenuButton" type="Button" parent="CanvasLayer/GameUI/GameOverScreen/Panel/VBox"]
+custom_minimum_size = Vector2(0, 54)
+layout_mode = 2
+text = "返回村庄"
 
 [node name="PauseScreen" type="Control" parent="CanvasLayer/GameUI"]
 visible = false
+layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
 
-[node name="ColorRect2" type="ColorRect" parent="CanvasLayer/GameUI/PauseScreen"]
+[node name="Dim" type="ColorRect" parent="CanvasLayer/GameUI/PauseScreen"]
+layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-color = Color(0, 0, 0, 0.6)
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.65)
 
-[node name="VBoxContainer2" type="VBoxContainer" parent="CanvasLayer/GameUI/PauseScreen"]
+[node name="Panel" type="PanelContainer" parent="CanvasLayer/GameUI/PauseScreen"]
+layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -150.0
-offset_top = -80.0
-offset_right = 150.0
-offset_bottom = 80.0
+offset_left = -180.0
+offset_top = -130.0
+offset_right = 180.0
+offset_bottom = 130.0
+grow_horizontal = 2
+grow_vertical = 2
 
-[node name="PauseLabel" type="Label" parent="CanvasLayer/GameUI/PauseScreen/VBoxContainer2"]
-offset_right = 300.0
-offset_bottom = 60.0
+[node name="VBox" type="VBoxContainer" parent="CanvasLayer/GameUI/PauseScreen/Panel"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Title" type="Label" parent="CanvasLayer/GameUI/PauseScreen/Panel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
 text = "游戏暂停"
 horizontal_alignment = 1
-vertical_alignment = 1
 
-[node name="ResumeButton" type="Button" parent="CanvasLayer/GameUI/PauseScreen/VBoxContainer2"]
-offset_top = 68.0
-offset_right = 300.0
-offset_bottom = 120.0
+[node name="ResumeButton" type="Button" parent="CanvasLayer/GameUI/PauseScreen/Panel/VBox"]
+custom_minimum_size = Vector2(0, 58)
+layout_mode = 2
 text = "继续游戏"
 
-[node name="PauseMenuButton" type="Button" parent="CanvasLayer/GameUI/PauseScreen/VBoxContainer2"]
-offset_top = 128.0
-offset_right = 300.0
-offset_bottom = 180.0
-text = "返回主菜单"
+[node name="MenuButton" type="Button" parent="CanvasLayer/GameUI/PauseScreen/Panel/VBox"]
+custom_minimum_size = Vector2(0, 58)
+layout_mode = 2
+text = "返回村庄"
+
+[node name="UpgradeScreen" type="Control" parent="CanvasLayer/GameUI"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+
+[node name="Dim" type="ColorRect" parent="CanvasLayer/GameUI/UpgradeScreen"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.02, 0.03, 0.03, 0.76)
+
+[node name="Panel" type="PanelContainer" parent="CanvasLayer/GameUI/UpgradeScreen"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -500.0
+offset_top = -190.0
+offset_right = 500.0
+offset_bottom = 190.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBox" type="VBoxContainer" parent="CanvasLayer/GameUI/UpgradeScreen/Panel"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="Title" type="Label" parent="CanvasLayer/GameUI/UpgradeScreen/Panel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "选择一项强化"
+horizontal_alignment = 1
+
+[node name="Choices" type="HBoxContainer" parent="CanvasLayer/GameUI/UpgradeScreen/Panel/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 16
+
+[node name="Choice1" type="Button" parent="CanvasLayer/GameUI/UpgradeScreen/Panel/VBox/Choices"]
+custom_minimum_size = Vector2(300, 230)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "强化 1"
+autowrap_mode = 2
+
+[node name="Choice2" type="Button" parent="CanvasLayer/GameUI/UpgradeScreen/Panel/VBox/Choices"]
+custom_minimum_size = Vector2(300, 230)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "强化 2"
+autowrap_mode = 2
+
+[node name="Choice3" type="Button" parent="CanvasLayer/GameUI/UpgradeScreen/Panel/VBox/Choices"]
+custom_minimum_size = Vector2(300, 230)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "强化 3"
+autowrap_mode = 2

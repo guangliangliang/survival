@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="UpgradeData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/UpgradeData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+upgrade_id = &"move_speed"
+title = "轻装巡逻"
+description = "移动速度提高 12%"
+stat_key = &"move_speed_multiplier"
+amount = 0.12
+max_level = 5

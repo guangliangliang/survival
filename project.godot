@@ -19,12 +19,15 @@ config/icon="res://icon.svg"
 [autoload]
 
 GameManager="*res://autoload/GameManager.gd"
+InputAdapter="*res://autoload/InputAdapter.gd"
+AudioManager="*res://autoload/AudioManager.gd"
 
 [display]
 
 window/size/viewport_width=1280
 window/size/viewport_height=720
-window/stretch/aspect="ignore"
+window/stretch/aspect="expand"
+window/handheld/orientation=0
 
 [input]
 

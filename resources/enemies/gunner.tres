@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+[ext_resource type="Script" path="res://scripts/data/EnemyData.gd" id="1"]
+[resource]
+script = ExtResource("1")
+enemy_id = &"gunner"
+display_name = "强盗枪手"
+color = Color(0.55, 0.12, 0.32, 1)
+size = 19.0
+max_health = 75.0
+move_speed = 90.0
+damage = 10.0
+exp_reward = 12
+min_spawn_time = 480.0
+max_spawn_time = 9999.0
+spawn_weight = 2.0
+spawn_region = &"camp"
+ranged = true
+attack_range = 280.0
+attack_cooldown = 1.8

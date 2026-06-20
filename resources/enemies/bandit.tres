@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+[ext_resource type="Script" path="res://scripts/data/EnemyData.gd" id="1"]
+[resource]
+script = ExtResource("1")
+enemy_id = &"bandit"
+display_name = "强盗"
+color = Color(0.68, 0.18, 0.16, 1)
+size = 20.0
+max_health = 95.0
+move_speed = 115.0
+damage = 16.0
+exp_reward = 9
+min_spawn_time = 240.0
+max_spawn_time = 9999.0
+spawn_weight = 3.2
+spawn_region = &"camp"
+attack_range = 42.0
+attack_cooldown = 1.0

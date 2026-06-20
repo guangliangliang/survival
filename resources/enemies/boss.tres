@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+[ext_resource type="Script" path="res://scripts/data/EnemyData.gd" id="1"]
+[resource]
+script = ExtResource("1")
+enemy_id = &"bandit_chief"
+display_name = "强盗头目"
+color = Color(0.95, 0.08, 0.08, 1)
+size = 42.0
+max_health = 4500.0
+move_speed = 85.0
+damage = 32.0
+exp_reward = 200
+min_spawn_time = 660.0
+max_spawn_time = 9999.0
+spawn_weight = 0.0
+spawn_region = &"camp"
+attack_range = 70.0
+attack_cooldown = 0.9
+elite = true
+boss = true

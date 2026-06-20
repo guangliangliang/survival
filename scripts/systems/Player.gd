@@ -2,15 +2,15 @@ extends CharacterBody2D
 
 signal died
 
-@export var move_speed: float = 200.0
+@export var move_speed: float = 210.0
 @onready var health_component = $HealthComponent
 @onready var sprite = $Sprite2D
+@onready var ranged_weapon = $WeaponsNode/RangedWeapon
 
-var current_weapon = null
-var is_flashing = false
-var flash_timer = 0.0
-var flash_duration = 0.1
-var original_modulate = Color(1, 1, 1, 1)
+var is_alive: bool = true
+var world_bounds := Rect2(-1760.0, -1060.0, 3520.0, 2120.0)
+var flash_time: float = 0.0
+var original_modulate := Color.WHITE
 
 func _ready() -> void:
 	GameManager.player = self
@@ -18,37 +18,40 @@ func _ready() -> void:
 	health_component.health_changed.connect(_on_health_changed)
 	original_modulate = sprite.modulate
 
-func _physics_process(delta: float) -> void:
-	var input_dir = Vector2.ZERO
-	input_dir.x = Input.get_axis("move_left", "move_right")
-	input_dir.y = Input.get_axis("move_up", "move_down")
-	
-	if input_dir.length() > 0:
-		input_dir = input_dir.normalized()
-	
-	velocity = input_dir * move_speed
+func _physics_process(_delta: float) -> void:
+	if not is_alive:
+		velocity = Vector2.ZERO
+		return
+	velocity = InputAdapter.get_move_vector() * move_speed
 	move_and_slide()
+	global_position = global_position.clamp(world_bounds.position, world_bounds.end)
 
-func _process(delta: float):
-	if is_flashing:
-		flash_timer += delta
-		if flash_timer >= flash_duration:
-			is_flashing = false
+func _process(delta: float) -> void:
+	if flash_time > 0.0:
+		flash_time -= delta
+		if flash_time <= 0.0:
 			sprite.modulate = original_modulate
 
-func _on_health_changed(current_health: float, max_health: float):
-	if current_health < max_health:
-		_flash()
+func set_world_bounds(bounds: Rect2) -> void:
+	world_bounds = bounds.grow(-28.0)
 
-func _flash():
-	is_flashing = true
-	flash_timer = 0.0
-	sprite.modulate = Color(1, 0, 0, 1)
+func apply_upgrade(upgrade: UpgradeData) -> void:
+	match upgrade.stat_key:
+		&"move_speed_multiplier":
+			move_speed *= 1.0 + upgrade.amount
+		&"max_health":
+			health_component.increase_max_health(upgrade.amount, upgrade.amount)
+		_:
+			ranged_weapon.apply_upgrade(upgrade.stat_key, upgrade.amount)
+
+func _on_health_changed(_current_health: float, _max_health: float) -> void:
+	flash_time = 0.1
+	sprite.modulate = Color(1.0, 0.25, 0.25)
 
 func _on_died() -> void:
+	if not is_alive:
+		return
+	is_alive = false
 	GameManager.player_died.emit()
-	GameManager.end_game()
+	GameManager.end_game(&"defeat")
 	died.emit()
-
-func set_weapon(weapon):
-	current_weapon = weapon

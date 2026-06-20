@@ -1,5 +1,0 @@
-res://scenes/menu/MainMenu.gd
-res://scripts/systems/Enemy.gd
-res://scripts/systems/Player.gd
-res://autoload/GameManager.gd
-res://scenes/game/Game.gd

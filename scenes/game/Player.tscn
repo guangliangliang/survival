@@ -1,8 +1,7 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/systems/Player.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/components/HealthComponent.gd" id="2"]
-[ext_resource type="Script" path="res://scripts/components/MeleeWeapon.gd" id="3"]
 [ext_resource type="Script" path="res://scripts/components/RangedWeapon.gd" id="4"]
 [ext_resource type="PackedScene" path="res://scenes/game/Bullet.tscn" id="5"]
 
@@ -30,24 +29,17 @@ max_health = 100.0
 
 [node name="WeaponsNode" type="Node2D" parent="."]
 
-[node name="MeleeWeapon" type="Area2D" parent="WeaponsNode"]
-script = ExtResource("3")
-damage = 20.0
-attack_range = 80.0
-attack_cooldown = 0.5
-knockback_force = 200.0
-
 [node name="RangedWeapon" type="Node2D" parent="WeaponsNode"]
 script = ExtResource("4")
-damage = 10.0
-fire_rate = 10.0
-bullet_speed = 500.0
+damage = 25.0
+fire_rate = 30.0
+bullet_speed = 800.0
 bullet_scene = ExtResource("5")
-bullet_pool_size = 50
+bullet_pool_size = 150
+fire_range = 800.0
 
 [node name="WeaponTimer" type="Timer" parent="."]
 wait_time = 0.1
 autostart = true
 
-[connection signal="timeout" from="WeaponTimer" to="WeaponsNode/MeleeWeapon" method="attack"]
 [connection signal="timeout" from="WeaponTimer" to="WeaponsNode/RangedWeapon" method="fire"]

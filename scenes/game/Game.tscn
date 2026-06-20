@@ -26,68 +26,88 @@ script = ExtResource("5")
 spawn_radius = 600.0
 base_spawn_interval = 2.0
 
-[node name="GameUI" type="Control" parent="."]
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="GameUI" type="Control" parent="CanvasLayer"]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 
-[node name="HealthBar" type="ProgressBar" parent="GameUI"]
+[node name="HealthBar" type="ProgressBar" parent="CanvasLayer/GameUI"]
+anchors_preset = 2
+anchor_left = 0.666
+anchor_right = 1.0
 offset_left = 20.0
 offset_top = 20.0
-offset_right = 300.0
+offset_right = -20.0
 offset_bottom = 50.0
 max_value = 100.0
 value = 100.0
 
-[node name="HealthLabel" type="Label" parent="GameUI"]
+[node name="HealthLabel" type="Label" parent="CanvasLayer/GameUI"]
+anchors_preset = 2
+anchor_left = 0.666
+anchor_right = 1.0
 offset_left = 20.0
 offset_top = 55.0
-offset_right = 300.0
+offset_right = -20.0
 offset_bottom = 75.0
 text = "生命值: 100 / 100"
 
-[node name="ExpBar" type="ProgressBar" parent="GameUI"]
+[node name="ExpBar" type="ProgressBar" parent="CanvasLayer/GameUI"]
+anchors_preset = 2
+anchor_left = 0.666
+anchor_right = 1.0
 offset_left = 20.0
 offset_top = 80.0
-offset_right = 300.0
+offset_right = -20.0
 offset_bottom = 110.0
 max_value = 10.0
 value = 0.0
 
-[node name="ExpLabel" type="Label" parent="GameUI"]
+[node name="ExpLabel" type="Label" parent="CanvasLayer/GameUI"]
+anchors_preset = 2
+anchor_left = 0.666
+anchor_right = 1.0
 offset_left = 20.0
 offset_top = 115.0
-offset_right = 300.0
+offset_right = -20.0
 offset_bottom = 135.0
 text = "经验: 0 / 10 - 等级 1"
 
-[node name="TimeLabel" type="Label" parent="GameUI"]
+[node name="TimeLabel" type="Label" parent="CanvasLayer/GameUI"]
+anchors_preset = 2
+anchor_left = 0.666
+anchor_right = 1.0
 offset_left = 20.0
 offset_top = 140.0
-offset_right = 300.0
+offset_right = -20.0
 offset_bottom = 160.0
 text = "时间: 00:00"
 
-[node name="KillLabel" type="Label" parent="GameUI"]
+[node name="KillLabel" type="Label" parent="CanvasLayer/GameUI"]
+anchors_preset = 2
+anchor_left = 0.666
+anchor_right = 1.0
 offset_left = 20.0
 offset_top = 165.0
-offset_right = 300.0
+offset_right = -20.0
 offset_bottom = 185.0
 text = "击杀: 0"
 
-[node name="GameOverScreen" type="Control" parent="GameUI"]
+[node name="GameOverScreen" type="Control" parent="CanvasLayer/GameUI"]
 visible = false
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 
-[node name="ColorRect" type="ColorRect" parent="GameUI/GameOverScreen"]
+[node name="ColorRect" type="ColorRect" parent="CanvasLayer/GameUI/GameOverScreen"]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 color = Color(0, 0, 0, 0.8)
 
-[node name="VBoxContainer" type="VBoxContainer" parent="GameUI/GameOverScreen"]
+[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/GameUI/GameOverScreen"]
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
@@ -98,20 +118,62 @@ offset_top = -80.0
 offset_right = 150.0
 offset_bottom = 80.0
 
-[node name="GameOverLabel" type="Label" parent="GameUI/GameOverScreen/VBoxContainer"]
+[node name="GameOverLabel" type="Label" parent="CanvasLayer/GameUI/GameOverScreen/VBoxContainer"]
 offset_right = 300.0
 offset_bottom = 60.0
 text = "游戏结束"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="RestartButton" type="Button" parent="GameUI/GameOverScreen/VBoxContainer"]
+[node name="RestartButton" type="Button" parent="CanvasLayer/GameUI/GameOverScreen/VBoxContainer"]
 offset_top = 68.0
 offset_right = 300.0
 offset_bottom = 120.0
 text = "重新开始"
 
-[node name="MenuButton" type="Button" parent="GameUI/GameOverScreen/VBoxContainer"]
+[node name="MenuButton" type="Button" parent="CanvasLayer/GameUI/GameOverScreen/VBoxContainer"]
+offset_top = 128.0
+offset_right = 300.0
+offset_bottom = 180.0
+text = "返回主菜单"
+
+[node name="PauseScreen" type="Control" parent="CanvasLayer/GameUI"]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="ColorRect2" type="ColorRect" parent="CanvasLayer/GameUI/PauseScreen"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0, 0, 0, 0.6)
+
+[node name="VBoxContainer2" type="VBoxContainer" parent="CanvasLayer/GameUI/PauseScreen"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -150.0
+offset_top = -80.0
+offset_right = 150.0
+offset_bottom = 80.0
+
+[node name="PauseLabel" type="Label" parent="CanvasLayer/GameUI/PauseScreen/VBoxContainer2"]
+offset_right = 300.0
+offset_bottom = 60.0
+text = "游戏暂停"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ResumeButton" type="Button" parent="CanvasLayer/GameUI/PauseScreen/VBoxContainer2"]
+offset_top = 68.0
+offset_right = 300.0
+offset_bottom = 120.0
+text = "继续游戏"
+
+[node name="PauseMenuButton" type="Button" parent="CanvasLayer/GameUI/PauseScreen/VBoxContainer2"]
 offset_top = 128.0
 offset_right = 300.0
 offset_bottom = 180.0

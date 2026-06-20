@@ -43,4 +43,6 @@ func spawn_enemy() -> void:
 	var spawn_pos = player.global_position + Vector2(cos(angle), sin(angle)) * distance
 	enemy.global_position = spawn_pos
 	
-	get_tree().root.get_node("Game/GameWorld").add_child(enemy)
+	var game_world = get_tree().root.get_node_or_null("Game/GameWorld")
+	if game_world:
+		game_world.add_child(enemy)

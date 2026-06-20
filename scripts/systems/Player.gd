@@ -35,7 +35,7 @@ func _process(delta: float) -> void:
 func set_world_bounds(bounds: Rect2) -> void:
 	world_bounds = bounds.grow(-28.0)
 
-func apply_upgrade(upgrade: UpgradeData) -> void:
+func apply_upgrade(upgrade: Resource) -> void:
 	match upgrade.stat_key:
 		&"move_speed_multiplier":
 			move_speed *= 1.0 + upgrade.amount

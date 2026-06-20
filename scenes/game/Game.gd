@@ -32,7 +32,7 @@ extends Node
 var player: CharacterBody2D
 var manual_pause: bool = false
 var upgrade_pending: int = 0
-var current_choices: Array[UpgradeData] = []
+var current_choices: Array[Resource] = []
 var upgrade_levels: Dictionary = {}
 var boss_is_defeated: bool = false
 var smoke_test: bool = false
@@ -41,7 +41,7 @@ var stress_test: bool = false
 var stress_elapsed: float = 0.0
 var timeline_test: bool = false
 
-var upgrade_catalog: Array[UpgradeData] = [
+var upgrade_catalog: Array[Resource] = [
 	preload("res://resources/upgrades/damage.tres"),
 	preload("res://resources/upgrades/fire_rate.tres"),
 	preload("res://resources/upgrades/pierce.tres"),
@@ -114,7 +114,7 @@ func _start_game() -> void:
 	enemy_spawner.start_spawning()
 	if stress_test:
 		GameManager.game_time = 600.0
-		var stress_enemy: EnemyData = preload("res://resources/enemies/bandit.tres")
+		var stress_enemy: Resource = preload("res://resources/enemies/bandit.tres")
 		for index in enemy_spawner.active_enemy_limit:
 			enemy_spawner.spawn_enemy(stress_enemy)
 
@@ -132,7 +132,7 @@ func _on_level_up(_level: int) -> void:
 		_show_upgrade_choices()
 
 func _show_upgrade_choices() -> void:
-	var available: Array[UpgradeData] = []
+	var available: Array[Resource] = []
 	for upgrade in upgrade_catalog:
 		if int(upgrade_levels.get(upgrade.upgrade_id, 0)) < upgrade.max_level:
 			available.append(upgrade)

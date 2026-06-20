@@ -15,14 +15,14 @@ var active_enemies: Array[CharacterBody2D] = []
 var is_spawning: bool = false
 var boss_spawned: bool = false
 
-var enemy_catalog: Array[EnemyData] = [
+var enemy_catalog: Array[Resource] = [
 	preload("res://resources/enemies/wolf.tres"),
 	preload("res://resources/enemies/boar.tres"),
 	preload("res://resources/enemies/bandit.tres"),
 	preload("res://resources/enemies/gunner.tres"),
 	preload("res://resources/enemies/elite.tres")
 ]
-var boss_data: EnemyData = preload("res://resources/enemies/boss.tres")
+var boss_data: Resource = preload("res://resources/enemies/boss.tres")
 
 func _ready() -> void:
 	add_child(spawn_timer)
@@ -70,14 +70,14 @@ func _on_spawn_timer_timeout() -> void:
 	for index in batch_size:
 		if active_enemies.size() >= active_enemy_limit:
 			break
-		var data: EnemyData = _choose_enemy_data()
+		var data: Resource = _choose_enemy_data()
 		if data:
 			spawn_enemy(data)
 	var difficulty := 1.0 + GameManager.game_time / 360.0
 	spawn_timer.wait_time = maxf(0.32, base_spawn_interval / difficulty)
 
-func _choose_enemy_data() -> EnemyData:
-	var valid: Array[EnemyData] = []
+func _choose_enemy_data() -> Resource:
+	var valid: Array[Resource] = []
 	var total_weight := 0.0
 	for data in enemy_catalog:
 		if GameManager.game_time >= data.min_spawn_time and GameManager.game_time < data.max_spawn_time:
@@ -92,7 +92,7 @@ func _choose_enemy_data() -> EnemyData:
 			return data
 	return valid.back()
 
-func spawn_enemy(data: EnemyData) -> void:
+func spawn_enemy(data: Resource) -> void:
 	if inactive_pool.is_empty() or not is_instance_valid(player):
 		return
 	var enemy: CharacterBody2D = inactive_pool.pop_back()

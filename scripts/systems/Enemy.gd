@@ -2,7 +2,9 @@ extends CharacterBody2D
 
 signal released(enemy: Node)
 
-@export var enemy_data: EnemyData
+const EnemyDataResource = preload("res://scripts/data/EnemyData.gd")
+
+@export var enemy_data: Resource
 @onready var health_component = $HealthComponent
 @onready var sprite = $Sprite2D
 @onready var collision_shape = $CollisionShape2D
@@ -17,7 +19,7 @@ func _ready() -> void:
 	health_component.died.connect(_on_died)
 	health_component.health_changed.connect(_on_health_changed)
 	if enemy_data == null:
-		enemy_data = EnemyData.new()
+		enemy_data = EnemyDataResource.new()
 	_apply_data()
 
 func _physics_process(delta: float) -> void:
@@ -43,7 +45,7 @@ func _process(delta: float) -> void:
 		if flash_timer <= 0.0:
 			sprite.modulate = Color.WHITE
 
-func reset_for_spawn(data: EnemyData, player_target: Node2D, spawn_position: Vector2) -> void:
+func reset_for_spawn(data: Resource, player_target: Node2D, spawn_position: Vector2) -> void:
 	enemy_data = data
 	target = player_target
 	global_position = spawn_position

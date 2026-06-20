@@ -1,17 +1,19 @@
 extends Node2D
 
-@export var weapon_data: WeaponData
+const WeaponDataResource = preload("res://scripts/data/WeaponData.gd")
+
+@export var weapon_data: Resource
 @export var bullet_scene: PackedScene
 @export var bullet_pool_size: int = 200
 
-var runtime_data: WeaponData
+var runtime_data: Resource
 var cooldown: float = 0.0
 var bullet_pool: Array[Area2D] = []
 
 func _ready() -> void:
 	if weapon_data == null:
-		weapon_data = WeaponData.new()
-	runtime_data = weapon_data.duplicate(true) as WeaponData
+		weapon_data = WeaponDataResource.new()
+	runtime_data = weapon_data.duplicate(true)
 	_build_pool()
 
 func _process(delta: float) -> void:

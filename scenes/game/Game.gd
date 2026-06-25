@@ -1,5 +1,8 @@
 extends Node
 
+const VICTORY_EMBLEM := preload("res://assets/images/ui/emblem_victory.png")
+const DEFEAT_EMBLEM := preload("res://assets/images/ui/emblem_defeat.png")
+
 @export var run_duration: float = 720.0
 
 @onready var game_world: Node2D = $GameWorld
@@ -15,6 +18,7 @@ extends Node
 @onready var objective_label: Label = $CanvasLayer/GameUI/TopHUD/ObjectiveLabel
 @onready var pause_button: Button = $CanvasLayer/GameUI/PauseButton
 @onready var game_over_screen: Control = $CanvasLayer/GameUI/GameOverScreen
+@onready var result_emblem: TextureRect = $CanvasLayer/GameUI/GameOverScreen/Panel/VBox/ResultEmblem
 @onready var result_label: Label = $CanvasLayer/GameUI/GameOverScreen/Panel/VBox/ResultLabel
 @onready var summary_label: Label = $CanvasLayer/GameUI/GameOverScreen/Panel/VBox/SummaryLabel
 @onready var restart_button: Button = $CanvasLayer/GameUI/GameOverScreen/Panel/VBox/RestartButton
@@ -78,6 +82,7 @@ func _ready() -> void:
 	if smoke_test:
 		run_duration = 5.0
 	_connect_signals()
+	_apply_overlay_style()
 	_start_game()
 
 func _process(delta: float) -> void:
@@ -303,3 +308,40 @@ func _run_upgrade_exhaustion_test() -> void:
 	_show_upgrade_choices()
 	print("UPGRADE_EXHAUSTION_TEST pending=%d screen_visible=%s paused=%s" % [upgrade_pending, upgrade_screen.visible, get_tree().paused])
 	get_tree().create_timer(0.1, true).timeout.connect(func(): get_tree().quit())
+
+func _apply_overlay_style() -> void:
+	for panel_path in ["CanvasLayer/GameUI/GameOverScreen/Panel", "CanvasLayer/GameUI/PauseScreen/Panel", "CanvasLayer/GameUI/UpgradeScreen/Panel"]:
+		var panel := get_node_or_null(panel_path) as PanelContainer
+		if panel != null:
+			panel.add_theme_stylebox_override("panel", _panel_box())
+	for button in [pause_button, restart_button, next_button, level_select_button, home_button, resume_button, pause_restart_button, pause_level_select_button, pause_home_button]:
+		_style_game_button(button)
+	for button in upgrade_buttons:
+		_style_game_button(button)
+
+func _panel_box() -> StyleBoxFlat:
+	var box := StyleBoxFlat.new()
+	box.bg_color = Color(0.055, 0.064, 0.052, 0.94)
+	box.border_color = Color("b99a58")
+	box.set_border_width_all(3)
+	box.set_corner_radius_all(6)
+	box.set_content_margin_all(20)
+	box.shadow_color = Color(0, 0, 0, 0.55)
+	box.shadow_size = 14
+	box.shadow_offset = Vector2(0, 5)
+	return box
+
+func _style_game_button(button: Button) -> void:
+	button.add_theme_stylebox_override("normal", _button_box(Color("4b3428"), Color("a98955")))
+	button.add_theme_stylebox_override("hover", _button_box(Color("6a432d"), Color("d0ad68")))
+	button.add_theme_stylebox_override("pressed", _button_box(Color("31251f"), Color("7e6846")))
+	button.add_theme_color_override("font_color", Color("f2dfb0"))
+	button.add_theme_color_override("font_hover_color", Color("fff0c6"))
+
+func _button_box(fill: Color, border: Color) -> StyleBoxFlat:
+	var box := StyleBoxFlat.new()
+	box.bg_color = fill
+	box.border_color = border
+	box.set_border_width_all(2)
+	box.set_corner_radius_all(5)
+	return box

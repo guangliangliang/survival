@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3]
+[gd_scene load_steps=14 format=3]
 
 [ext_resource type="Script" path="res://scenes/game/Game.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/systems/WorldMap.gd" id="2"]
@@ -11,6 +11,8 @@
 [ext_resource type="PackedScene" path="res://scenes/game/EnemyBullet.tscn" id="9"]
 [ext_resource type="Script" path="res://scripts/managers/CombatFeedbackPool.gd" id="10"]
 [ext_resource type="Script" path="res://scripts/managers/VisualEffectsPool.gd" id="11"]
+[ext_resource type="Texture2D" path="res://assets/images/ui/emblem_victory.png" id="12"]
+[ext_resource type="Texture2D" path="res://assets/images/ui/emblem_defeat.png" id="13"]
 
 [node name="Game" type="Node" groups=["game_controller"]]
 process_mode = 3
@@ -179,6 +181,12 @@ grow_vertical = 2
 [node name="VBox" type="VBoxContainer" parent="CanvasLayer/GameUI/GameOverScreen/Panel"]
 layout_mode = 2
 theme_override_constants/separation = 14
+
+[node name="ResultEmblem" type="TextureRect" parent="CanvasLayer/GameUI/GameOverScreen/Panel/VBox"]
+custom_minimum_size = Vector2(120, 120)
+layout_mode = 2
+stretch_mode = 5
+texture = ExtResource("12")
 
 [node name="ResultLabel" type="Label" parent="CanvasLayer/GameUI/GameOverScreen/Panel/VBox"]
 layout_mode = 2

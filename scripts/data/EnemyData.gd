@@ -4,6 +4,7 @@ extends Resource
 @export var enemy_id: StringName = &"enemy"
 @export var display_name: String = "敌人"
 @export var color: Color = Color(0.8, 0.3, 0.2)
+@export var texture: Texture2D
 @export var size: float = 20.0
 @export var max_health: float = 30.0
 @export var move_speed: float = 100.0

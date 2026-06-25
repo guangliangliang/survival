@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://scenes/game/Game.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/systems/WorldMap.gd" id="2"]
@@ -10,6 +10,7 @@
 [ext_resource type="Script" path="res://scripts/managers/EnemyProjectilePool.gd" id="8"]
 [ext_resource type="PackedScene" path="res://scenes/game/EnemyBullet.tscn" id="9"]
 [ext_resource type="Script" path="res://scripts/managers/CombatFeedbackPool.gd" id="10"]
+[ext_resource type="Script" path="res://scripts/managers/VisualEffectsPool.gd" id="11"]
 
 [node name="Game" type="Node" groups=["game_controller"]]
 process_mode = 3
@@ -43,6 +44,10 @@ pool_size = 160
 [node name="CombatFeedbackPool" type="Node2D" parent="GameWorld"]
 script = ExtResource("10")
 pool_size = 48
+
+[node name="VisualEffectsPool" type="Node2D" parent="GameWorld"]
+script = ExtResource("11")
+pool_size = 64
 
 [node name="EnemySpawner" type="Node" parent="." groups=["enemy_spawner"]]
 process_mode = 1

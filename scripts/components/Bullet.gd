@@ -36,6 +36,9 @@ func _check_hit(node: Node) -> void:
 	if node.is_in_group("enemy") and not hit_ids.has(node.get_instance_id()):
 		if node.has_method("receive_hit"):
 			hit_ids[node.get_instance_id()] = true
+			var effects := get_tree().get_first_node_in_group("visual_effects")
+			if effects != null:
+				effects.call("play_impact", global_position)
 			node.call("receive_hit", damage, direction)
 			if remaining_pierce <= 0:
 				_deactivate()
@@ -45,6 +48,7 @@ func _check_hit(node: Node) -> void:
 func activate(spawn_position: Vector2, shot_direction: Vector2, shot_speed: float, shot_damage: float, pierce: int) -> void:
 	global_position = spawn_position
 	direction = shot_direction.normalized()
+	rotation = direction.angle()
 	speed = shot_speed
 	damage = shot_damage
 	remaining_pierce = pierce

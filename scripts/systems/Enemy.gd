@@ -6,7 +6,7 @@ const EnemyDataResource = preload("res://scripts/data/EnemyData.gd")
 
 @export var enemy_data: Resource
 @onready var health_component = $HealthComponent
-@onready var sprite = $Sprite2D
+@onready var sprite: Sprite2D = $Sprite2D
 @onready var collision_shape = $CollisionShape2D
 
 var target: Node2D
@@ -80,11 +80,14 @@ func reset_for_spawn(data: Resource, player_target: Node2D, spawn_position: Vect
 func _apply_data() -> void:
 	if not is_node_ready():
 		return
-	sprite.color = enemy_data.color
-	sprite.offset_left = -enemy_data.size
-	sprite.offset_top = -enemy_data.size
-	sprite.offset_right = enemy_data.size
-	sprite.offset_bottom = enemy_data.size
+	sprite.texture = enemy_data.texture
+	sprite.modulate = Color.WHITE if enemy_data.texture != null else enemy_data.color
+	if sprite.texture != null:
+		var texture_size: Vector2 = sprite.texture.get_size()
+		var target_size: Vector2 = Vector2.ONE * enemy_data.size * 2.4
+		sprite.scale = Vector2.ONE * minf(target_size.x / texture_size.x, target_size.y / texture_size.y)
+	else:
+		sprite.scale = Vector2.ONE
 	var circle := collision_shape.shape as CircleShape2D
 	if circle:
 		circle.radius = enemy_data.size
@@ -146,6 +149,9 @@ func _on_died() -> void:
 	else:
 		GameManager.add_exp(enemy_data.exp_reward)
 	GameManager.add_kill(enemy_data.boss)
+	var effects := get_tree().get_first_node_in_group("visual_effects")
+	if effects != null:
+		effects.call("play_death_puff", global_position)
 	_release_to_pool()
 
 func _release_to_pool() -> void:

@@ -1,6 +1,11 @@
 extends Node2D
 
 const WORLD_BOUNDS := Rect2(-1800.0, -1100.0, 3600.0, 2200.0)
+const MAP_TEXTURES := {
+	&"village": preload("res://assets/images/maps/map_village_outskirts.png"),
+	&"forest": preload("res://assets/images/maps/map_dark_forest.png"),
+	&"camp": preload("res://assets/images/maps/map_bandit_camp.png")
+}
 
 var spawn_regions := {
 	&"forest": [Vector2(-1400, -650), Vector2(-1150, 520), Vector2(-650, -850)],
@@ -35,6 +40,15 @@ func get_spawn_position(region: StringName, avoid_position: Vector2) -> Vector2:
 	return (center + offset).clamp(WORLD_BOUNDS.position + Vector2(40, 40), WORLD_BOUNDS.end - Vector2(40, 40))
 
 func _draw() -> void:
+	var texture: Texture2D = MAP_TEXTURES.get(map_variant, MAP_TEXTURES[&"village"])
+	if texture != null:
+		draw_texture_rect(texture, WORLD_BOUNDS, false)
+	else:
+		_draw_fallback_map()
+	for rect in obstacle_rects:
+		draw_rect(rect, Color(0.0, 0.0, 0.0, 0.28))
+
+func _draw_fallback_map() -> void:
 	match map_variant:
 		&"forest":
 			draw_rect(WORLD_BOUNDS, Color("172f24"))
@@ -54,8 +68,6 @@ func _draw() -> void:
 			draw_rect(Rect2(-380, -260, 760, 520), Color("6f7552"))
 			draw_rect(Rect2(-1800, -70, 3600, 140), Color("8a7957"))
 			draw_circle(Vector2.ZERO, 115.0, Color("9c8b63"))
-	for rect in obstacle_rects:
-		draw_rect(rect, Color("18251c") if map_variant == &"forest" else Color("4d3527"))
 
 func _build_boundaries() -> void:
 	var body := StaticBody2D.new()

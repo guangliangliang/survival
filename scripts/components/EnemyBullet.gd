@@ -20,6 +20,7 @@ func _process(delta: float) -> void:
 func activate(spawn_position: Vector2, shot_direction: Vector2, shot_damage: float, shot_speed: float = 330.0) -> void:
 	global_position = spawn_position
 	direction = shot_direction.normalized()
+	rotation = direction.angle()
 	damage = shot_damage
 	speed = shot_speed
 	life_timer = 0.0

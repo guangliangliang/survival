@@ -1,14 +1,31 @@
 extends Node2D
 
 const WeaponDataResource = preload("res://scripts/data/WeaponData.gd")
+const ANIM_FRAME_COUNT := 4
+const PLAYER_FRAME_ORIGIN := Vector2(64.0, 86.0)
+const VISUAL_SCALE := 0.82
+const DIRECTION_DOWN := 0
+const DIRECTION_RIGHT := 1
+const DIRECTION_UP := 2
+const DIRECTION_LEFT := 3
+const ARMS_TEXTURE_PIVOT := Vector2(64.0, 64.0)
+const MUZZLE_LOCAL := Vector2(47.0, 0.0)
+const AIM_SMOOTHING := 18.0
+const AIM_PIVOT_POINTS := [
+	[Vector2(84, 66), Vector2(84, 64), Vector2(84, 66), Vector2(84, 68)],
+	[Vector2(84, 66), Vector2(84, 64), Vector2(84, 66), Vector2(84, 68)],
+	[Vector2(84, 66), Vector2(84, 64), Vector2(84, 66), Vector2(84, 68)],
+	[Vector2(44, 66), Vector2(44, 64), Vector2(44, 66), Vector2(44, 68)],
+]
 
 @export var weapon_data: Resource
 @export var bullet_scene: PackedScene
 @export var bullet_pool_size: int = 200
 
-@onready var gun_sprite: Sprite2D = $GunSprite
-@onready var muzzle: Node2D = $Muzzle
-@onready var muzzle_flash: Sprite2D = $MuzzleFlash
+@onready var aim_pivot: Node2D = $AimPivot
+@onready var arms_rifle_sprite: Sprite2D = $AimPivot/ArmsRifleSprite
+@onready var muzzle: Node2D = $AimPivot/Muzzle
+@onready var muzzle_flash: Sprite2D = $AimPivot/MuzzleFlash
 
 var runtime_data: Resource
 var cooldown: float = 0.0
@@ -17,17 +34,28 @@ var muzzle_flash_timer: float = 0.0
 var target_refresh_timer: float = 0.0
 var cached_target: Node2D
 var aim_direction := Vector2.RIGHT
+var aim_target_direction := Vector2.RIGHT
+var body_direction_row: int = DIRECTION_DOWN
+var body_frame: int = 0
 
 func _ready() -> void:
 	if weapon_data == null:
 		weapon_data = WeaponDataResource.new()
 	runtime_data = weapon_data.duplicate(true)
+	rotation = 0.0
+	scale = Vector2.ONE
+	arms_rifle_sprite.centered = false
+	arms_rifle_sprite.offset = -ARMS_TEXTURE_PIVOT
+	arms_rifle_sprite.scale = Vector2(VISUAL_SCALE, VISUAL_SCALE)
 	_build_pool()
+	set_body_pose(body_direction_row, body_frame)
+	_update_aim_visual()
 
 func _process(delta: float) -> void:
 	if cooldown > 0.0:
 		cooldown -= delta
 	_update_aim()
+	_smooth_aim(delta)
 	if cooldown <= 0.0:
 		fire()
 	if muzzle_flash_timer > 0.0:
@@ -92,6 +120,7 @@ func _update_muzzle_flash() -> void:
 	var frame: int = clampi(2 - int(ceil(muzzle_flash_timer / 0.06 * 3.0)), 0, 2)
 	muzzle_flash.region_rect = Rect2(frame * 32, 0, 32, 32)
 	muzzle_flash.position = muzzle.position
+	muzzle_flash.rotation = 0.0
 
 func _get_bullet_from_pool() -> Area2D:
 	for bullet in bullet_pool:
@@ -119,6 +148,20 @@ func get_active_bullet_count() -> int:
 			count += 1
 	return count
 
+func get_aim_direction() -> Vector2:
+	return aim_direction
+
+func refresh_aim_direction() -> void:
+	_update_aim()
+
+func has_aim_target() -> bool:
+	return is_instance_valid(cached_target) and cached_target.get("is_alive")
+
+func set_body_pose(direction_row: int, frame: int) -> void:
+	body_direction_row = clampi(direction_row, DIRECTION_DOWN, DIRECTION_LEFT)
+	body_frame = clampi(frame, 0, ANIM_FRAME_COUNT - 1)
+	aim_pivot.position = _frame_point_to_local(AIM_PIVOT_POINTS[body_direction_row][body_frame])
+
 func _update_aim() -> void:
 	var target: Node2D = _find_nearest_enemy()
 	if target == null:
@@ -128,7 +171,19 @@ func _update_aim() -> void:
 func _set_aim_direction(direction: Vector2) -> void:
 	if direction.length_squared() <= 0.001:
 		return
-	aim_direction = direction
-	rotation = aim_direction.angle()
-	scale.y = -1.0 if aim_direction.x < 0.0 else 1.0
-	z_index = -1 if aim_direction.y < -0.35 else 1
+	aim_target_direction = direction.normalized()
+
+func _smooth_aim(delta: float) -> void:
+	var weight := 1.0 - exp(-AIM_SMOOTHING * delta)
+	var angle := lerp_angle(aim_direction.angle(), aim_target_direction.angle(), weight)
+	aim_direction = Vector2(cos(angle), sin(angle))
+	_update_aim_visual()
+
+func _frame_point_to_local(point: Vector2) -> Vector2:
+	return (point - PLAYER_FRAME_ORIGIN) * VISUAL_SCALE
+
+func _update_aim_visual() -> void:
+	aim_pivot.rotation = aim_direction.angle()
+	arms_rifle_sprite.scale = Vector2(VISUAL_SCALE, -VISUAL_SCALE if aim_direction.x < 0.0 else VISUAL_SCALE)
+	muzzle.position = MUZZLE_LOCAL
+	z_index = 3

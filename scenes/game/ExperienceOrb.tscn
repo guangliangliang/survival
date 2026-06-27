@@ -14,7 +14,8 @@ script = ExtResource("1")
 [node name="Visual" type="Sprite2D" parent="."]
 texture = ExtResource("2")
 region_enabled = true
-region_rect = Rect2(0, 0, 24, 24)
+region_rect = Rect2(0, 0, 543, 724)
+scale = Vector2(0.0414365, 0.0414365)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("CircleShape2D_orb")

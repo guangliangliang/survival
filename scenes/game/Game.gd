@@ -134,7 +134,7 @@ func _start_game() -> void:
 	boss_is_defeated = false
 	upgrade_pending = 0
 	upgrade_levels.clear()
-	InputAdapter.clear_virtual_move()
+	InputAdapter.clear_virtual_inputs()
 	GameManager.start_run(level_data)
 	player = preload("res://scenes/game/Player.tscn").instantiate()
 	player.global_position = Vector2.ZERO
@@ -160,7 +160,7 @@ func _toggle_manual_pause() -> void:
 		return
 	manual_pause = not manual_pause
 	pause_screen.visible = manual_pause
-	InputAdapter.clear_virtual_move()
+	InputAdapter.clear_virtual_inputs()
 	get_tree().paused = manual_pause
 
 func _on_level_up(_level: int) -> void:
@@ -193,7 +193,7 @@ func _show_upgrade_choices() -> void:
 		else:
 			button.visible = false
 	upgrade_screen.visible = true
-	InputAdapter.clear_virtual_move()
+	InputAdapter.clear_virtual_inputs()
 	get_tree().paused = true
 	if smoke_test:
 		_choose_upgrade.call_deferred(0)
@@ -216,7 +216,7 @@ func _on_boss_defeated() -> void:
 
 func _on_game_ended(result: StringName) -> void:
 	enemy_spawner.stop_spawning()
-	InputAdapter.clear_virtual_move()
+	InputAdapter.clear_virtual_inputs()
 	get_tree().paused = true
 	pause_screen.visible = false
 	upgrade_screen.visible = false
@@ -268,12 +268,12 @@ func _start_next_level() -> void:
 
 func _return_to_level_select() -> void:
 	get_tree().paused = false
-	InputAdapter.clear_virtual_move()
+	InputAdapter.clear_virtual_inputs()
 	get_tree().change_scene_to_file("res://scenes/menu/LevelSelect.tscn")
 
 func _return_home() -> void:
 	get_tree().paused = false
-	InputAdapter.clear_virtual_move()
+	InputAdapter.clear_virtual_inputs()
 	get_tree().change_scene_to_file("res://scenes/menu/MainMenu.tscn")
 
 func _run_smoke_flow() -> void:

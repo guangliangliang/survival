@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3]
+[gd_scene load_steps=17 format=3]
 
 [ext_resource type="Script" path="res://scenes/game/Game.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/systems/WorldMap.gd" id="2"]
@@ -13,6 +13,9 @@
 [ext_resource type="Script" path="res://scripts/managers/VisualEffectsPool.gd" id="11"]
 [ext_resource type="Texture2D" path="res://assets/images/ui/emblem_victory.png" id="12"]
 [ext_resource type="Texture2D" path="res://assets/images/ui/emblem_defeat.png" id="13"]
+[ext_resource type="Texture2D" path="res://assets/images/ui/icon_health.png" id="14"]
+[ext_resource type="Texture2D" path="res://assets/images/ui/icon_level.png" id="15"]
+[ext_resource type="Texture2D" path="res://assets/images/ui/icon_time.png" id="16"]
 
 [node name="Game" type="Node" groups=["game_controller"]]
 process_mode = 3
@@ -89,7 +92,19 @@ layout_mode = 2
 text = "任务：坚持到强盗头目出现"
 horizontal_alignment = 2
 
-[node name="TimeLabel" type="Label" parent="CanvasLayer/GameUI/TopHUD"]
+[node name="TimeRow" type="HBoxContainer" parent="CanvasLayer/GameUI/TopHUD"]
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 2
+
+[node name="TimeIcon" type="TextureRect" parent="CanvasLayer/GameUI/TopHUD/TimeRow"]
+custom_minimum_size = Vector2(28, 28)
+layout_mode = 2
+texture = ExtResource("16")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="TimeLabel" type="Label" parent="CanvasLayer/GameUI/TopHUD/TimeRow"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
 text = "00:00 / 12:00"
@@ -101,7 +116,19 @@ layout_mode = 2
 value = 100.0
 show_percentage = false
 
-[node name="HealthLabel" type="Label" parent="CanvasLayer/GameUI/TopHUD"]
+[node name="HealthRow" type="HBoxContainer" parent="CanvasLayer/GameUI/TopHUD"]
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 2
+
+[node name="HealthIcon" type="TextureRect" parent="CanvasLayer/GameUI/TopHUD/HealthRow"]
+custom_minimum_size = Vector2(28, 28)
+layout_mode = 2
+texture = ExtResource("14")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="HealthLabel" type="Label" parent="CanvasLayer/GameUI/TopHUD/HealthRow"]
 layout_mode = 2
 text = "生命 100 / 100"
 horizontal_alignment = 2
@@ -112,7 +139,19 @@ layout_mode = 2
 max_value = 10.0
 show_percentage = false
 
-[node name="ExpLabel" type="Label" parent="CanvasLayer/GameUI/TopHUD"]
+[node name="ExpRow" type="HBoxContainer" parent="CanvasLayer/GameUI/TopHUD"]
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 2
+
+[node name="ExpIcon" type="TextureRect" parent="CanvasLayer/GameUI/TopHUD/ExpRow"]
+custom_minimum_size = Vector2(28, 28)
+layout_mode = 2
+texture = ExtResource("15")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="ExpLabel" type="Label" parent="CanvasLayer/GameUI/TopHUD/ExpRow"]
 layout_mode = 2
 text = "等级 1   经验 0 / 10"
 horizontal_alignment = 2

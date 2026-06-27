@@ -7,6 +7,7 @@ extends Resource
 @export var texture: Texture2D
 @export var walk_texture: Texture2D
 @export var attack_texture: Texture2D
+@export var projectile_texture: Texture2D
 @export var visual_scale_multiplier: float = 1.0
 @export var size: float = 20.0
 @export var max_health: float = 30.0

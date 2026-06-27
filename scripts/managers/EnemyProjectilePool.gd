@@ -14,10 +14,10 @@ func _ready() -> void:
 		projectile.call("deactivate")
 		pool.append(projectile)
 
-func fire(spawn_position: Vector2, direction: Vector2, damage: float, speed: float = 330.0) -> bool:
+func fire(spawn_position: Vector2, direction: Vector2, damage: float, speed: float = 330.0, texture: Texture2D = null) -> bool:
 	for projectile in pool:
 		if not projectile.get("active"):
-			projectile.call("activate", spawn_position, direction, damage, speed)
+			projectile.call("activate", spawn_position, direction, damage, speed, texture)
 			return true
 	return false
 

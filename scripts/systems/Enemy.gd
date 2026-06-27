@@ -147,7 +147,7 @@ func _perform_attack() -> void:
 	var projectile_pool := get_tree().get_first_node_in_group("enemy_projectile_pool")
 	if enemy_data.ranged:
 		if projectile_pool != null:
-			projectile_pool.call("fire", global_position, direction, enemy_data.damage, 360.0)
+			projectile_pool.call("fire", global_position, direction, enemy_data.damage, 360.0, enemy_data.projectile_texture)
 	elif enemy_data.boss and attack_count % 3 == 0:
 		if projectile_pool != null:
 			var projectile_count: int = 14 if health_component.current_health <= health_component.max_health * 0.5 else 10

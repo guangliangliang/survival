@@ -1,8 +1,9 @@
-[gd_resource type="Resource" script_class="EnemyData" load_steps=5 format=3]
+[gd_resource type="Resource" script_class="EnemyData" load_steps=6 format=3]
 [ext_resource type="Script" path="res://scripts/data/EnemyData.gd" id="1"]
 [ext_resource type="Texture2D" path="res://assets/images/enemies/enemy_musketeer_bandit_single.png" id="2"]
 [ext_resource type="Texture2D" path="res://assets/images/enemies/enemy_musketeer_bandit_walk_right_4.png" id="3"]
 [ext_resource type="Texture2D" path="res://assets/images/enemies/enemy_musketeer_bandit_attack_right_4.png" id="4"]
+[ext_resource type="Texture2D" path="res://assets/images/projectiles/projectile_musket_shot.png" id="5"]
 [resource]
 script = ExtResource("1")
 enemy_id = &"gunner"
@@ -11,6 +12,7 @@ color = Color(0.55, 0.12, 0.32, 1)
 texture = ExtResource("2")
 walk_texture = ExtResource("3")
 attack_texture = ExtResource("4")
+projectile_texture = ExtResource("5")
 size = 19.0
 max_health = 75.0
 move_speed = 90.0

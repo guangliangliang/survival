@@ -1,12 +1,17 @@
-[gd_resource type="Resource" script_class="EnemyData" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="EnemyData" load_steps=5 format=3]
 [ext_resource type="Script" path="res://scripts/data/EnemyData.gd" id="1"]
-[ext_resource type="Texture2D" path="res://assets/images/enemies/enemy_wolf.png" id="2"]
+[ext_resource type="Texture2D" path="res://assets/images/enemies/enemy_wolf_single.png" id="2"]
+[ext_resource type="Texture2D" path="res://assets/images/enemies/enemy_wolf_walk_right_4.png" id="3"]
+[ext_resource type="Texture2D" path="res://assets/images/enemies/enemy_wolf_attack_right_4.png" id="4"]
 [resource]
 script = ExtResource("1")
 enemy_id = &"wolf"
 display_name = "野狼"
 color = Color(0.65, 0.48, 0.3, 1)
 texture = ExtResource("2")
+walk_texture = ExtResource("3")
+attack_texture = ExtResource("4")
+visual_scale_multiplier = 2.2
 size = 17.0
 max_health = 35.0
 move_speed = 150.0
@@ -16,5 +21,5 @@ min_spawn_time = 0.0
 max_spawn_time = 480.0
 spawn_weight = 4.0
 spawn_region = &"forest"
-attack_range = 38.0
+attack_range = 72.0
 attack_cooldown = 0.9

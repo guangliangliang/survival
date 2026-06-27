@@ -19,7 +19,9 @@ var level_data: Resource
 var enemy_catalog: Array[Resource] = [
 	preload("res://resources/enemies/wolf.tres"),
 	preload("res://resources/enemies/boar.tres"),
+	preload("res://resources/enemies/thorn_porcupine.tres"),
 	preload("res://resources/enemies/bandit.tres"),
+	preload("res://resources/enemies/cult_wizard.tres"),
 	preload("res://resources/enemies/gunner.tres"),
 	preload("res://resources/enemies/elite.tres")
 ]

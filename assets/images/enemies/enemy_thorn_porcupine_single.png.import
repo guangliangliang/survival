@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bwdbu64jibytk"
-path="res://.godot/imported/enemy_wolf.png-c27b5adaf4e19218565fe930a98e5dbc.ctex"
+uid="uid://cysl23d5sp3bh"
+path="res://.godot/imported/enemy_thorn_porcupine_single.png-fe3ac40e472f25772315cf266300bfce.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/images/enemies/enemy_wolf.png"
-dest_files=["res://.godot/imported/enemy_wolf.png-c27b5adaf4e19218565fe930a98e5dbc.ctex"]
+source_file="res://assets/images/enemies/enemy_thorn_porcupine_single.png"
+dest_files=["res://.godot/imported/enemy_thorn_porcupine_single.png-fe3ac40e472f25772315cf266300bfce.ctex"]
 
 [params]
 

@@ -41,6 +41,7 @@ script = ExtResource("3")
 weapon_data = ExtResource("5")
 bullet_scene = ExtResource("4")
 bullet_pool_size = 200
+firing_enabled = true
 
 [node name="AimPivot" type="Node2D" parent="WeaponsNode/RangedWeapon"]
 position = Vector2(0, -25)

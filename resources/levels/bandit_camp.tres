@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="LevelData" load_steps=7 format=3]
+[gd_resource type="Resource" script_class="LevelData" load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scripts/data/LevelData.gd" id="1"]
 [ext_resource type="Resource" path="res://resources/enemies/bandit.tres" id="2"]
@@ -6,6 +6,7 @@
 [ext_resource type="Resource" path="res://resources/enemies/elite.tres" id="4"]
 [ext_resource type="Resource" path="res://resources/enemies/boar.tres" id="5"]
 [ext_resource type="Resource" path="res://resources/enemies/boss.tres" id="6"]
+[ext_resource type="Resource" path="res://resources/enemies/cult_wizard.tres" id="7"]
 
 [resource]
 script = ExtResource("1")
@@ -15,7 +16,7 @@ description = "突破枪手与精英的交叉火力，最终击败强盗头目�
 duration = 600.0
 boss_spawn_time = 540.0
 map_variant = &"camp"
-enemy_catalog = Array[Resource]([ExtResource("2"), ExtResource("3"), ExtResource("4"), ExtResource("5")])
+enemy_catalog = Array[Resource]([ExtResource("2"), ExtResource("3"), ExtResource("4"), ExtResource("5"), ExtResource("7")])
 boss_data = ExtResource("6")
 spawn_interval = 1.1
 active_enemy_limit = 120

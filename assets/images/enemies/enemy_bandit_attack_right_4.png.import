@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bv8ocql0tlh81"
-path="res://.godot/imported/enemy_elite_bandit.png-ec88d253394b740cab2f35ed2183d1d4.ctex"
+uid="uid://da672bphyuw5a"
+path="res://.godot/imported/enemy_bandit_attack_right_4.png-6f37c6359ad9b81a734cc55c6fdbcf9f.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/images/enemies/enemy_elite_bandit.png"
-dest_files=["res://.godot/imported/enemy_elite_bandit.png-ec88d253394b740cab2f35ed2183d1d4.ctex"]
+source_file="res://assets/images/enemies/enemy_bandit_attack_right_4.png"
+dest_files=["res://.godot/imported/enemy_bandit_attack_right_4.png-6f37c6359ad9b81a734cc55c6fdbcf9f.ctex"]
 
 [params]
 

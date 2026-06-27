@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://uc1owi6e0wm4"
-path="res://.godot/imported/enemy_bandit_chief.png-af6a9ff4ceaf5b65edb8f31d44384cac.ctex"
+uid="uid://cjskasnqu4dyd"
+path="res://.godot/imported/enemy_thorn_porcupine_walk_right_4.png-566ef092bd63e1037ab2f97fb8b94026.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/images/enemies/enemy_bandit_chief.png"
-dest_files=["res://.godot/imported/enemy_bandit_chief.png-af6a9ff4ceaf5b65edb8f31d44384cac.ctex"]
+source_file="res://assets/images/enemies/enemy_thorn_porcupine_walk_right_4.png"
+dest_files=["res://.godot/imported/enemy_thorn_porcupine_walk_right_4.png-566ef092bd63e1037ab2f97fb8b94026.ctex"]
 
 [params]
 

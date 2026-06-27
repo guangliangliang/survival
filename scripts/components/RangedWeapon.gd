@@ -21,6 +21,7 @@ const AIM_PIVOT_POINTS := [
 @export var weapon_data: Resource
 @export var bullet_scene: PackedScene
 @export var bullet_pool_size: int = 200
+@export var firing_enabled: bool = true
 
 @onready var aim_pivot: Node2D = $AimPivot
 @onready var arms_rifle_sprite: Sprite2D = $AimPivot/ArmsRifleSprite
@@ -56,7 +57,7 @@ func _process(delta: float) -> void:
 		cooldown -= delta
 	_update_aim()
 	_smooth_aim(delta)
-	if cooldown <= 0.0:
+	if firing_enabled and cooldown <= 0.0:
 		fire()
 	if muzzle_flash_timer > 0.0:
 		muzzle_flash_timer -= delta

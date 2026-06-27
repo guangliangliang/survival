@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bjvgvy12ftwrq"
-path="res://.godot/imported/enemy_gunner.png-5b0abe8209956a0e04d58de442b6978f.ctex"
+uid="uid://gc72lnypefpu"
+path="res://.godot/imported/enemy_forest_beast_walk_right_4.png-27d0d4aee4d8b27c81213fa8c8f0c551.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/images/enemies/enemy_gunner.png"
-dest_files=["res://.godot/imported/enemy_gunner.png-5b0abe8209956a0e04d58de442b6978f.ctex"]
+source_file="res://assets/images/enemies/enemy_forest_beast_walk_right_4.png"
+dest_files=["res://.godot/imported/enemy_forest_beast_walk_right_4.png-27d0d4aee4d8b27c81213fa8c8f0c551.ctex"]
 
 [params]
 

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cjrcnk4bl2o0u"
-path="res://.godot/imported/enemy_boar.png-65b0651453e74a682d8ba6112e1c5ce5.ctex"
+uid="uid://da2gg88c5wep4"
+path="res://.godot/imported/enemy_alpha_wolf_walk_right_4.png-b6a68cfd7428c08f9bb3e1dfda5304de.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/images/enemies/enemy_boar.png"
-dest_files=["res://.godot/imported/enemy_boar.png-65b0651453e74a682d8ba6112e1c5ce5.ctex"]
+source_file="res://assets/images/enemies/enemy_alpha_wolf_walk_right_4.png"
+dest_files=["res://.godot/imported/enemy_alpha_wolf_walk_right_4.png-b6a68cfd7428c08f9bb3e1dfda5304de.ctex"]
 
 [params]
 

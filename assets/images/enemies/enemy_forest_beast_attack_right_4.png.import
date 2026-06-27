@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://d1nc1vbq5cjrw"
-path="res://.godot/imported/enemy_forest_beast.png-8dd7dc1be8b8b6c5b333aaa6934fe91f.ctex"
+uid="uid://cemeuf7qmcou3"
+path="res://.godot/imported/enemy_forest_beast_attack_right_4.png-f12497a124fa59e36a90fbe70075a90c.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/images/enemies/enemy_forest_beast.png"
-dest_files=["res://.godot/imported/enemy_forest_beast.png-8dd7dc1be8b8b6c5b333aaa6934fe91f.ctex"]
+source_file="res://assets/images/enemies/enemy_forest_beast_attack_right_4.png"
+dest_files=["res://.godot/imported/enemy_forest_beast_attack_right_4.png-f12497a124fa59e36a90fbe70075a90c.ctex"]
 
 [params]
 

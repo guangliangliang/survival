@@ -1,12 +1,16 @@
-[gd_resource type="Resource" script_class="EnemyData" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="EnemyData" load_steps=5 format=3]
 [ext_resource type="Script" path="res://scripts/data/EnemyData.gd" id="1"]
-[ext_resource type="Texture2D" path="res://assets/images/enemies/enemy_boar.png" id="2"]
+[ext_resource type="Texture2D" path="res://assets/images/enemies/enemy_boar_single.png" id="2"]
+[ext_resource type="Texture2D" path="res://assets/images/enemies/enemy_boar_walk_right_4.png" id="3"]
+[ext_resource type="Texture2D" path="res://assets/images/enemies/enemy_boar_attack_right_4.png" id="4"]
 [resource]
 script = ExtResource("1")
 enemy_id = &"boar"
 display_name = "野猪"
 color = Color(0.45, 0.25, 0.12, 1)
 texture = ExtResource("2")
+walk_texture = ExtResource("3")
+attack_texture = ExtResource("4")
 size = 23.0
 max_health = 80.0
 move_speed = 105.0

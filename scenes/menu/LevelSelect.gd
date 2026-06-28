@@ -1,13 +1,17 @@
 extends Control
 
 const LevelPreviewControl = preload("res://scripts/ui/LevelPreview.gd")
+const ENEMY_ATTACK_TEST_SCENE := "res://scenes/debug/EnemyAttackTest.tscn"
 
 @onready var cards: HBoxContainer = $Margin/VBox/Cards
 @onready var back_button: Button = $Margin/VBox/Header/BackButton
+@onready var debug_button: Button = $Margin/VBox/Header/DebugButton
 
 func _ready() -> void:
 	back_button.pressed.connect(_return_home)
+	debug_button.pressed.connect(_start_enemy_attack_test)
 	_style_button(back_button, Color("3b332d"), Color("8e8069"))
+	_style_button(debug_button, Color("3b332d"), Color("8e8069"))
 	_build_level_cards()
 
 func _build_level_cards() -> void:
@@ -78,6 +82,9 @@ func _start_level(level_data: Resource) -> void:
 
 func _return_home() -> void:
 	get_tree().change_scene_to_file("res://scenes/menu/MainMenu.tscn")
+
+func _start_enemy_attack_test() -> void:
+	get_tree().change_scene_to_file(ENEMY_ATTACK_TEST_SCENE)
 
 func _style_button(button: Button, fill: Color, border: Color) -> void:
 	button.add_theme_stylebox_override("normal", _button_box(fill, border))

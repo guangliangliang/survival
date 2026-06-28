@@ -4,6 +4,8 @@ const VISUAL_SIZE := 30.0
 
 @onready var sprite: Sprite2D = $Sprite
 
+@export var visual_scale_multiplier: float = 1.0
+
 var direction := Vector2.RIGHT
 var speed: float = 330.0
 var damage: float = 10.0
@@ -47,7 +49,7 @@ func _apply_sprite_scale() -> void:
 		return
 	var texture_size := sprite.texture.get_size()
 	var max_dimension := maxf(texture_size.x, texture_size.y)
-	sprite.scale = Vector2.ONE if max_dimension <= 0.0 else Vector2.ONE * (VISUAL_SIZE / max_dimension)
+	sprite.scale = Vector2.ONE if max_dimension <= 0.0 else Vector2.ONE * (VISUAL_SIZE * visual_scale_multiplier / max_dimension)
 
 func _on_body_entered(body: Node) -> void:
 	if not active or not body.is_in_group("player"):

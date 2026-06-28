@@ -2,6 +2,7 @@ extends Node2D
 
 @export var projectile_scene: PackedScene
 @export var pool_size: int = 160
+@export var projectile_visual_scale_multiplier: float = 1.0
 var pool: Array[Area2D] = []
 
 func _ready() -> void:
@@ -10,6 +11,7 @@ func _ready() -> void:
 		return
 	for index in pool_size:
 		var projectile := projectile_scene.instantiate() as Area2D
+		projectile.set("visual_scale_multiplier", projectile_visual_scale_multiplier)
 		add_child(projectile)
 		projectile.call("deactivate")
 		pool.append(projectile)

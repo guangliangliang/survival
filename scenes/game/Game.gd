@@ -2,6 +2,13 @@ extends Node
 
 const VICTORY_EMBLEM := preload("res://assets/images/ui/emblem_victory.png")
 const DEFEAT_EMBLEM := preload("res://assets/images/ui/emblem_defeat.png")
+const ICON_RIFLE := preload("res://assets/images/weapons/old_rifle_128.png")
+const ICON_FLYWHEEL := preload("res://assets/images/weapons/weapon_orbit_flywheel.png")
+const ICON_DRONE := preload("res://assets/images/weapons/weapon_combat_drone.png")
+const ICON_HEALTH := preload("res://assets/images/ui/icon_health.png")
+const ICON_LEVEL := preload("res://assets/images/ui/icon_level.png")
+const ICON_PROJECTILE := preload("res://assets/images/projectiles/bullet_player.png")
+const UPGRADE_ICON_MAX_SIZE := Vector2i(104, 104)
 
 @export var run_duration: float = 720.0
 
@@ -52,6 +59,7 @@ var boss_pool_test: bool = false
 var upgrade_exhaustion_test: bool = false
 var level_data: Resource
 var camera_shake_strength: float = 0.0
+var upgrade_icon_cache: Dictionary = {}
 
 var upgrade_catalog: Array[Resource] = [
 	preload("res://resources/upgrades/damage.tres"),
@@ -193,10 +201,12 @@ func _show_upgrade_choices() -> void:
 		if index < current_choices.size():
 			var choice := current_choices[index]
 			var next_level := int(upgrade_levels.get(choice.upgrade_id, 0)) + 1
-			button.text = "%s  Lv.%d\n%s" % [choice.title, next_level, choice.description]
+			button.text = "%s\nLv.%d\n\n%s" % [choice.title, next_level, choice.description]
+			button.icon = _get_fitted_upgrade_icon(choice)
 			button.visible = true
 		else:
 			button.visible = false
+			button.icon = null
 	upgrade_screen.visible = true
 	InputAdapter.clear_virtual_inputs()
 	get_tree().paused = true
@@ -329,7 +339,7 @@ func _apply_overlay_style() -> void:
 	for button in [pause_button, restart_button, next_button, level_select_button, home_button, resume_button, pause_restart_button, pause_level_select_button, pause_home_button]:
 		_style_game_button(button)
 	for button in upgrade_buttons:
-		_style_game_button(button)
+		_style_upgrade_button(button)
 
 func _panel_box() -> StyleBoxFlat:
 	var box := StyleBoxFlat.new()
@@ -350,6 +360,15 @@ func _style_game_button(button: Button) -> void:
 	button.add_theme_color_override("font_color", Color("f2dfb0"))
 	button.add_theme_color_override("font_hover_color", Color("fff0c6"))
 
+func _style_upgrade_button(button: Button) -> void:
+	button.add_theme_stylebox_override("normal", _upgrade_card_box(Color(0.115, 0.093, 0.064, 0.96), Color("a98955")))
+	button.add_theme_stylebox_override("hover", _upgrade_card_box(Color(0.18, 0.125, 0.072, 0.98), Color("f0c66a")))
+	button.add_theme_stylebox_override("pressed", _upgrade_card_box(Color(0.075, 0.063, 0.052, 0.98), Color("7e6846")))
+	button.add_theme_color_override("font_color", Color("f5e6be"))
+	button.add_theme_color_override("font_hover_color", Color("fff3ca"))
+	button.add_theme_color_override("font_pressed_color", Color("ead098"))
+	button.add_theme_font_size_override("font_size", 19)
+
 func _button_box(fill: Color, border: Color) -> StyleBoxFlat:
 	var box := StyleBoxFlat.new()
 	box.bg_color = fill
@@ -357,3 +376,53 @@ func _button_box(fill: Color, border: Color) -> StyleBoxFlat:
 	box.set_border_width_all(2)
 	box.set_corner_radius_all(5)
 	return box
+
+func _upgrade_card_box(fill: Color, border: Color) -> StyleBoxFlat:
+	var box := StyleBoxFlat.new()
+	box.bg_color = fill
+	box.border_color = border
+	box.set_border_width_all(3)
+	box.set_corner_radius_all(8)
+	box.set_content_margin_all(18)
+	box.shadow_color = Color(0, 0, 0, 0.5)
+	box.shadow_size = 12
+	box.shadow_offset = Vector2(0, 4)
+	return box
+
+func _get_upgrade_icon(upgrade: Resource) -> Texture2D:
+	match upgrade.upgrade_id:
+		&"damage", &"fire_rate", &"range", &"pierce":
+			return ICON_RIFLE
+		&"projectiles":
+			return ICON_PROJECTILE
+		&"flywheel":
+			return ICON_FLYWHEEL
+		&"drone", &"drone_damage", &"drone_fire_rate", &"drone_range":
+			return ICON_DRONE
+		&"move_speed":
+			return ICON_LEVEL
+		&"max_health":
+			return ICON_HEALTH
+		_:
+			return ICON_LEVEL
+
+func _get_fitted_upgrade_icon(upgrade: Resource) -> Texture2D:
+	var source := _get_upgrade_icon(upgrade)
+	var cache_key := "%s:%dx%d" % [source.resource_path, UPGRADE_ICON_MAX_SIZE.x, UPGRADE_ICON_MAX_SIZE.y]
+	if upgrade_icon_cache.has(cache_key):
+		return upgrade_icon_cache[cache_key]
+	var fitted := _fit_texture_to_max_size(source, UPGRADE_ICON_MAX_SIZE)
+	upgrade_icon_cache[cache_key] = fitted
+	return fitted
+
+func _fit_texture_to_max_size(texture: Texture2D, max_size: Vector2i) -> Texture2D:
+	if texture == null:
+		return null
+	var source_size := texture.get_size()
+	if source_size.x <= max_size.x and source_size.y <= max_size.y:
+		return texture
+	var scale := minf(float(max_size.x) / source_size.x, float(max_size.y) / source_size.y)
+	var fitted_size := Vector2i(maxi(1, int(source_size.x * scale)), maxi(1, int(source_size.y * scale)))
+	var image := texture.get_image()
+	image.resize(fitted_size.x, fitted_size.y, Image.INTERPOLATE_LANCZOS)
+	return ImageTexture.create_from_image(image)

@@ -10,7 +10,7 @@ config_version=5
 
 [application]
 
-config/name="Survival"
+config/name="边境守夜人"
 config/description="2D俯视角幸存者游戏"
 run/main_scene="res://scenes/menu/MainMenu.tscn"
 config/features=PackedStringArray("4.5")

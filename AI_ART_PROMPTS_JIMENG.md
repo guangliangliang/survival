@@ -1,4 +1,4 @@
-# 《守卫村庄：幸存者》即梦美术提示词
+# 《边境守夜人》即梦美术提示词
 
 本文档用于生成游戏正式美术资源。提示词以即梦生图为目标，采用“先生成角色设定图，再生成单方向动作条”的方式，避免一次生成复杂 Sprite Sheet 导致角色、帧数和方向失控。
 
@@ -336,7 +336,7 @@ Top-down pixel game campfire, exactly 4 frames arranged horizontally as a seamle
 
 ### 3. 游戏标题Logo底图
 
-AI不生成中文文字，只生成可承载后期排字的徽章底图。正式标题“守卫村庄”应在Godot或图像编辑软件中使用授权中文字体排版。
+AI不生成中文文字，只生成可承载后期排字的徽章底图。正式标题“边境守夜人”应在Godot或图像编辑软件中使用授权中文字体排版。
 
 ```text
 Pixel game title-emblem base, a horizontal weathered wooden sign with simple metal trim, a wooden-stock rifle and a farming tool crossed behind it, decorated with a few wheat stalks and torn banner cloth. Earthy gold, dark brown, and muted dark red palette. Leave a wide clean center area for adding the Chinese title later. No words, no letters, no watermark, transparent background, pixel art game title emblem

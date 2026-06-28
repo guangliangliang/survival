@@ -6,6 +6,8 @@ signal died
 @onready var health_component = $HealthComponent
 @onready var body_sprite = $BodySprite
 @onready var ranged_weapon = $WeaponsNode/RangedWeapon
+@onready var orbit_flywheel = $WeaponsNode/OrbitFlywheel
+@onready var drone_weapon = $WeaponsNode/DroneWeapon
 
 const FRAME_SIZE := Vector2i(128, 128)
 const ANIM_FRAME_COUNT := 4
@@ -54,6 +56,8 @@ func apply_upgrade(upgrade: Resource) -> void:
 			health_component.increase_max_health(upgrade.amount, upgrade.amount)
 		_:
 			ranged_weapon.apply_upgrade(upgrade.stat_key, upgrade.amount)
+			orbit_flywheel.apply_upgrade(upgrade.stat_key, upgrade.amount)
+			drone_weapon.apply_upgrade(upgrade.stat_key, upgrade.amount)
 
 func _on_health_changed(_current_health: float, _max_health: float) -> void:
 	flash_time = 0.1

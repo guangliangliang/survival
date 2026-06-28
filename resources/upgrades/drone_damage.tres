@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="UpgradeData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/UpgradeData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+upgrade_id = &"drone_damage"
+title = "无人机弹药"
+description = "无人机伤害提高 30%"
+stat_key = &"drone_damage_multiplier"
+amount = 0.3
+max_level = 4

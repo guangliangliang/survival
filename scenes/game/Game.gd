@@ -58,6 +58,11 @@ var upgrade_catalog: Array[Resource] = [
 	preload("res://resources/upgrades/fire_rate.tres"),
 	preload("res://resources/upgrades/pierce.tres"),
 	preload("res://resources/upgrades/projectiles.tres"),
+	preload("res://resources/upgrades/flywheel.tres"),
+	preload("res://resources/upgrades/drone.tres"),
+	preload("res://resources/upgrades/drone_damage.tres"),
+	preload("res://resources/upgrades/drone_fire_rate.tres"),
+	preload("res://resources/upgrades/drone_range.tres"),
 	preload("res://resources/upgrades/range.tres"),
 	preload("res://resources/upgrades/move_speed.tres"),
 	preload("res://resources/upgrades/max_health.tres")
@@ -171,7 +176,7 @@ func _on_level_up(_level: int) -> void:
 func _show_upgrade_choices() -> void:
 	var available: Array[Resource] = []
 	for upgrade in upgrade_catalog:
-		if int(upgrade_levels.get(upgrade.upgrade_id, 0)) < upgrade.max_level:
+		if _is_upgrade_available(upgrade):
 			available.append(upgrade)
 	if available.is_empty():
 		upgrade_pending = 0
@@ -197,6 +202,13 @@ func _show_upgrade_choices() -> void:
 	get_tree().paused = true
 	if smoke_test:
 		_choose_upgrade.call_deferred(0)
+
+func _is_upgrade_available(upgrade: Resource) -> bool:
+	if int(upgrade_levels.get(upgrade.upgrade_id, 0)) >= upgrade.max_level:
+		return false
+	if String(upgrade.upgrade_id).begins_with("drone_") and int(upgrade_levels.get(&"drone", 0)) <= 0:
+		return false
+	return true
 
 func _choose_upgrade(index: int) -> void:
 	if index < 0 or index >= current_choices.size() or not is_instance_valid(player):

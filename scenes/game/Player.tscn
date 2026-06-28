@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=14 format=3]
 
 [ext_resource type="Script" path="res://scripts/systems/Player.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/components/HealthComponent.gd" id="2"]
@@ -8,6 +8,11 @@
 [ext_resource type="Texture2D" path="res://assets/images/characters/player_sentinel_body_2dir.png" id="6"]
 [ext_resource type="Texture2D" path="res://assets/images/characters/player_sentinel_rifle_right.png" id="7"]
 [ext_resource type="Texture2D" path="res://assets/images/effects/fx_muzzle_flash.png" id="8"]
+[ext_resource type="Script" path="res://scripts/components/OrbitFlywheel.gd" id="9"]
+[ext_resource type="Texture2D" path="res://assets/images/weapons/weapon_orbit_flywheel.png" id="10"]
+[ext_resource type="Script" path="res://scripts/components/DroneWeapon.gd" id="11"]
+[ext_resource type="Texture2D" path="res://assets/images/weapons/weapon_combat_drone.png" id="12"]
+[ext_resource type="PackedScene" path="res://scenes/game/DroneBullet.tscn" id="13"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_player"]
 radius = 24.0
@@ -62,3 +67,27 @@ texture = ExtResource("8")
 region_enabled = true
 region_rect = Rect2(0, 0, 32, 32)
 offset = Vector2(12, 0)
+
+[node name="OrbitFlywheel" type="Node2D" parent="WeaponsNode"]
+script = ExtResource("9")
+flywheel_texture = ExtResource("10")
+flywheel_count = 0
+orbit_radius = 92.0
+spin_speed = 5.2
+damage = 9.0
+hit_interval = 0.38
+hit_radius = 20.0
+sprite_scale = 0.021
+
+[node name="DroneWeapon" type="Node2D" parent="WeaponsNode"]
+script = ExtResource("11")
+drone_texture = ExtResource("12")
+bullet_scene = ExtResource("13")
+drone_unlocked = false
+fixed_offset = Vector2(88, -86)
+fire_rate = 1.4
+damage = 11.0
+bullet_speed = 620.0
+fire_range = 560.0
+bullet_pool_size = 80
+sprite_scale = 0.027

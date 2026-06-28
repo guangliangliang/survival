@@ -97,6 +97,7 @@ func fire() -> void:
 		var offset: float = float(index) - float(count - 1) * 0.5
 		var direction: Vector2 = base_direction.rotated(deg_to_rad(offset * runtime_data.spread_degrees))
 		bullet.call("activate", muzzle.global_position, direction, runtime_data.bullet_speed, runtime_data.damage, runtime_data.pierce)
+	AudioManager.play_sfx_by_key(&"player_rifle")
 	muzzle_flash_timer = 0.06
 	muzzle_flash.visible = true
 	_update_muzzle_flash()

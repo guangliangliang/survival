@@ -52,6 +52,7 @@ func _on_body_entered(body: Node) -> void:
 func _collect() -> void:
 	if not active:
 		return
+	AudioManager.play_sfx_by_key(&"exp_pickup", -4.0)
 	GameManager.add_exp(value)
 	deactivate()
 

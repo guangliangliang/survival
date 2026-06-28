@@ -102,6 +102,7 @@ func _fire_volley() -> void:
 			break
 		var direction := (target.global_position - drone.global_position).normalized()
 		bullet.call("activate", drone.global_position, direction, bullet_speed, damage, pierce)
+	AudioManager.play_sfx_by_key(&"drone_shot", -3.0)
 	cooldown = 1.0 / maxf(fire_rate, 0.1)
 
 func _find_nearest_enemy() -> Node2D:

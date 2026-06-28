@@ -50,6 +50,7 @@ var upgrade_pending: int = 0
 var current_choices: Array[Resource] = []
 var upgrade_levels: Dictionary = {}
 var boss_is_defeated: bool = false
+var boss_music_started: bool = false
 var smoke_test: bool = false
 var smoke_boss_marked: bool = false
 var stress_test: bool = false
@@ -108,6 +109,10 @@ func _process(delta: float) -> void:
 			_run_stress_flow(delta)
 		if timeline_test and GameManager.game_time >= enemy_spawner.boss_spawn_time + 5.0:
 			boss_is_defeated = true
+		if not boss_music_started and GameManager.game_time >= enemy_spawner.boss_spawn_time:
+			boss_music_started = true
+			AudioManager.play_sfx_by_key(&"boss_warning")
+			AudioManager.play_music_by_key(&"boss")
 		if boss_is_defeated and GameManager.game_time >= run_duration:
 			GameManager.finish_run(&"victory")
 	_update_ui()
@@ -145,6 +150,7 @@ func _start_game() -> void:
 	upgrade_screen.visible = false
 	manual_pause = false
 	boss_is_defeated = false
+	boss_music_started = false
 	upgrade_pending = 0
 	upgrade_levels.clear()
 	InputAdapter.clear_virtual_inputs()
@@ -167,16 +173,19 @@ func _start_game() -> void:
 		var stress_enemy: Resource = preload("res://resources/enemies/bandit.tres")
 		for index in enemy_spawner.active_enemy_limit:
 			enemy_spawner.spawn_enemy(stress_enemy)
+	AudioManager.play_music_by_key(&"battle")
 
 func _toggle_manual_pause() -> void:
 	if not GameManager.run_active or upgrade_screen.visible:
 		return
 	manual_pause = not manual_pause
+	AudioManager.play_ui_by_key(&"pause" if manual_pause else &"resume")
 	pause_screen.visible = manual_pause
 	InputAdapter.clear_virtual_inputs()
 	get_tree().paused = manual_pause
 
 func _on_level_up(_level: int) -> void:
+	AudioManager.play_sfx_by_key(&"level_up")
 	upgrade_pending += 1
 	if not upgrade_screen.visible:
 		_show_upgrade_choices()
@@ -208,6 +217,7 @@ func _show_upgrade_choices() -> void:
 			button.visible = false
 			button.icon = null
 	upgrade_screen.visible = true
+	AudioManager.play_sfx_by_key(&"upgrade_panel_open")
 	InputAdapter.clear_virtual_inputs()
 	get_tree().paused = true
 	if smoke_test:
@@ -222,10 +232,15 @@ func _is_upgrade_available(upgrade: Resource) -> bool:
 
 func _choose_upgrade(index: int) -> void:
 	if index < 0 or index >= current_choices.size() or not is_instance_valid(player):
+		AudioManager.play_ui_by_key(&"invalid")
 		return
 	var choice := current_choices[index]
 	upgrade_levels[choice.upgrade_id] = int(upgrade_levels.get(choice.upgrade_id, 0)) + 1
 	player.apply_upgrade(choice)
+	if choice.upgrade_id == &"flywheel" or choice.upgrade_id == &"drone":
+		AudioManager.play_sfx_by_key(&"weapon_unlock")
+	else:
+		AudioManager.play_sfx_by_key(&"upgrade_select")
 	upgrade_pending = maxi(0, upgrade_pending - 1)
 	if upgrade_pending > 0:
 		_show_upgrade_choices()
@@ -239,6 +254,8 @@ func _on_boss_defeated() -> void:
 func _on_game_ended(result: StringName) -> void:
 	enemy_spawner.stop_spawning()
 	InputAdapter.clear_virtual_inputs()
+	AudioManager.stop_music()
+	AudioManager.play_sfx_by_key(&"victory" if result == &"victory" else &"defeat")
 	get_tree().paused = true
 	pause_screen.visible = false
 	upgrade_screen.visible = false
@@ -276,10 +293,12 @@ func _format_time(value: float) -> String:
 	return "%02d:%02d" % [total / 60, total % 60]
 
 func _restart() -> void:
+	AudioManager.play_ui_by_key(&"button_click")
 	get_tree().paused = false
 	get_tree().reload_current_scene()
 
 func _start_next_level() -> void:
+	AudioManager.play_ui_by_key(&"button_click")
 	var next_level := GameManager.get_next_level()
 	if next_level == null:
 		_return_to_level_select()
@@ -289,11 +308,13 @@ func _start_next_level() -> void:
 	get_tree().reload_current_scene()
 
 func _return_to_level_select() -> void:
+	AudioManager.play_ui_by_key(&"back")
 	get_tree().paused = false
 	InputAdapter.clear_virtual_inputs()
 	get_tree().change_scene_to_file("res://scenes/menu/LevelSelect.tscn")
 
 func _return_home() -> void:
+	AudioManager.play_ui_by_key(&"back")
 	get_tree().paused = false
 	InputAdapter.clear_virtual_inputs()
 	get_tree().change_scene_to_file("res://scenes/menu/MainMenu.tscn")

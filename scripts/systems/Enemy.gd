@@ -146,13 +146,16 @@ func _perform_attack() -> void:
 	var direction := (target.global_position - global_position).normalized()
 	var projectile_pool := get_tree().get_first_node_in_group("enemy_projectile_pool")
 	if enemy_data.ranged:
+		AudioManager.play_sfx_by_key(_get_ranged_attack_sfx_key())
 		if projectile_pool != null:
 			projectile_pool.call("fire", global_position, direction, enemy_data.damage, 360.0, enemy_data.projectile_texture)
 	elif enemy_data.boss and attack_count % 3 == 0:
+		AudioManager.play_sfx_by_key(&"enemy_projectile_pass")
 		if projectile_pool != null:
 			var projectile_count: int = 14 if health_component.current_health <= health_component.max_health * 0.5 else 10
 			projectile_pool.call("fire_radial", global_position, projectile_count, enemy_data.damage * 0.65, 300.0)
 	else:
+		AudioManager.play_sfx_by_key(&"enemy_melee_swing", -3.0)
 		if global_position.distance_to(target.global_position) <= enemy_data.attack_range + 28.0:
 			var health := target.get_node_or_null("HealthComponent")
 			if health:
@@ -189,7 +192,17 @@ func _on_died() -> void:
 	var effects := get_tree().get_first_node_in_group("visual_effects")
 	if effects != null:
 		effects.call("play_death_puff", global_position)
+	AudioManager.play_sfx_by_key(&"boss_death" if enemy_data.boss else &"enemy_death")
 	_release_to_pool()
+
+func _get_ranged_attack_sfx_key() -> StringName:
+	match enemy_data.enemy_id:
+		&"thorn_porcupine":
+			return &"porcupine_thorn"
+		&"cult_wizard":
+			return &"wizard_orb"
+		_:
+			return &"enemy_rifle"
 
 func _release_to_pool() -> void:
 	if not visible and not is_alive:

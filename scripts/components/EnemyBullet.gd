@@ -23,6 +23,7 @@ func _process(delta: float) -> void:
 	global_position += direction * speed * delta
 	life_timer += delta
 	if life_timer >= 4.0:
+		AudioManager.play_sfx_by_key(&"enemy_projectile_land", -5.0)
 		deactivate()
 
 func activate(spawn_position: Vector2, shot_direction: Vector2, shot_damage: float, shot_speed: float = 330.0, shot_texture: Texture2D = null) -> void:

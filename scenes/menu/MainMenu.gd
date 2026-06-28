@@ -6,15 +6,18 @@ extends Control
 @onready var subtitle: Label = $Subtitle
 
 func _ready() -> void:
+	AudioManager.play_music_by_key(&"menu")
 	start_button.pressed.connect(_on_start_button_pressed)
 	quit_button.pressed.connect(_on_quit_button_pressed)
 	quit_button.visible = not OS.has_feature("web")
 	_apply_style()
 
 func _on_start_button_pressed() -> void:
+	AudioManager.play_ui_by_key(&"button_click")
 	get_tree().change_scene_to_file("res://scenes/menu/LevelSelect.tscn")
 
 func _on_quit_button_pressed() -> void:
+	AudioManager.play_ui_by_key(&"back")
 	get_tree().quit()
 
 func _apply_style() -> void:

@@ -39,6 +39,8 @@ func _check_hit(node: Node) -> void:
 			var effects := get_tree().get_first_node_in_group("visual_effects")
 			if effects != null:
 				effects.call("play_impact", global_position)
+			var data = node.get("enemy_data")
+			AudioManager.play_sfx_by_key(&"boss_hit" if data != null and data.boss else &"bullet_hit")
 			node.call("receive_hit", damage, direction)
 			if remaining_pierce <= 0:
 				_deactivate()

@@ -97,6 +97,7 @@ func _try_hit(node: Node, hit_position: Vector2) -> void:
 		direction = (target.global_position - hit_position).normalized()
 	if node.has_method("receive_hit"):
 		node.call("receive_hit", damage, direction)
+		AudioManager.play_sfx_by_key(&"flywheel_hit", -2.0)
 	var effects := get_tree().get_first_node_in_group("visual_effects")
 	if effects != null:
 		effects.call("play_impact", hit_position)

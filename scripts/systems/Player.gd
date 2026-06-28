@@ -21,11 +21,13 @@ var flash_time: float = 0.0
 var original_modulate := Color.WHITE
 var facing_row: int = DIRECTION_RIGHT
 var animation_time: float = 0.0
+var last_health: float = 0.0
 
 func _ready() -> void:
 	GameManager.player = self
 	health_component.died.connect(_on_died)
 	health_component.health_changed.connect(_on_health_changed)
+	last_health = health_component.current_health
 	original_modulate = body_sprite.modulate
 	_update_sprite_frame(0)
 
@@ -59,7 +61,10 @@ func apply_upgrade(upgrade: Resource) -> void:
 			orbit_flywheel.apply_upgrade(upgrade.stat_key, upgrade.amount)
 			drone_weapon.apply_upgrade(upgrade.stat_key, upgrade.amount)
 
-func _on_health_changed(_current_health: float, _max_health: float) -> void:
+func _on_health_changed(current_health: float, _max_health: float) -> void:
+	if current_health < last_health and is_alive:
+		AudioManager.play_sfx_by_key(&"player_hurt")
+	last_health = current_health
 	flash_time = 0.1
 	body_sprite.modulate = Color(1.0, 0.25, 0.25)
 

@@ -8,6 +8,7 @@ const ENEMY_ATTACK_TEST_SCENE := "res://scenes/debug/EnemyAttackTest.tscn"
 @onready var debug_button: Button = $Margin/VBox/Header/DebugButton
 
 func _ready() -> void:
+	AudioManager.play_music_by_key(&"menu")
 	back_button.pressed.connect(_return_home)
 	debug_button.pressed.connect(_start_enemy_attack_test)
 	_style_button(back_button, Color("3b332d"), Color("8e8069"))
@@ -77,13 +78,16 @@ func _create_level_card(level_data: Resource, index: int) -> Control:
 	return panel
 
 func _start_level(level_data: Resource) -> void:
+	AudioManager.play_ui_by_key(&"button_click")
 	GameManager.select_level(level_data)
 	get_tree().change_scene_to_file("res://scenes/game/Game.tscn")
 
 func _return_home() -> void:
+	AudioManager.play_ui_by_key(&"back")
 	get_tree().change_scene_to_file("res://scenes/menu/MainMenu.tscn")
 
 func _start_enemy_attack_test() -> void:
+	AudioManager.play_ui_by_key(&"button_click")
 	get_tree().change_scene_to_file(ENEMY_ATTACK_TEST_SCENE)
 
 func _style_button(button: Button, fill: Color, border: Color) -> void:

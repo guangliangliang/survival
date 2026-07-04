@@ -102,6 +102,6 @@ func _get_direction_row(direction: Vector2) -> int:
 func _update_sprite_frame(frame: int) -> void:
 	body_sprite.flip_h = facing_row == DIRECTION_LEFT
 	body_sprite.region_rect = Rect2(
-		Vector2(frame * FRAME_SIZE.x, DIRECTION_RIGHT * FRAME_SIZE.y),
+		Vector2(frame * FRAME_SIZE.x, 0),
 		Vector2(FRAME_SIZE)
 	)

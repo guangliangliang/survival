@@ -117,7 +117,7 @@ func _create_dummy_target(data: Resource, lane_position: Vector2) -> StaticBody2
 	sprite.centered = false
 	sprite.offset = Vector2(-64, -86)
 	sprite.region_enabled = true
-	sprite.region_rect = Rect2(0, 128, 128, 128)
+	sprite.region_rect = Rect2(0, 0, 128, 128)
 	sprite.scale = Vector2.ONE * 0.62 * TEST_VISUAL_SCALE
 	sprite.z_index = 2
 	dummy.add_child(sprite)

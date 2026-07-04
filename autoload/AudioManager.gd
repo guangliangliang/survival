@@ -63,10 +63,6 @@ const SFX := {
 }
 
 const UI := {
-	&"button_click": "res://assets/audio/sfx/ui_button_click.wav",
-	&"back": "res://assets/audio/sfx/ui_back.wav",
-	&"pause": "res://assets/audio/sfx/ui_pause.wav",
-	&"resume": "res://assets/audio/sfx/ui_resume.wav",
 	&"invalid": "res://assets/audio/sfx/ui_invalid.wav",
 }
 

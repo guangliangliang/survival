@@ -6,61 +6,61 @@
 
 ### 1. 玩家步枪开枪
 
-建议文件名：`sfx_player_rifle_01.wav` 至 `sfx_player_rifle_05.wav`
+建议文件名：`sfx_player_rifle.wav`
 
 - 时长：0.12–0.22秒。
-- 生成5个轻微变化版本。
+- 生成1个版本。
 
 ```text
-A short single shot from an old wooden-stock rifle for a top-down pixel survival game. Clear, forceful mechanical crack with a dry powder impact and a very brief metallic action sound. Close-range but not painfully loud, no indoor echo, no long reverb, no background noise. About 0.16 seconds, immediate onset and fast decay, suitable for repeated playback several times per second. Generate 5 variants with slight differences in pitch and force.
+A short single shot from an old wooden-stock rifle for a top-down pixel survival game. Clear, forceful mechanical crack with a dry powder impact and a very brief metallic action sound. Close-range but not painfully loud, no indoor echo, no long reverb, no background noise. About 0.16 seconds, immediate onset and fast decay, suitable for repeated playback several times per second. Generate 1 version.
 
 Avoid modern automatic-rifle bursts, cannon fire, shotgun blasts, laser weapons, exaggerated bass explosions, long shell-casing tails, ambient wind, music, and voices.
 ```
 
 ### 2. 子弹命中敌人
 
-建议文件名：`sfx_bullet_hit_01.wav` 至 `sfx_bullet_hit_04.wav`
+建议文件名：`sfx_bullet_hit.wav`
 
 - 时长：0.07–0.14秒。
 
 ```text
-Bullet impact on an enemy in a pixel action game: a short dry impact combining a light cloth slap, a muted wooden hit, and a small amount of crisp pixel-fragment texture. Clear feedback without gore. About 0.10 seconds, no reverb, no background sound, suitable for frequent rapid repetition. Generate 4 subtle variants.
+Bullet impact on an enemy in a pixel action game: a short dry impact combining a light cloth slap, a muted wooden hit, and a small amount of crisp pixel-fragment texture. Clear feedback without gore. About 0.10 seconds, no reverb, no background sound, suitable for frequent rapid repetition. Generate 1 version.
 
 Avoid wet flesh sounds, breaking bones, huge metal impacts, explosions, a prominent gunshot, long tails, and piercing high frequencies.
 ```
 
 ### 3. 敌人死亡
 
-建议文件名：`sfx_enemy_death_01.wav` 至 `sfx_enemy_death_04.wav`
+建议文件名：`sfx_enemy_death.wav`
 
 - 时长：0.25–0.45秒。
 
 ```text
-Defeat sound for a regular enemy dissolving into dust in a top-down pixel game. Begin with a short low impact, followed immediately by a light air puff and disappearing pixel debris. Clearly communicates that the enemy is dead, non-gory, with no human scream. About 0.35 seconds with a fast decay. Generate 4 slightly different variants.
+Defeat sound for a regular enemy dissolving into dust in a top-down pixel game. Begin with a short low impact, followed immediately by a light air puff and disappearing pixel debris. Clearly communicates that the enemy is dead, non-gory, with no human scream. About 0.35 seconds with a fast decay. Generate 1 version.
 
 Avoid dialogue, screams, groans, flesh tearing, huge body-fall impacts, long reverb, explosions, and comedic effects.
 ```
 
 ### 4. 玩家受伤
 
-建议文件名：`sfx_player_hurt_01.wav` 至 `sfx_player_hurt_03.wav`
+建议文件名：`sfx_player_hurt.wav`
 
 - 时长：0.18–0.32秒。
 
 ```text
-Player-damage cue for a pixel survival game. A short low body impact layered with slight cloth movement and a restrained nonverbal exhale. Clearly signals danger without gore or exaggerated suffering. About 0.25 seconds, clear transient and very short tail. Generate 3 subtle variants.
+Player-damage cue for a pixel survival game. A short low body impact layered with slight cloth movement and a restrained nonverbal exhale. Clearly signals danger without gore or exaggerated suffering. About 0.25 seconds, clear transient and very short tail. Generate 1 version.
 
 Avoid spoken lines, screams, long groans, flesh sounds, metallic explosions, long reverb, and ambient background noise.
 ```
 
 ### 5. 敌人枪手射击
 
-建议文件名：`sfx_enemy_rifle_01.wav` 至 `sfx_enemy_rifle_03.wav`
+建议文件名：`sfx_enemy_rifle.wav`
 
 - 时长：0.14–0.24秒。
 
 ```text
-A distant bandit gunner firing a worn short-barreled rifle. More muffled, lighter, and rougher than the player's rifle, with a slight loose-mechanism quality. Clear onset and fast decay to signal an enemy ranged attack. About 0.19 seconds, no long reverb, no falling shell casing. Generate 3 slightly different variants.
+A distant bandit gunner firing a worn short-barreled rifle. More muffled, lighter, and rougher than the player's rifle, with a slight loose-mechanism quality. Clear onset and fast decay to signal an enemy ranged attack. About 0.19 seconds, no long reverb, no falling shell casing. Generate 1 version.
 
 Avoid sounding identical to the player's rifle, modern automatic weapons, lasers, artillery, huge low end, environmental echo, and music.
 ```
@@ -79,48 +79,48 @@ Avoid sci-fi laser cannons, aircraft flybys, piercing tinnitus, huge bass, and l
 
 ### 7. 近战敌人攻击挥击
 
-建议文件名：`sfx_enemy_melee_swing_01.wav` 至 `sfx_enemy_melee_swing_03.wav`
+建议文件名：`sfx_enemy_melee_swing.wav`
 
 - 时长：0.10–0.18秒。
 
 ```text
-Short melee attack whoosh for wolves, boars, and bandits in a top-down rural survival game. A quick cloth-and-air swipe with a small rough organic edge, readable but lighter than a player-damage cue. About 0.14 seconds, immediate onset, very fast decay, no impact baked in. Generate 3 subtle variants for repeated enemy attacks.
+Short melee attack whoosh for wolves, boars, and bandits in a top-down rural survival game. A quick cloth-and-air swipe with a small rough organic edge, readable but lighter than a player-damage cue. About 0.14 seconds, immediate onset, very fast decay, no impact baked in. Generate 1 version.
 
 Avoid sword clangs, heavy monster roars, human shouts, wet gore, large impacts, long tails, and sharp high-frequency whistles.
 ```
 
 ### 8. 豪猪尖刺发射
 
-建议文件名：`sfx_porcupine_thorn_shot_01.wav` 至 `sfx_porcupine_thorn_shot_03.wav`
+建议文件名：`sfx_porcupine_thorn_shot.wav`
 
 - 时长：0.12–0.22秒。
 
 ```text
-Thorn porcupine projectile launch for a dark forest enemy in a pixel survival game. A short dry quill snap followed by a narrow air flick, organic and woody rather than metallic. Clear enough to warn the player, but softer than a rifle shot. About 0.17 seconds, no long reverb. Generate 3 slight pitch variants.
+Thorn porcupine projectile launch for a dark forest enemy in a pixel survival game. A short dry quill snap followed by a narrow air flick, organic and woody rather than metallic. Clear enough to warn the player, but softer than a rifle shot. About 0.17 seconds, no long reverb. Generate 1 version.
 
 Avoid gunshots, bowstring twangs that sound heroic, sci-fi lasers, wet flesh sounds, loud animal cries, huge bass, and long projectile trails.
 ```
 
 ### 9. 巫师法球发射
 
-建议文件名：`sfx_wizard_orb_cast_01.wav` 至 `sfx_wizard_orb_cast_03.wav`
+建议文件名：`sfx_wizard_orb_cast.wav`
 
 - 时长：0.22–0.38秒。
 
 ```text
-Cult wizard magic-orb launch for a rural dark-fantasy survival game. A compact low wooden knock, a brief dusty inhale, and a restrained cyan-violet arcane pulse, suggesting forbidden magic without becoming flashy. About 0.30 seconds, clean transient, short tail, readable at mid distance. Generate 3 subtle variants.
+Cult wizard magic-orb launch for a rural dark-fantasy survival game. A compact low wooden knock, a brief dusty inhale, and a restrained cyan-violet arcane pulse, suggesting forbidden magic without becoming flashy. About 0.30 seconds, clean transient, short tail, readable at mid distance. Generate 1 version.
 
 Avoid spoken spells, choir, long magical charging, bright fairy sparkles, modern synth lasers, horror screams, huge cinematic whooshes, and tails longer than 0.5 seconds.
 ```
 
 ### 10. 敌方弹丸命中地面
 
-建议文件名：`sfx_enemy_projectile_land_01.wav` 至 `sfx_enemy_projectile_land_03.wav`
+建议文件名：`sfx_enemy_projectile_land.wav`
 
 - 时长：0.10–0.20秒。
 
 ```text
-Enemy projectile landing or missing on dirt in a top-down pixel survival game. A short dry dirt tick with tiny dust grains, slightly dangerous but not explosive. Works for missed bullets, thorns, or small magic orbs with only very subtle tonal variation. About 0.15 seconds, no background sound. Generate 3 variants.
+Enemy projectile landing or missing on dirt in a top-down pixel survival game. A short dry dirt tick with tiny dust grains, slightly dangerous but not explosive. Works for missed bullets, thorns, or small magic orbs with only very subtle tonal variation. About 0.15 seconds, no background sound. Generate 1 version.
 
 Avoid large explosions, metal ricochets, wet impacts, long dust clouds, loud magic blasts, and reverb.
 ```
@@ -129,7 +129,7 @@ Avoid large explosions, metal ricochets, wet impacts, long dust clouds, loud mag
 
 ### 1. 环绕飞轮旋转
 
-建议文件名：`sfx_flywheel_loop.ogg`
+建议文件名：`sfx_flywheel_loop.wav`
 
 - 时长：0.8–1.4秒。
 - 低音量循环，只有飞轮存在时播放。
@@ -142,24 +142,24 @@ Avoid loud buzzsaws, modern engines, electric drones, high-pitched tinnitus, scr
 
 ### 2. 飞轮切中敌人
 
-建议文件名：`sfx_flywheel_hit_01.wav` 至 `sfx_flywheel_hit_04.wav`
+建议文件名：`sfx_flywheel_hit.wav`
 
 - 时长：0.08–0.16秒。
 
 ```text
-Short hit sound for an orbiting flywheel striking an enemy in a pixel survival game. A quick dull wooden chop with a small dry scrape and a compact impact, non-gory and lighter than a boss hit. About 0.12 seconds, fast decay, suitable for repeated contact hits. Generate 4 subtle variants.
+Short hit sound for an orbiting flywheel striking an enemy in a pixel survival game. A quick dull wooden chop with a small dry scrape and a compact impact, non-gory and lighter than a boss hit. About 0.12 seconds, fast decay, suitable for repeated contact hits. Generate 1 version.
 
 Avoid wet slicing, sword clangs, chainsaws, huge impacts, long scraping tails, and piercing high frequencies.
 ```
 
 ### 3. 支援无人机开火
 
-建议文件名：`sfx_drone_shot_01.wav` 至 `sfx_drone_shot_04.wav`
+建议文件名：`sfx_drone_shot.wav`
 
 - 时长：0.08–0.14秒。
 
 ```text
-Small support-drone shot for a top-down survival game. A short light pneumatic pop with a tiny mechanical click, clearly weaker and smaller than the player's old rifle. The tone should feel handmade and utilitarian, not futuristic. About 0.11 seconds, immediate onset, no reverb. Generate 4 subtle variants.
+Small support-drone shot for a top-down survival game. A short light pneumatic pop with a tiny mechanical click, clearly weaker and smaller than the player's old rifle. The tone should feel handmade and utilitarian, not futuristic. About 0.11 seconds, immediate onset, no reverb. Generate 1 version.
 
 Avoid sci-fi lasers, modern machine guns, large rifle cracks, heavy bass, shell casings, electronic beeps, music, and voices.
 ```
@@ -180,12 +180,12 @@ Avoid casino rewards, grand victory music, phone notifications, harsh chiptune, 
 
 ### 1. 经验宝石拾取
 
-建议文件名：`sfx_exp_pickup_01.wav` 至 `sfx_exp_pickup_04.wav`
+建议文件名：`sfx_exp_pickup.wav`
 
 - 时长：0.08–0.16秒。
 
 ```text
-Short pickup sound for collecting a green experience gem in a pixel game. Combine a crisp but soft wooden click with a tiny glass-like tone particle. Bright pitch without harshness, immediate decay, suitable for many triggers within one second. About 0.12 seconds, no reverb. Generate 4 neighboring-pitch variants for random or ascending playback during consecutive pickups.
+Short pickup sound for collecting a green experience gem in a pixel game. Combine a crisp but soft wooden click with a tiny glass-like tone particle. Bright pitch without harshness, immediate decay, suitable for many triggers within one second. About 0.12 seconds, no reverb. Generate 1 version.
 
 Avoid coin sounds, cash registers, long bells, magical explosions, piercing high frequencies, and background music.
 ```
@@ -252,12 +252,12 @@ Avoid modern air-raid sirens, electronic alarms, horror screams, cinematic trail
 
 ### 7. Boss受击
 
-建议文件名：`sfx_boss_hit_01.wav` 至 `sfx_boss_hit_03.wav`
+建议文件名：`sfx_boss_hit.wav`
 
 - 时长：0.12–0.22秒。
 
 ```text
-Bullet impact on a large boss in a pixel action game. Deeper and heavier than a regular hit, combining a short leather thud, wooden armor or thick-hide contact, and a small low-frequency impact. Keep it short enough for continuous fire. About 0.18 seconds, no long reverb. Generate 3 variants.
+Bullet impact on a large boss in a pixel action game. Deeper and heavier than a regular hit, combining a short leather thud, wooden armor or thick-hide contact, and a small low-frequency impact. Keep it short enough for continuous fire. About 0.18 seconds, no long reverb. Generate 1 version.
 
 Avoid huge explosions, wet flesh sounds, ringing metal, repeated gunshot transients, and long low-frequency tails.
 ```
@@ -273,4 +273,3 @@ Defeat sound for a large boss in a pixel survival game. Start with a heavy body 
 
 Avoid screams, flesh tearing, massive building-collapse sounds, extended victory music, applause, dialogue, and excessive reverb.
 ```
-

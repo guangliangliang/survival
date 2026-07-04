@@ -3,12 +3,12 @@
 importer="wav"
 type="AudioStreamWAV"
 uid="uid://dfruxvcitnyp6"
-path="res://.godot/imported/sfx_drone_shot.wav-6aed87d5aab0c2930fe0fa864e9f9c85.sample"
+path="res://.godot/imported/sfx_drone_shot.wav-4fd9258a87ed3eab0177c56bc1e21170.sample"
 
 [deps]
 
 source_file="res://assets/audio/sfx/sfx_drone_shot.wav"
-dest_files=["res://.godot/imported/sfx_drone_shot.wav-6aed87d5aab0c2930fe0fa864e9f9c85.sample"]
+dest_files=["res://.godot/imported/sfx_drone_shot.wav-4fd9258a87ed3eab0177c56bc1e21170.sample"]
 
 [params]
 

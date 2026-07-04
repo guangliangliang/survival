@@ -3,12 +3,12 @@
 importer="wav"
 type="AudioStreamWAV"
 uid="uid://b8gt2yfaq7gp5"
-path="res://.godot/imported/sfx_enemy_melee_swing.wav-7e983237971befc57bce674de994b166.sample"
+path="res://.godot/imported/sfx_enemy_melee_swing.wav-a55c6a16b7856a90814e239be081c15f.sample"
 
 [deps]
 
 source_file="res://assets/audio/sfx/sfx_enemy_melee_swing.wav"
-dest_files=["res://.godot/imported/sfx_enemy_melee_swing.wav-7e983237971befc57bce674de994b166.sample"]
+dest_files=["res://.godot/imported/sfx_enemy_melee_swing.wav-a55c6a16b7856a90814e239be081c15f.sample"]
 
 [params]
 

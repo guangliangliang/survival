@@ -3,12 +3,12 @@
 importer="wav"
 type="AudioStreamWAV"
 uid="uid://c4tkg1h2c18dh"
-path="res://.godot/imported/sfx_wizard_orb_cast.wav-ac1076d4eecbed4a1d20f1bb4564e1f6.sample"
+path="res://.godot/imported/sfx_wizard_orb_cast.wav-cf877c5323a395433b729c3f03ad7e5d.sample"
 
 [deps]
 
 source_file="res://assets/audio/sfx/sfx_wizard_orb_cast.wav"
-dest_files=["res://.godot/imported/sfx_wizard_orb_cast.wav-ac1076d4eecbed4a1d20f1bb4564e1f6.sample"]
+dest_files=["res://.godot/imported/sfx_wizard_orb_cast.wav-cf877c5323a395433b729c3f03ad7e5d.sample"]
 
 [params]
 

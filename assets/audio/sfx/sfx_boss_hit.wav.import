@@ -3,12 +3,12 @@
 importer="wav"
 type="AudioStreamWAV"
 uid="uid://cwfl8kc3ccnth"
-path="res://.godot/imported/sfx_boss_hit.wav-0112160335d0598b90635d6fbbadc46b.sample"
+path="res://.godot/imported/sfx_boss_hit.wav-926176f00dab9a26c720be73a669c541.sample"
 
 [deps]
 
 source_file="res://assets/audio/sfx/sfx_boss_hit.wav"
-dest_files=["res://.godot/imported/sfx_boss_hit.wav-0112160335d0598b90635d6fbbadc46b.sample"]
+dest_files=["res://.godot/imported/sfx_boss_hit.wav-926176f00dab9a26c720be73a669c541.sample"]
 
 [params]
 

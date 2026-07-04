@@ -3,12 +3,12 @@
 importer="wav"
 type="AudioStreamWAV"
 uid="uid://cxn2futpawd47"
-path="res://.godot/imported/sfx_bullet_hit.wav-0941eff1074d8d65b0515137f13f41f2.sample"
+path="res://.godot/imported/sfx_bullet_hit.wav-c1456bb1118f7653581def3d6ae3b1fe.sample"
 
 [deps]
 
 source_file="res://assets/audio/sfx/sfx_bullet_hit.wav"
-dest_files=["res://.godot/imported/sfx_bullet_hit.wav-0941eff1074d8d65b0515137f13f41f2.sample"]
+dest_files=["res://.godot/imported/sfx_bullet_hit.wav-c1456bb1118f7653581def3d6ae3b1fe.sample"]
 
 [params]
 

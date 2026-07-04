@@ -3,12 +3,12 @@
 importer="wav"
 type="AudioStreamWAV"
 uid="uid://du3mcoq4tpuu"
-path="res://.godot/imported/sfx_enemy_projectile_land.wav-bdd22c241f3de29edb2579cd37c3153a.sample"
+path="res://.godot/imported/sfx_enemy_projectile_land.wav-a2a727324748a84c90bc33ddad3e64cb.sample"
 
 [deps]
 
 source_file="res://assets/audio/sfx/sfx_enemy_projectile_land.wav"
-dest_files=["res://.godot/imported/sfx_enemy_projectile_land.wav-bdd22c241f3de29edb2579cd37c3153a.sample"]
+dest_files=["res://.godot/imported/sfx_enemy_projectile_land.wav-a2a727324748a84c90bc33ddad3e64cb.sample"]
 
 [params]
 

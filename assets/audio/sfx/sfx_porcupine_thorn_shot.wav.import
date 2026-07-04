@@ -3,12 +3,12 @@
 importer="wav"
 type="AudioStreamWAV"
 uid="uid://cb4edx6fmdm0f"
-path="res://.godot/imported/sfx_porcupine_thorn_shot.wav-040a864c2e6e19c9a2d9d7906df1177b.sample"
+path="res://.godot/imported/sfx_porcupine_thorn_shot.wav-10d88fa42002333f60abcae6b6ca2d85.sample"
 
 [deps]
 
 source_file="res://assets/audio/sfx/sfx_porcupine_thorn_shot.wav"
-dest_files=["res://.godot/imported/sfx_porcupine_thorn_shot.wav-040a864c2e6e19c9a2d9d7906df1177b.sample"]
+dest_files=["res://.godot/imported/sfx_porcupine_thorn_shot.wav-10d88fa42002333f60abcae6b6ca2d85.sample"]
 
 [params]
 

@@ -3,12 +3,12 @@
 importer="wav"
 type="AudioStreamWAV"
 uid="uid://sscs1ytdst3t"
-path="res://.godot/imported/sfx_flywheel_hit.wav-0f8f8c3b1b40b831b1f2b9580b654303.sample"
+path="res://.godot/imported/sfx_flywheel_hit.wav-0ee97b9dc0b32f74caef75c367e44433.sample"
 
 [deps]
 
 source_file="res://assets/audio/sfx/sfx_flywheel_hit.wav"
-dest_files=["res://.godot/imported/sfx_flywheel_hit.wav-0f8f8c3b1b40b831b1f2b9580b654303.sample"]
+dest_files=["res://.godot/imported/sfx_flywheel_hit.wav-0ee97b9dc0b32f74caef75c367e44433.sample"]
 
 [params]
 

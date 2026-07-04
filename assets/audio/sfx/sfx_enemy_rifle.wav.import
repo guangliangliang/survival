@@ -3,12 +3,12 @@
 importer="wav"
 type="AudioStreamWAV"
 uid="uid://cs7g03k055qsx"
-path="res://.godot/imported/sfx_enemy_rifle.wav-3f774e972469da9cf8c3727788a42709.sample"
+path="res://.godot/imported/sfx_enemy_rifle.wav-1ac09e2e22c088c05175bd5b98fe5859.sample"
 
 [deps]
 
 source_file="res://assets/audio/sfx/sfx_enemy_rifle.wav"
-dest_files=["res://.godot/imported/sfx_enemy_rifle.wav-3f774e972469da9cf8c3727788a42709.sample"]
+dest_files=["res://.godot/imported/sfx_enemy_rifle.wav-1ac09e2e22c088c05175bd5b98fe5859.sample"]
 
 [params]
 

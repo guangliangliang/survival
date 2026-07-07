@@ -16,13 +16,13 @@ const UPGRADE_ICON_MAX_SIZE := Vector2i(104, 104)
 @onready var world_map: Node2D = $GameWorld/WorldMap
 @onready var enemy_spawner = $EnemySpawner
 @onready var camera: Camera2D = $Camera2D
-@onready var health_bar: ProgressBar = $CanvasLayer/GameUI/TopHUD/HealthBar
+@onready var status_panel_bg: PanelContainer = $CanvasLayer/GameUI/StatusPanelBg
 @onready var health_label: Label = $CanvasLayer/GameUI/TopHUD/HealthRow/HealthLabel
-@onready var exp_bar: ProgressBar = $CanvasLayer/GameUI/TopHUD/ExpBar
-@onready var exp_label: Label = $CanvasLayer/GameUI/TopHUD/ExpRow/ExpLabel
+@onready var exp_bar: ProgressBar = $CanvasLayer/GameUI/ExpHUD/ExpBar
+@onready var level_label: Label = $CanvasLayer/GameUI/ExpHUD/LevelLabel
 @onready var time_label: Label = $CanvasLayer/GameUI/TopHUD/TimeRow/TimeLabel
-@onready var kill_label: Label = $CanvasLayer/GameUI/TopHUD/KillLabel
-@onready var objective_label: Label = $CanvasLayer/GameUI/TopHUD/ObjectiveLabel
+@onready var kill_label: Label = $CanvasLayer/GameUI/TopHUD/KillRow/KillValueLabel
+@onready var objective_label: Label = $CanvasLayer/GameUI/ObjectiveLabel
 @onready var pause_button: Button = $CanvasLayer/GameUI/PauseButton
 @onready var game_over_screen: Control = $CanvasLayer/GameUI/GameOverScreen
 @onready var result_emblem: TextureRect = $CanvasLayer/GameUI/GameOverScreen/Panel/VBox/ResultEmblem
@@ -154,6 +154,7 @@ func _start_game() -> void:
 	upgrade_pending = 0
 	upgrade_levels.clear()
 	InputAdapter.clear_virtual_inputs()
+	InputAdapter.reset_dash_cooldown()
 	GameManager.start_run(level_data)
 	player = preload("res://scenes/game/Player.tscn").instantiate()
 	player.global_position = Vector2.ZERO
@@ -273,14 +274,15 @@ func _on_game_ended(result: StringName) -> void:
 
 func _update_ui() -> void:
 	if is_instance_valid(player):
-		health_bar.max_value = player.health_component.max_health
-		health_bar.value = player.health_component.current_health
 		health_label.text = "生命 %d / %d" % [int(player.health_component.current_health), int(player.health_component.max_health)]
 	exp_bar.max_value = GameManager.exp_to_next_level
 	exp_bar.value = GameManager.current_exp
-	exp_label.text = "等级 %d   经验 %d / %d" % [GameManager.current_level, GameManager.current_exp, GameManager.exp_to_next_level]
+	level_label.text = "等级 %d" % GameManager.current_level
 	time_label.text = "%s / %s" % [_format_time(GameManager.game_time), _format_time(run_duration)]
-	kill_label.text = "击败 %d" % GameManager.kill_count
+	kill_label.text = "击杀 %d" % GameManager.kill_count
+	_update_objective_label()
+
+func _update_objective_label() -> void:
 	if GameManager.game_time < enemy_spawner.boss_spawn_time:
 		objective_label.text = "任务：坚持到%s出现" % level_data.boss_data.display_name
 	elif not boss_is_defeated:
@@ -353,6 +355,8 @@ func _run_upgrade_exhaustion_test() -> void:
 	get_tree().create_timer(0.1, true).timeout.connect(func(): get_tree().quit())
 
 func _apply_overlay_style() -> void:
+	status_panel_bg.add_theme_stylebox_override("panel", _status_panel_box())
+	_style_exp_bar(exp_bar)
 	for panel_path in ["CanvasLayer/GameUI/GameOverScreen/Panel", "CanvasLayer/GameUI/PauseScreen/Panel", "CanvasLayer/GameUI/UpgradeScreen/Panel"]:
 		var panel := get_node_or_null(panel_path) as PanelContainer
 		if panel != null:
@@ -372,6 +376,26 @@ func _panel_box() -> StyleBoxFlat:
 	box.shadow_color = Color(0, 0, 0, 0.55)
 	box.shadow_size = 14
 	box.shadow_offset = Vector2(0, 5)
+	return box
+
+func _style_exp_bar(bar: ProgressBar) -> void:
+	bar.add_theme_stylebox_override("background", _bar_box(Color(0.0, 0.0, 0.0, 0.92), Color("2b2113"), 10))
+	bar.add_theme_stylebox_override("fill", _bar_box(Color("f1bd32"), Color("f1bd32"), 10))
+
+func _bar_box(fill: Color, border: Color, radius: int) -> StyleBoxFlat:
+	var box := StyleBoxFlat.new()
+	box.bg_color = fill
+	box.border_color = border
+	box.set_border_width_all(1)
+	box.set_corner_radius_all(radius)
+	return box
+
+func _status_panel_box() -> StyleBoxFlat:
+	var box := StyleBoxFlat.new()
+	box.bg_color = Color(0.02, 0.025, 0.02, 0.68)
+	box.border_color = Color(0.95, 0.74, 0.34, 0.28)
+	box.set_border_width_all(1)
+	box.set_corner_radius_all(6)
 	return box
 
 func _style_game_button(button: Button) -> void:

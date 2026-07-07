@@ -2,22 +2,26 @@ extends Control
 
 @export var attack_radius: float = 58.0
 @export var auto_radius: float = 25.0
+@export var dash_radius: float = 42.0
 @export var attack_center_offset := Vector2(76.0, 76.0)
-@export var auto_center_offset := Vector2(150.0, 150.0)
+@export var auto_center_offset := Vector2(206.0, 150.0)
+@export var dash_center_offset := Vector2(166.0, 76.0)
 
 var attack_touch_index: int = -1
 
 func _ready() -> void:
-	custom_minimum_size = Vector2(168.0, 188.0)
-	set_process(false)
+	custom_minimum_size = Vector2(250.0, 188.0)
+	set_process(true)
 	queue_redraw()
 
 func _exit_tree() -> void:
 	InputAdapter.clear_virtual_attack()
+	InputAdapter.clear_virtual_dash()
 
 func _process(_delta: float) -> void:
 	if attack_touch_index != -1:
 		InputAdapter.request_virtual_attack()
+	queue_redraw()
 
 func _gui_input(event: InputEvent) -> void:
 	if event is InputEventScreenTouch:
@@ -38,16 +42,18 @@ func _handle_press(local_position: Vector2, index: int) -> void:
 		InputAdapter.set_auto_attack_enabled(not InputAdapter.is_auto_attack_enabled())
 		queue_redraw()
 		accept_event()
+	elif _is_inside_dash(local_position):
+		InputAdapter.request_virtual_dash()
+		queue_redraw()
+		accept_event()
 	elif _is_inside_attack(local_position) and attack_touch_index == -1:
 		attack_touch_index = index
-		set_process(true)
 		InputAdapter.request_virtual_attack()
 		queue_redraw()
 		accept_event()
 
 func _release_attack() -> void:
 	attack_touch_index = -1
-	set_process(false)
 	InputAdapter.clear_virtual_attack()
 	queue_redraw()
 
@@ -57,22 +63,35 @@ func _is_inside_attack(local_position: Vector2) -> bool:
 func _is_inside_auto(local_position: Vector2) -> bool:
 	return local_position.distance_to(_auto_center()) <= auto_radius
 
+func _is_inside_dash(local_position: Vector2) -> bool:
+	return local_position.distance_to(_dash_center()) <= dash_radius
+
 func _attack_center() -> Vector2:
 	return size - attack_center_offset
 
 func _auto_center() -> Vector2:
 	return size - auto_center_offset
 
+func _dash_center() -> Vector2:
+	return size - dash_center_offset
+
 func _draw() -> void:
 	var attack_center := _attack_center()
 	var auto_center := _auto_center()
+	var dash_center := _dash_center()
 	var attack_pressed := attack_touch_index != -1
 	var auto_enabled := InputAdapter.is_auto_attack_enabled()
+	var dash_ready := InputAdapter.is_dash_ready()
 	var font := get_theme_default_font()
 	draw_circle(attack_center, attack_radius, Color(0.13, 0.11, 0.09, 0.5))
 	draw_circle(attack_center, attack_radius - 5.0, Color(0.95, 0.66, 0.28, 0.26 if not attack_pressed else 0.42), false, 5.0)
 	draw_circle(attack_center, attack_radius * 0.58, Color(0.95, 0.5, 0.22, 0.42 if not attack_pressed else 0.7))
 	draw_string(font, attack_center + Vector2(-22.0, 7.0), "ATK", HORIZONTAL_ALIGNMENT_LEFT, -1.0, 22, Color(1.0, 0.9, 0.68, 0.9))
+
+	draw_circle(dash_center, dash_radius, Color(0.08, 0.09, 0.1, 0.52))
+	draw_circle(dash_center, dash_radius - 4.0, Color(0.62, 0.74, 0.95, 0.52 if dash_ready else 0.16), false, 4.0)
+	draw_circle(dash_center, dash_radius * 0.56, Color(0.3, 0.55, 0.9, 0.58 if dash_ready else 0.18))
+	draw_string(font, dash_center + Vector2(-22.0, 5.0), "DASH", HORIZONTAL_ALIGNMENT_LEFT, -1.0, 13, Color(0.86, 0.93, 1.0, 0.95 if dash_ready else 0.35))
 
 	draw_circle(auto_center, auto_radius, Color(0.08, 0.1, 0.12, 0.55))
 	draw_circle(auto_center, auto_radius - 3.0, Color(0.45, 0.9, 0.52, 0.65 if auto_enabled else 0.2), false, 3.0)

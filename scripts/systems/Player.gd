@@ -3,6 +3,9 @@ extends CharacterBody2D
 signal died
 
 @export var move_speed: float = 210.0
+@export var dash_distance: float = 220.0
+@export var dash_duration: float = 0.16
+@export var dash_cooldown: float = 10.0
 @onready var health_component = $HealthComponent
 @onready var body_sprite = $BodySprite
 @onready var ranged_weapon = $WeaponsNode/RangedWeapon
@@ -14,6 +17,8 @@ const ANIM_FRAME_COUNT := 4
 const ANIM_FPS := 8.0
 const DIRECTION_RIGHT := 1
 const DIRECTION_LEFT := 3
+const HEALTH_BAR_SIZE := Vector2(58.0, 7.0)
+const HEALTH_BAR_OFFSET_Y := -104.0
 
 var is_alive: bool = true
 var world_bounds := Rect2(-1760.0, -1060.0, 3520.0, 2120.0)
@@ -22,6 +27,9 @@ var original_modulate := Color.WHITE
 var facing_row: int = DIRECTION_RIGHT
 var animation_time: float = 0.0
 var last_health: float = 0.0
+var dash_cooldown_remaining: float = 0.0
+var dash_time_remaining: float = 0.0
+var dash_velocity: Vector2 = Vector2.ZERO
 
 func _ready() -> void:
 	GameManager.player = self
@@ -30,15 +38,24 @@ func _ready() -> void:
 	last_health = health_component.current_health
 	original_modulate = body_sprite.modulate
 	_update_sprite_frame(0)
+	queue_redraw()
 
-func _physics_process(_delta: float) -> void:
+func _physics_process(delta: float) -> void:
 	if not is_alive:
 		velocity = Vector2.ZERO
 		return
-	var move_vector := InputAdapter.get_move_vector()
-	velocity = move_vector * move_speed
+	dash_cooldown_remaining = maxf(0.0, dash_cooldown_remaining - delta)
+	if InputAdapter.consume_dash_requested():
+		_try_start_dash()
+	if dash_time_remaining > 0.0:
+		dash_time_remaining = maxf(0.0, dash_time_remaining - delta)
+		velocity = dash_velocity
+	else:
+		var move_vector := InputAdapter.get_move_vector()
+		velocity = move_vector * move_speed
 	move_and_slide()
 	global_position = global_position.clamp(world_bounds.position, world_bounds.end)
+	InputAdapter.set_dash_cooldown_remaining(dash_cooldown_remaining)
 
 func _process(delta: float) -> void:
 	_update_walk_animation(delta)
@@ -67,6 +84,7 @@ func _on_health_changed(current_health: float, _max_health: float) -> void:
 	last_health = current_health
 	flash_time = 0.1
 	body_sprite.modulate = Color(1.0, 0.25, 0.25)
+	queue_redraw()
 
 func _on_died() -> void:
 	if not is_alive:
@@ -74,7 +92,35 @@ func _on_died() -> void:
 	is_alive = false
 	GameManager.player_died.emit()
 	GameManager.end_game(&"defeat")
+	queue_redraw()
 	died.emit()
+
+func _draw() -> void:
+	if not is_alive or health_component.max_health <= 0.0:
+		return
+	var ratio := clampf(health_component.current_health / health_component.max_health, 0.0, 1.0)
+	var top_left := Vector2(-HEALTH_BAR_SIZE.x * 0.5, HEALTH_BAR_OFFSET_Y)
+	var background_rect := Rect2(top_left, HEALTH_BAR_SIZE)
+	var fill_rect := Rect2(top_left, Vector2(HEALTH_BAR_SIZE.x * ratio, HEALTH_BAR_SIZE.y))
+	draw_rect(background_rect.grow(2.0), Color(0.0, 0.0, 0.0, 0.62))
+	draw_rect(background_rect, Color(0.14, 0.04, 0.035, 0.88))
+	draw_rect(fill_rect, Color(0.86, 0.08, 0.06, 0.96))
+	draw_rect(background_rect, Color(0.02, 0.015, 0.01, 0.95), false, 1.0)
+
+func _try_start_dash() -> void:
+	if dash_cooldown_remaining > 0.0 or dash_time_remaining > 0.0:
+		return
+	var dash_direction := _get_dash_direction()
+	dash_velocity = dash_direction * (dash_distance / maxf(dash_duration, 0.01))
+	dash_time_remaining = dash_duration
+	dash_cooldown_remaining = dash_cooldown
+	InputAdapter.set_dash_cooldown_remaining(dash_cooldown_remaining)
+
+func _get_dash_direction() -> Vector2:
+	var move_vector := InputAdapter.get_move_vector()
+	if move_vector.length_squared() > 0.01:
+		return move_vector.normalized()
+	return Vector2.LEFT if facing_row == DIRECTION_LEFT else Vector2.RIGHT
 
 func _update_walk_animation(delta: float) -> void:
 	var move_vector := InputAdapter.get_move_vector()

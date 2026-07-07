@@ -76,19 +76,86 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 1
 
+[node name="ExpHUD" type="Control" parent="CanvasLayer/GameUI"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 62.0
+grow_horizontal = 2
+mouse_filter = 2
+
+[node name="ExpBar" type="ProgressBar" parent="CanvasLayer/GameUI/ExpHUD"]
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 18.0
+offset_top = 10.0
+offset_right = -18.0
+offset_bottom = 34.0
+grow_horizontal = 2
+mouse_filter = 2
+max_value = 10.0
+show_percentage = false
+
+[node name="LevelLabel" type="Label" parent="CanvasLayer/GameUI/ExpHUD"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 18.0
+offset_top = 34.0
+offset_right = -18.0
+offset_bottom = 62.0
+grow_horizontal = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 0.86, 0.38, 1)
+theme_override_font_sizes/font_size = 18
+text = "等级 1"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ObjectiveLabel" type="Label" parent="CanvasLayer/GameUI"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 128.0
+offset_top = 70.0
+offset_right = -286.0
+offset_bottom = 100.0
+grow_horizontal = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.96, 0.86, 0.56, 1)
+theme_override_font_sizes/font_size = 18
+text = "任务"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="StatusPanelBg" type="PanelContainer" parent="CanvasLayer/GameUI"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -252.0
+offset_top = 70.0
+offset_right = -18.0
+offset_bottom = 176.0
+grow_horizontal = 0
+mouse_filter = 2
+
 [node name="TopHUD" type="VBoxContainer" parent="CanvasLayer/GameUI"]
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -350.0
-offset_top = 18.0
-offset_right = -18.0
-offset_bottom = 214.0
+offset_left = -242.0
+offset_top = 78.0
+offset_right = -28.0
+offset_bottom = 170.0
 grow_horizontal = 0
-theme_override_constants/separation = 3
+theme_override_constants/separation = 5
 
 [node name="ObjectiveLabel" type="Label" parent="CanvasLayer/GameUI/TopHUD"]
+visible = false
 layout_mode = 2
 text = "任务：坚持到强盗头目出现"
 horizontal_alignment = 2
@@ -107,11 +174,13 @@ stretch_mode = 5
 
 [node name="TimeLabel" type="Label" parent="CanvasLayer/GameUI/TopHUD/TimeRow"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.95, 0.9, 0.78, 1)
+theme_override_font_sizes/font_size = 18
 text = "00:00 / 12:00"
 horizontal_alignment = 2
 
 [node name="HealthBar" type="ProgressBar" parent="CanvasLayer/GameUI/TopHUD"]
+visible = false
 custom_minimum_size = Vector2(0, 26)
 layout_mode = 2
 value = 100.0
@@ -131,16 +200,20 @@ stretch_mode = 5
 
 [node name="HealthLabel" type="Label" parent="CanvasLayer/GameUI/TopHUD/HealthRow"]
 layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.9, 0.78, 1)
+theme_override_font_sizes/font_size = 17
 text = "生命 100 / 100"
 horizontal_alignment = 2
 
 [node name="ExpBar" type="ProgressBar" parent="CanvasLayer/GameUI/TopHUD"]
+visible = false
 custom_minimum_size = Vector2(0, 20)
 layout_mode = 2
 max_value = 10.0
 show_percentage = false
 
 [node name="ExpRow" type="HBoxContainer" parent="CanvasLayer/GameUI/TopHUD"]
+visible = false
 layout_mode = 2
 theme_override_constants/separation = 8
 alignment = 2
@@ -158,16 +231,36 @@ text = "等级 1   经验 0 / 10"
 horizontal_alignment = 2
 
 [node name="KillLabel" type="Label" parent="CanvasLayer/GameUI/TopHUD"]
+visible = false
 layout_mode = 2
 text = "击败 0"
+horizontal_alignment = 2
+
+[node name="KillRow" type="HBoxContainer" parent="CanvasLayer/GameUI/TopHUD"]
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 2
+
+[node name="KillIcon" type="TextureRect" parent="CanvasLayer/GameUI/TopHUD/KillRow"]
+custom_minimum_size = Vector2(28, 28)
+layout_mode = 2
+texture = ExtResource("15")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="KillValueLabel" type="Label" parent="CanvasLayer/GameUI/TopHUD/KillRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.9, 0.78, 1)
+theme_override_font_sizes/font_size = 17
+text = "击杀 0"
 horizontal_alignment = 2
 
 [node name="PauseButton" type="Button" parent="CanvasLayer/GameUI"]
 layout_mode = 1
 offset_left = 18.0
-offset_top = 18.0
+offset_top = 70.0
 offset_right = 112.0
-offset_bottom = 68.0
+offset_bottom = 120.0
 text = "暂停"
 
 [node name="VirtualJoystick" type="Control" parent="CanvasLayer/GameUI"]
@@ -192,7 +285,7 @@ anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -214.0
+offset_left = -286.0
 offset_top = -230.0
 offset_right = -26.0
 offset_bottom = -28.0

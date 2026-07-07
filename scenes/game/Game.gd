@@ -8,7 +8,7 @@ const ICON_DRONE := preload("res://assets/images/weapons/weapon_combat_drone.png
 const ICON_HEALTH := preload("res://assets/images/ui/icon_health.png")
 const ICON_LEVEL := preload("res://assets/images/ui/icon_level.png")
 const ICON_PROJECTILE := preload("res://assets/images/projectiles/bullet_player.png")
-const UPGRADE_ICON_MAX_SIZE := Vector2i(104, 104)
+const UPGRADE_ICON_MAX_SIZE := Vector2i(92, 92)
 
 @export var run_duration: float = 720.0
 
@@ -43,11 +43,13 @@ const UPGRADE_ICON_MAX_SIZE := Vector2i(104, 104)
 	$CanvasLayer/GameUI/UpgradeScreen/Panel/VBox/Choices/Choice2,
 	$CanvasLayer/GameUI/UpgradeScreen/Panel/VBox/Choices/Choice3
 ]
+@onready var upgrade_refresh_button: Button = $CanvasLayer/GameUI/UpgradeScreen/Panel/VBox/RefreshButton
 
 var player: CharacterBody2D
 var manual_pause: bool = false
 var upgrade_pending: int = 0
 var current_choices: Array[Resource] = []
+var upgrade_refresh_used: bool = false
 var upgrade_levels: Dictionary = {}
 var boss_is_defeated: bool = false
 var boss_music_started: bool = false
@@ -141,6 +143,7 @@ func _connect_signals() -> void:
 	GameManager.level_up.connect(_on_level_up)
 	GameManager.game_ended.connect(_on_game_ended)
 	GameManager.boss_defeated.connect(_on_boss_defeated)
+	upgrade_refresh_button.pressed.connect(_refresh_upgrade_choices)
 	for index in upgrade_buttons.size():
 		upgrade_buttons[index].pressed.connect(_choose_upgrade.bind(index))
 
@@ -152,6 +155,7 @@ func _start_game() -> void:
 	boss_is_defeated = false
 	boss_music_started = false
 	upgrade_pending = 0
+	upgrade_refresh_used = false
 	upgrade_levels.clear()
 	InputAdapter.clear_virtual_inputs()
 	InputAdapter.reset_dash_cooldown()
@@ -192,31 +196,14 @@ func _on_level_up(_level: int) -> void:
 		_show_upgrade_choices()
 
 func _show_upgrade_choices() -> void:
-	var available: Array[Resource] = []
-	for upgrade in upgrade_catalog:
-		if _is_upgrade_available(upgrade):
-			available.append(upgrade)
-	if available.is_empty():
+	if not _roll_upgrade_choices(false):
 		upgrade_pending = 0
 		current_choices.clear()
 		upgrade_screen.visible = false
 		get_tree().paused = manual_pause
 		return
-	available.shuffle()
-	current_choices.clear()
-	for index in mini(3, available.size()):
-		current_choices.append(available[index])
-	for index in upgrade_buttons.size():
-		var button := upgrade_buttons[index]
-		if index < current_choices.size():
-			var choice := current_choices[index]
-			var next_level := int(upgrade_levels.get(choice.upgrade_id, 0)) + 1
-			button.text = "%s\nLv.%d\n\n%s" % [choice.title, next_level, choice.description]
-			button.icon = _get_fitted_upgrade_icon(choice)
-			button.visible = true
-		else:
-			button.visible = false
-			button.icon = null
+	upgrade_refresh_used = false
+	_update_refresh_button()
 	upgrade_screen.visible = true
 	AudioManager.play_sfx_by_key(&"upgrade_panel_open")
 	InputAdapter.clear_virtual_inputs()
@@ -248,6 +235,149 @@ func _choose_upgrade(index: int) -> void:
 	else:
 		upgrade_screen.visible = false
 		get_tree().paused = manual_pause
+
+func _refresh_upgrade_choices() -> void:
+	if upgrade_refresh_used:
+		AudioManager.play_ui_by_key(&"invalid")
+		return
+	upgrade_refresh_used = true
+	if not _roll_upgrade_choices(true):
+		AudioManager.play_ui_by_key(&"invalid")
+	_update_refresh_button()
+	AudioManager.play_sfx_by_key(&"upgrade_panel_open", -4.0)
+
+func _roll_upgrade_choices(avoid_current: bool) -> bool:
+	var available := _get_available_upgrades()
+	if available.is_empty():
+		return false
+	var previous_ids := {}
+	if avoid_current:
+		for choice in current_choices:
+			previous_ids[choice.upgrade_id] = true
+	available.shuffle()
+	current_choices.clear()
+	var target_count := mini(upgrade_buttons.size(), available.size())
+	if avoid_current and available.size() > target_count:
+		for upgrade in available:
+			if previous_ids.has(upgrade.upgrade_id):
+				continue
+			current_choices.append(upgrade)
+			if current_choices.size() >= target_count:
+				break
+	for upgrade in available:
+		if current_choices.size() >= target_count:
+			break
+		if current_choices.has(upgrade):
+			continue
+		current_choices.append(upgrade)
+	_update_upgrade_buttons()
+	return true
+
+func _get_available_upgrades() -> Array[Resource]:
+	var available: Array[Resource] = []
+	for upgrade in upgrade_catalog:
+		if _is_upgrade_available(upgrade):
+			available.append(upgrade)
+	return available
+
+func _update_upgrade_buttons() -> void:
+	for index in upgrade_buttons.size():
+		var button := upgrade_buttons[index]
+		if index < current_choices.size():
+			var choice := current_choices[index]
+			var next_level := int(upgrade_levels.get(choice.upgrade_id, 0)) + 1
+			_set_upgrade_button_content(button, choice, next_level)
+			button.visible = true
+		else:
+			_clear_upgrade_button(button)
+
+func _set_upgrade_button_content(button: Button, choice: Resource, next_level: int) -> void:
+	button.text = ""
+	button.icon = null
+	var tier := _get_upgrade_tier(next_level, choice.max_level)
+	var palette := _get_upgrade_palette(tier)
+	_apply_upgrade_button_palette(button, palette)
+	_ensure_upgrade_card_nodes(button)
+	var title_label := button.get_node("Card/CardBox/Title") as Label
+	var icon_frame := button.get_node("Card/CardBox/IconFrame") as PanelContainer
+	var icon_rect := button.get_node("Card/CardBox/IconFrame/Icon") as TextureRect
+	var stars_label := button.get_node("Card/CardBox/Stars") as Label
+	var type_label := button.get_node("Card/CardBox/Type") as Label
+	var desc_label := button.get_node("Card/CardBox/Description") as Label
+	title_label.text = choice.title
+	icon_frame.add_theme_stylebox_override("panel", _upgrade_icon_frame_box(palette["frame"], palette["border"]))
+	icon_rect.texture = _get_fitted_upgrade_icon(choice)
+	stars_label.text = _build_star_text(next_level, choice.max_level)
+	stars_label.add_theme_color_override("font_color", palette["accent"])
+	type_label.text = "%s  Lv.%d/%d" % [_get_upgrade_type(choice), next_level, choice.max_level]
+	type_label.add_theme_color_override("font_color", palette["accent"])
+	desc_label.text = choice.description
+
+func _clear_upgrade_button(button: Button) -> void:
+	button.visible = false
+	button.text = ""
+	button.icon = null
+
+func _update_refresh_button() -> void:
+	var available_count := _get_available_upgrades().size()
+	var can_refresh := not upgrade_refresh_used and available_count > current_choices.size()
+	upgrade_refresh_button.disabled = not can_refresh
+	if upgrade_refresh_used:
+		upgrade_refresh_button.text = "本次已刷新"
+	elif can_refresh:
+		upgrade_refresh_button.text = "刷新技能"
+	else:
+		upgrade_refresh_button.text = "没有可刷新技能"
+
+func _get_upgrade_tier(next_level: int, max_level: int) -> int:
+	if max_level <= 1:
+		return 4
+	var ratio := float(next_level) / float(max_level)
+	if ratio >= 1.0:
+		return 4
+	if ratio >= 0.75:
+		return 3
+	if ratio >= 0.5:
+		return 2
+	return 1
+
+func _get_upgrade_palette(tier: int) -> Dictionary:
+	match tier:
+		4:
+			return {"fill": Color("22162e"), "border": Color("f3cf78"), "accent": Color("ffe18f"), "frame": Color("3b2749")}
+		3:
+			return {"fill": Color("10272b"), "border": Color("5fd1c8"), "accent": Color("a8fff5"), "frame": Color("173941")}
+		2:
+			return {"fill": Color("122818"), "border": Color("72bf6a"), "accent": Color("bdf49a"), "frame": Color("1d3b24")}
+		_:
+			return {"fill": Color("1d1810"), "border": Color("a98955"), "accent": Color("f2dfb0"), "frame": Color("2c2418")}
+
+func _apply_upgrade_button_palette(button: Button, palette: Dictionary) -> void:
+	var fill: Color = palette["fill"]
+	var border: Color = palette["border"]
+	var accent: Color = palette["accent"]
+	button.add_theme_stylebox_override("normal", _upgrade_card_box(fill, border))
+	button.add_theme_stylebox_override("hover", _upgrade_card_box(fill.lightened(0.08), accent))
+	button.add_theme_stylebox_override("pressed", _upgrade_card_box(fill.darkened(0.08), border.darkened(0.12)))
+
+func _get_upgrade_type(upgrade: Resource) -> String:
+	match upgrade.upgrade_id:
+		&"flywheel", &"drone":
+			return "装备"
+		&"drone_damage", &"drone_fire_rate", &"drone_range":
+			return "无人机"
+		&"damage", &"fire_rate", &"range", &"pierce", &"projectiles":
+			return "步枪"
+		&"move_speed", &"max_health":
+			return "生存"
+		_:
+			return "技能"
+
+func _build_star_text(next_level: int, max_level: int) -> String:
+	var text := ""
+	for index in max_level:
+		text += "★" if index < next_level else "☆"
+	return text
 
 func _on_boss_defeated() -> void:
 	boss_is_defeated = true
@@ -361,7 +491,7 @@ func _apply_overlay_style() -> void:
 		var panel := get_node_or_null(panel_path) as PanelContainer
 		if panel != null:
 			panel.add_theme_stylebox_override("panel", _panel_box())
-	for button in [pause_button, restart_button, next_button, level_select_button, home_button, resume_button, pause_restart_button, pause_level_select_button, pause_home_button]:
+	for button in [pause_button, restart_button, next_button, level_select_button, home_button, resume_button, pause_restart_button, pause_level_select_button, pause_home_button, upgrade_refresh_button]:
 		_style_game_button(button)
 	for button in upgrade_buttons:
 		_style_upgrade_button(button)
@@ -402,10 +532,13 @@ func _style_game_button(button: Button) -> void:
 	button.add_theme_stylebox_override("normal", _button_box(Color("4b3428"), Color("a98955")))
 	button.add_theme_stylebox_override("hover", _button_box(Color("6a432d"), Color("d0ad68")))
 	button.add_theme_stylebox_override("pressed", _button_box(Color("31251f"), Color("7e6846")))
+	button.add_theme_stylebox_override("disabled", _button_box(Color("2e2a24"), Color("665a43")))
 	button.add_theme_color_override("font_color", Color("f2dfb0"))
 	button.add_theme_color_override("font_hover_color", Color("fff0c6"))
+	button.add_theme_color_override("font_disabled_color", Color("998966"))
 
 func _style_upgrade_button(button: Button) -> void:
+	_ensure_upgrade_card_nodes(button)
 	button.add_theme_stylebox_override("normal", _upgrade_card_box(Color(0.115, 0.093, 0.064, 0.96), Color("a98955")))
 	button.add_theme_stylebox_override("hover", _upgrade_card_box(Color(0.18, 0.125, 0.072, 0.98), Color("f0c66a")))
 	button.add_theme_stylebox_override("pressed", _upgrade_card_box(Color(0.075, 0.063, 0.052, 0.98), Color("7e6846")))
@@ -413,6 +546,81 @@ func _style_upgrade_button(button: Button) -> void:
 	button.add_theme_color_override("font_hover_color", Color("fff3ca"))
 	button.add_theme_color_override("font_pressed_color", Color("ead098"))
 	button.add_theme_font_size_override("font_size", 19)
+	button.clip_contents = true
+
+func _ensure_upgrade_card_nodes(button: Button) -> void:
+	if button.has_node("Card"):
+		return
+	var card := MarginContainer.new()
+	card.name = "Card"
+	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	card.set_anchors_preset(Control.PRESET_FULL_RECT)
+	card.add_theme_constant_override("margin_left", 16)
+	card.add_theme_constant_override("margin_top", 14)
+	card.add_theme_constant_override("margin_right", 16)
+	card.add_theme_constant_override("margin_bottom", 14)
+	button.add_child(card)
+
+	var box := VBoxContainer.new()
+	box.name = "CardBox"
+	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	box.add_theme_constant_override("separation", 8)
+	card.add_child(box)
+
+	var title := Label.new()
+	title.name = "Title"
+	title.custom_minimum_size = Vector2(0, 46)
+	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	title.add_theme_color_override("font_color", Color("fff0c6"))
+	title.add_theme_font_size_override("font_size", 22)
+	box.add_child(title)
+
+	var icon_frame := PanelContainer.new()
+	icon_frame.name = "IconFrame"
+	icon_frame.custom_minimum_size = Vector2(0, 126)
+	icon_frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_child(icon_frame)
+
+	var icon := TextureRect.new()
+	icon.name = "Icon"
+	icon.custom_minimum_size = Vector2(0, 108)
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon_frame.add_child(icon)
+
+	var stars := Label.new()
+	stars.name = "Stars"
+	stars.custom_minimum_size = Vector2(0, 28)
+	stars.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	stars.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	stars.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	stars.add_theme_font_size_override("font_size", 22)
+	box.add_child(stars)
+
+	var type_label := Label.new()
+	type_label.name = "Type"
+	type_label.custom_minimum_size = Vector2(0, 26)
+	type_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	type_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	type_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	type_label.add_theme_font_size_override("font_size", 16)
+	box.add_child(type_label)
+
+	var description := Label.new()
+	description.name = "Description"
+	description.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	description.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	description.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	description.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	description.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	description.add_theme_color_override("font_color", Color("efe0bb"))
+	description.add_theme_font_size_override("font_size", 16)
+	box.add_child(description)
 
 func _button_box(fill: Color, border: Color) -> StyleBoxFlat:
 	var box := StyleBoxFlat.new()
@@ -432,6 +640,15 @@ func _upgrade_card_box(fill: Color, border: Color) -> StyleBoxFlat:
 	box.shadow_color = Color(0, 0, 0, 0.5)
 	box.shadow_size = 12
 	box.shadow_offset = Vector2(0, 4)
+	return box
+
+func _upgrade_icon_frame_box(fill: Color, border: Color) -> StyleBoxFlat:
+	var box := StyleBoxFlat.new()
+	box.bg_color = fill
+	box.border_color = border
+	box.set_border_width_all(2)
+	box.set_corner_radius_all(6)
+	box.set_content_margin_all(8)
 	return box
 
 func _get_upgrade_icon(upgrade: Resource) -> Texture2D:

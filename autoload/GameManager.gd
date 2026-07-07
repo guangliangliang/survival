@@ -16,12 +16,20 @@ var kill_count: int = 0
 var run_active: bool = false
 var result: StringName = &""
 var selected_level: Resource = preload("res://resources/levels/village_outskirts.tres")
+var selected_character: Resource = preload("res://resources/characters/sentinel.tres")
 var last_run_result: Resource
 
 var level_catalog: Array[Resource] = [
 	preload("res://resources/levels/village_outskirts.tres"),
 	preload("res://resources/levels/dark_forest.tres"),
 	preload("res://resources/levels/bandit_camp.tres")
+]
+
+var character_catalog: Array[Resource] = [
+	preload("res://resources/characters/sentinel.tres"),
+	preload("res://resources/characters/ranger.tres"),
+	preload("res://resources/characters/gunsmith.tres"),
+	preload("res://resources/characters/medic.tres")
 ]
 
 func start_run(level_data: Resource = null) -> void:
@@ -55,6 +63,10 @@ func finish_run(end_result: StringName) -> Resource:
 
 func select_level(level_data: Resource) -> void:
 	selected_level = level_data
+
+func select_character(character_data: Resource) -> void:
+	if character_data != null:
+		selected_character = character_data
 
 func get_level_by_id(level_id: StringName) -> Resource:
 	for level_data in level_catalog:

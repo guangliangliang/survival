@@ -3,9 +3,12 @@ extends Control
 const LevelPreviewControl = preload("res://scripts/ui/LevelPreview.gd")
 const ENEMY_ATTACK_TEST_SCENE := "res://scenes/debug/EnemyAttackTest.tscn"
 
+@onready var layout_box: VBoxContainer = $Margin/VBox
 @onready var cards: HBoxContainer = $Margin/VBox/Cards
 @onready var back_button: Button = $Margin/VBox/Header/BackButton
 @onready var debug_button: Button = $Margin/VBox/Header/DebugButton
+
+var character_buttons: Dictionary = {}
 
 func _ready() -> void:
 	AudioManager.play_music_by_key(&"menu")
@@ -13,7 +16,109 @@ func _ready() -> void:
 	debug_button.pressed.connect(_start_enemy_attack_test)
 	_style_button(back_button, Color("3b332d"), Color("8e8069"))
 	_style_button(debug_button, Color("3b332d"), Color("8e8069"))
+	_build_character_selector()
 	_build_level_cards()
+
+func _build_character_selector() -> void:
+	character_buttons.clear()
+	var panel := PanelContainer.new()
+	panel.custom_minimum_size = Vector2(0, 124)
+	var panel_style := StyleBoxFlat.new()
+	panel_style.bg_color = Color(0.045, 0.052, 0.043, 0.9)
+	panel_style.border_color = Color("7e6846")
+	panel_style.set_border_width_all(2)
+	panel_style.set_corner_radius_all(6)
+	panel_style.set_content_margin_all(14.0)
+	panel.add_theme_stylebox_override("panel", panel_style)
+	layout_box.add_child(panel)
+	layout_box.move_child(panel, cards.get_index())
+
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 10)
+	panel.add_child(box)
+
+	var title := Label.new()
+	title.text = "选择主角"
+	title.add_theme_font_size_override("font_size", 20)
+	title.add_theme_color_override("font_color", Color("e8d99a"))
+	box.add_child(title)
+
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 12)
+	box.add_child(row)
+
+	for character_data in GameManager.character_catalog:
+		var button := _create_character_button(character_data)
+		row.add_child(button)
+		character_buttons[character_data.character_id] = button
+	_update_character_buttons()
+
+func _create_character_button(character_data: Resource) -> Button:
+	var button := Button.new()
+	button.custom_minimum_size = Vector2(235, 72)
+	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	button.toggle_mode = true
+	button.text = ""
+	button.pressed.connect(_select_character.bind(character_data))
+
+	var row := HBoxContainer.new()
+	row.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	row.offset_left = 10
+	row.offset_top = 8
+	row.offset_right = -10
+	row.offset_bottom = -8
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_theme_constant_override("separation", 10)
+	button.add_child(row)
+
+	var preview := TextureRect.new()
+	preview.custom_minimum_size = Vector2(54, 54)
+	preview.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+	preview.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	preview.texture = _make_character_preview(character_data.body_texture)
+	preview.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_child(preview)
+
+	var text_box := VBoxContainer.new()
+	text_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	text_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_child(text_box)
+
+	var name_label := Label.new()
+	name_label.text = character_data.display_name
+	name_label.add_theme_font_size_override("font_size", 18)
+	name_label.add_theme_color_override("font_color", Color("f4e2b2"))
+	name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	text_box.add_child(name_label)
+
+	var desc_label := Label.new()
+	desc_label.text = character_data.description
+	desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	desc_label.add_theme_font_size_override("font_size", 13)
+	desc_label.add_theme_color_override("font_color", Color("b8c9ad"))
+	desc_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	text_box.add_child(desc_label)
+	return button
+
+func _make_character_preview(texture: Texture2D) -> Texture2D:
+	var atlas := AtlasTexture.new()
+	atlas.atlas = texture
+	atlas.region = Rect2(0, 0, 128, 128)
+	return atlas
+
+func _select_character(character_data: Resource) -> void:
+	AudioManager.play_ui_by_key(&"button_click")
+	GameManager.select_character(character_data)
+	_update_character_buttons()
+
+func _update_character_buttons() -> void:
+	for character_data in GameManager.character_catalog:
+		var button := character_buttons.get(character_data.character_id) as Button
+		if button == null:
+			continue
+		var selected: bool = GameManager.selected_character != null and GameManager.selected_character.character_id == character_data.character_id
+		button.button_pressed = selected
+		_style_character_button(button, selected)
 
 func _build_level_cards() -> void:
 	for child in cards.get_children():
@@ -23,7 +128,7 @@ func _build_level_cards() -> void:
 
 func _create_level_card(level_data: Resource, index: int) -> Control:
 	var panel := PanelContainer.new()
-	panel.custom_minimum_size = Vector2(350, 430)
+	panel.custom_minimum_size = Vector2(350, 360)
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var panel_style := StyleBoxFlat.new()
 	panel_style.bg_color = Color(0.055, 0.07, 0.052, 0.92)
@@ -37,11 +142,11 @@ func _create_level_card(level_data: Resource, index: int) -> Control:
 	panel.add_theme_stylebox_override("panel", panel_style)
 
 	var box := VBoxContainer.new()
-	box.add_theme_constant_override("separation", 14)
+	box.add_theme_constant_override("separation", 10)
 	panel.add_child(box)
 
 	var preview := LevelPreviewControl.new()
-	preview.custom_minimum_size = Vector2(0, 155)
+	preview.custom_minimum_size = Vector2(0, 120)
 	preview.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	preview.configure(level_data)
 	box.add_child(preview)
@@ -54,7 +159,7 @@ func _create_level_card(level_data: Resource, index: int) -> Control:
 
 	var title := Label.new()
 	title.text = level_data.title
-	title.add_theme_font_size_override("font_size", 30)
+	title.add_theme_font_size_override("font_size", 26)
 	box.add_child(title)
 
 	var duration := Label.new()
@@ -66,7 +171,7 @@ func _create_level_card(level_data: Resource, index: int) -> Control:
 	description.text = level_data.description
 	description.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	description.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	description.add_theme_font_size_override("font_size", 17)
+	description.add_theme_font_size_override("font_size", 15)
 	box.add_child(description)
 
 	var play := Button.new()
@@ -97,6 +202,14 @@ func _style_button(button: Button, fill: Color, border: Color) -> void:
 	button.add_theme_color_override("font_color", Color("f4e2b2"))
 	button.add_theme_color_override("font_hover_color", Color("fff0c6"))
 	button.add_theme_font_size_override("font_size", 18)
+
+func _style_character_button(button: Button, selected: bool) -> void:
+	var fill := Color("594728") if selected else Color("3b332d")
+	var border := Color("d9b56b") if selected else Color("8e8069")
+	button.add_theme_stylebox_override("normal", _button_box(fill, border))
+	button.add_theme_stylebox_override("hover", _button_box(fill.lightened(0.12), border.lightened(0.16)))
+	button.add_theme_stylebox_override("pressed", _button_box(fill.darkened(0.12), border.darkened(0.1)))
+	button.add_theme_stylebox_override("focus", _button_box(fill.lightened(0.08), border.lightened(0.12)))
 
 func _button_box(fill: Color, border: Color) -> StyleBoxFlat:
 	var box := StyleBoxFlat.new()

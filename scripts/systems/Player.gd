@@ -34,12 +34,22 @@ var dash_velocity: Vector2 = Vector2.ZERO
 
 func _ready() -> void:
 	GameManager.player = self
+	_apply_selected_character()
 	health_component.died.connect(_on_died)
 	health_component.health_changed.connect(_on_health_changed)
 	last_health = health_component.current_health
 	original_modulate = body_sprite.modulate
 	_update_sprite_frame(0)
 	queue_redraw()
+
+func _apply_selected_character() -> void:
+	var character_data: Resource = GameManager.selected_character
+	if character_data == null:
+		return
+	if character_data.body_texture != null:
+		body_sprite.texture = character_data.body_texture
+	if character_data.rifle_texture != null:
+		ranged_weapon.set_arms_texture(character_data.rifle_texture)
 
 func _physics_process(delta: float) -> void:
 	if not is_alive:

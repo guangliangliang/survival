@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="CharacterData" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/CharacterData.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/images/characters/player_medic_body_2dir.png" id="2"]
+[ext_resource type="Texture2D" path="res://assets/images/characters/player_medic_rifle_right.png" id="3"]
+
+[resource]
+script = ExtResource("1")
+character_id = &"medic"
+display_name = "野战药师"
+description = "浅色外套与紧凑型卡宾枪。"
+body_texture = ExtResource("2")
+rifle_texture = ExtResource("3")

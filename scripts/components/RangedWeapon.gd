@@ -161,6 +161,10 @@ func refresh_aim_direction() -> void:
 func has_aim_target() -> bool:
 	return is_instance_valid(cached_target) and cached_target.get("is_alive")
 
+func set_arms_texture(texture: Texture2D) -> void:
+	if texture != null:
+		arms_rifle_sprite.texture = texture
+
 func set_body_pose(direction_row: int, frame: int) -> void:
 	body_direction_row = clampi(direction_row, DIRECTION_DOWN, DIRECTION_LEFT)
 	body_frame = clampi(frame, 0, ANIM_FRAME_COUNT - 1)

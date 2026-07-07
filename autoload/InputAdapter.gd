@@ -3,8 +3,11 @@ extends Node
 var virtual_move: Vector2 = Vector2.ZERO
 var virtual_attack_requested: bool = false
 var virtual_dash_requested: bool = false
+var virtual_scatter_requested: bool = false
 var auto_attack_enabled: bool = true
 var dash_cooldown_remaining: float = 0.0
+var scatter_cooldown_remaining: float = 0.0
+var scatter_cooldown_duration: float = 9.0
 
 func get_move_vector() -> Vector2:
 	var keyboard := Input.get_vector("move_left", "move_right", "move_up", "move_down")
@@ -20,6 +23,11 @@ func consume_attack_requested() -> bool:
 func consume_dash_requested() -> bool:
 	var requested := virtual_dash_requested
 	virtual_dash_requested = false
+	return requested
+
+func consume_scatter_requested() -> bool:
+	var requested := virtual_scatter_requested
+	virtual_scatter_requested = false
 	return requested
 
 func set_virtual_move(value: Vector2) -> void:
@@ -41,6 +49,13 @@ func request_virtual_dash() -> void:
 func clear_virtual_dash() -> void:
 	virtual_dash_requested = false
 
+func request_virtual_scatter() -> void:
+	if scatter_cooldown_remaining <= 0.0:
+		virtual_scatter_requested = true
+
+func clear_virtual_scatter() -> void:
+	virtual_scatter_requested = false
+
 func set_dash_cooldown_remaining(value: float) -> void:
 	dash_cooldown_remaining = maxf(0.0, value)
 
@@ -54,6 +69,26 @@ func reset_dash_cooldown() -> void:
 	dash_cooldown_remaining = 0.0
 	clear_virtual_dash()
 
+func set_scatter_cooldown(remaining: float, duration: float) -> void:
+	scatter_cooldown_remaining = maxf(0.0, remaining)
+	scatter_cooldown_duration = maxf(0.01, duration)
+
+func get_scatter_cooldown_remaining() -> float:
+	return scatter_cooldown_remaining
+
+func get_scatter_cooldown_duration() -> float:
+	return scatter_cooldown_duration
+
+func get_scatter_cooldown_ratio() -> float:
+	return clampf(scatter_cooldown_remaining / scatter_cooldown_duration, 0.0, 1.0)
+
+func is_scatter_ready() -> bool:
+	return scatter_cooldown_remaining <= 0.0
+
+func reset_scatter_cooldown() -> void:
+	scatter_cooldown_remaining = 0.0
+	clear_virtual_scatter()
+
 func set_auto_attack_enabled(value: bool) -> void:
 	auto_attack_enabled = value
 
@@ -64,3 +99,4 @@ func clear_virtual_inputs() -> void:
 	clear_virtual_move()
 	clear_virtual_attack()
 	clear_virtual_dash()
+	clear_virtual_scatter()

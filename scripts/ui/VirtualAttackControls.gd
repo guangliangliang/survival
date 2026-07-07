@@ -3,9 +3,11 @@ extends Control
 @export var attack_radius: float = 58.0
 @export var auto_radius: float = 25.0
 @export var dash_radius: float = 42.0
+@export var scatter_radius: float = 34.0
 @export var attack_center_offset := Vector2(76.0, 76.0)
 @export var auto_center_offset := Vector2(206.0, 150.0)
 @export var dash_center_offset := Vector2(166.0, 76.0)
+@export var scatter_center_offset := Vector2(76.0, 166.0)
 
 var attack_touch_index: int = -1
 
@@ -17,6 +19,7 @@ func _ready() -> void:
 func _exit_tree() -> void:
 	InputAdapter.clear_virtual_attack()
 	InputAdapter.clear_virtual_dash()
+	InputAdapter.clear_virtual_scatter()
 
 func _process(_delta: float) -> void:
 	if attack_touch_index != -1:
@@ -40,6 +43,10 @@ func _gui_input(event: InputEvent) -> void:
 func _handle_press(local_position: Vector2, index: int) -> void:
 	if _is_inside_auto(local_position):
 		InputAdapter.set_auto_attack_enabled(not InputAdapter.is_auto_attack_enabled())
+		queue_redraw()
+		accept_event()
+	elif _is_inside_scatter(local_position):
+		InputAdapter.request_virtual_scatter()
 		queue_redraw()
 		accept_event()
 	elif _is_inside_dash(local_position):
@@ -66,6 +73,9 @@ func _is_inside_auto(local_position: Vector2) -> bool:
 func _is_inside_dash(local_position: Vector2) -> bool:
 	return local_position.distance_to(_dash_center()) <= dash_radius
 
+func _is_inside_scatter(local_position: Vector2) -> bool:
+	return local_position.distance_to(_scatter_center()) <= scatter_radius
+
 func _attack_center() -> Vector2:
 	return size - attack_center_offset
 
@@ -75,13 +85,18 @@ func _auto_center() -> Vector2:
 func _dash_center() -> Vector2:
 	return size - dash_center_offset
 
+func _scatter_center() -> Vector2:
+	return size - scatter_center_offset
+
 func _draw() -> void:
 	var attack_center := _attack_center()
 	var auto_center := _auto_center()
 	var dash_center := _dash_center()
+	var scatter_center := _scatter_center()
 	var attack_pressed := attack_touch_index != -1
 	var auto_enabled := InputAdapter.is_auto_attack_enabled()
 	var dash_ready := InputAdapter.is_dash_ready()
+	var scatter_ready := InputAdapter.is_scatter_ready()
 	var font := get_theme_default_font()
 	draw_circle(attack_center, attack_radius, Color(0.13, 0.11, 0.09, 0.5))
 	draw_circle(attack_center, attack_radius - 5.0, Color(0.95, 0.66, 0.28, 0.26 if not attack_pressed else 0.42), false, 5.0)
@@ -98,3 +113,20 @@ func _draw() -> void:
 	if auto_enabled:
 		draw_circle(auto_center, auto_radius * 0.46, Color(0.45, 0.9, 0.52, 0.62))
 	draw_string(font, auto_center + Vector2(-18.0, 5.0), "AUTO", HORIZONTAL_ALIGNMENT_LEFT, -1.0, 11, Color(0.9, 1.0, 0.82, 0.95 if auto_enabled else 0.55))
+
+	_draw_scatter_button(scatter_center, scatter_ready)
+
+func _draw_scatter_button(center: Vector2, ready: bool) -> void:
+	var base_alpha := 0.58 if ready else 0.28
+	var accent_alpha := 0.78 if ready else 0.2
+	draw_circle(center, scatter_radius, Color(0.09, 0.07, 0.13, 0.58))
+	draw_arc(center, scatter_radius - 3.0, -PI * 0.5, PI * 1.5, 48, Color(0.66, 0.38, 1.0, accent_alpha), 4.0)
+	if not ready:
+		var cooldown_angle := -PI * 0.5 + TAU * (1.0 - InputAdapter.get_scatter_cooldown_ratio())
+		draw_arc(center, scatter_radius - 3.0, -PI * 0.5, cooldown_angle, 48, Color(0.35, 0.9, 1.0, 0.62), 4.0)
+	draw_circle(center, scatter_radius * 0.45, Color(0.47, 0.18, 0.95, base_alpha))
+	draw_circle(center, scatter_radius * 0.18, Color(0.65, 0.95, 1.0, 0.88 if ready else 0.3))
+	for index in 8:
+		var angle := TAU * float(index) / 8.0
+		var point := center + Vector2.from_angle(angle) * scatter_radius * 0.68
+		draw_circle(point, 3.8, Color(0.72, 0.48, 1.0, 0.9 if ready else 0.28))

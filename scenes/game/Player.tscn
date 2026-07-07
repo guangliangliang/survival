@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3]
+[gd_scene load_steps=16 format=3]
 
 [ext_resource type="Script" path="res://scripts/systems/Player.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/components/HealthComponent.gd" id="2"]
@@ -13,6 +13,8 @@
 [ext_resource type="Script" path="res://scripts/components/DroneWeapon.gd" id="11"]
 [ext_resource type="Texture2D" path="res://assets/images/weapons/weapon_combat_drone.png" id="12"]
 [ext_resource type="PackedScene" path="res://scenes/game/DroneBullet.tscn" id="13"]
+[ext_resource type="Script" path="res://scripts/components/BlossomScatter.gd" id="14"]
+[ext_resource type="PackedScene" path="res://scenes/game/BlossomOrb.tscn" id="15"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_player"]
 radius = 24.0
@@ -91,3 +93,14 @@ bullet_speed = 620.0
 fire_range = 560.0
 bullet_pool_size = 80
 sprite_scale = 0.027
+
+[node name="BlossomScatter" type="Node2D" parent="WeaponsNode"]
+script = ExtResource("14")
+orb_scene = ExtResource("15")
+orb_pool_size = 96
+spawn_radius = 30.0
+base_orb_count = 8
+base_damage = 14.0
+base_speed = 480.0
+base_range = 360.0
+base_cooldown = 9.0

@@ -11,6 +11,7 @@ signal died
 @onready var ranged_weapon = $WeaponsNode/RangedWeapon
 @onready var orbit_flywheel = $WeaponsNode/OrbitFlywheel
 @onready var drone_weapon = $WeaponsNode/DroneWeapon
+@onready var blossom_scatter = $WeaponsNode/BlossomScatter
 
 const FRAME_SIZE := Vector2i(128, 128)
 const ANIM_FRAME_COUNT := 4
@@ -77,6 +78,7 @@ func apply_upgrade(upgrade: Resource) -> void:
 			ranged_weapon.apply_upgrade(upgrade.stat_key, upgrade.amount)
 			orbit_flywheel.apply_upgrade(upgrade.stat_key, upgrade.amount)
 			drone_weapon.apply_upgrade(upgrade.stat_key, upgrade.amount)
+			blossom_scatter.apply_upgrade(upgrade.stat_key, upgrade.amount)
 
 func _on_health_changed(current_health: float, _max_health: float) -> void:
 	if current_health < last_health and is_alive:

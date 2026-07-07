@@ -8,6 +8,7 @@ const ICON_DRONE := preload("res://assets/images/weapons/weapon_combat_drone.png
 const ICON_HEALTH := preload("res://assets/images/ui/icon_health.png")
 const ICON_LEVEL := preload("res://assets/images/ui/icon_level.png")
 const ICON_PROJECTILE := preload("res://assets/images/projectiles/bullet_player.png")
+const ICON_SCATTER := preload("res://assets/images/projectiles/projectile_wizard_orb.png")
 const UPGRADE_ICON_MAX_SIZE := Vector2i(92, 92)
 
 @export var run_duration: float = 720.0
@@ -69,6 +70,7 @@ var upgrade_catalog: Array[Resource] = [
 	preload("res://resources/upgrades/fire_rate.tres"),
 	preload("res://resources/upgrades/pierce.tres"),
 	preload("res://resources/upgrades/projectiles.tres"),
+	preload("res://resources/upgrades/scatter_blossom.tres"),
 	preload("res://resources/upgrades/flywheel.tres"),
 	preload("res://resources/upgrades/drone.tres"),
 	preload("res://resources/upgrades/drone_damage.tres"),
@@ -159,6 +161,7 @@ func _start_game() -> void:
 	upgrade_levels.clear()
 	InputAdapter.clear_virtual_inputs()
 	InputAdapter.reset_dash_cooldown()
+	InputAdapter.reset_scatter_cooldown()
 	GameManager.start_run(level_data)
 	player = preload("res://scenes/game/Player.tscn").instantiate()
 	player.global_position = Vector2.ZERO
@@ -366,6 +369,8 @@ func _get_upgrade_type(upgrade: Resource) -> String:
 			return "装备"
 		&"drone_damage", &"drone_fire_rate", &"drone_range":
 			return "无人机"
+		&"scatter_blossom":
+			return "技能"
 		&"damage", &"fire_rate", &"range", &"pierce", &"projectiles":
 			return "步枪"
 		&"move_speed", &"max_health":
@@ -463,9 +468,10 @@ func _run_stress_flow(delta: float) -> void:
 	if stress_elapsed < 8.0:
 		return
 	var active_bullets: int = player.ranged_weapon.get_active_bullet_count()
+	var active_scatter_orbs: int = player.blossom_scatter.get_active_orb_count()
 	var active_orbs: int = $GameWorld/ExperiencePool.get_active_orb_count()
 	var enemy_bullets: int = $GameWorld/EnemyProjectilePool.get_active_count()
-	print("STRESS_TEST enemies=%d bullets=%d enemy_bullets=%d orbs=%d pool_limit=%d" % [enemy_spawner.get_active_enemy_count(), active_bullets, enemy_bullets, active_orbs, enemy_spawner.active_enemy_limit])
+	print("STRESS_TEST enemies=%d bullets=%d scatter=%d enemy_bullets=%d orbs=%d pool_limit=%d" % [enemy_spawner.get_active_enemy_count(), active_bullets, active_scatter_orbs, enemy_bullets, active_orbs, enemy_spawner.active_enemy_limit])
 	get_tree().quit()
 
 func _run_boss_pool_test() -> void:
@@ -657,6 +663,8 @@ func _get_upgrade_icon(upgrade: Resource) -> Texture2D:
 			return ICON_RIFLE
 		&"projectiles":
 			return ICON_PROJECTILE
+		&"scatter_blossom":
+			return ICON_SCATTER
 		&"flywheel":
 			return ICON_FLYWHEEL
 		&"drone", &"drone_damage", &"drone_fire_rate", &"drone_range":

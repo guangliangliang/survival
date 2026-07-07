@@ -11,12 +11,15 @@ extends Node2D
 @export var pierce: int = 0
 @export var bullet_pool_size: int = 80
 @export var sprite_scale: float = 0.027
+@export var hover_radius: Vector2 = Vector2(24.0, 14.0)
+@export var hover_speed: float = 2.2
 
 var cooldown: float = 0.0
 var bullet_pool: Array[Area2D] = []
 var drones: Array[Node2D] = []
 var cached_target: Node2D
 var target_refresh_timer: float = 0.0
+var hover_angle: float = 0.0
 
 func _ready() -> void:
 	_build_pool()
@@ -27,6 +30,7 @@ func _process(delta: float) -> void:
 		return
 	cooldown = maxf(0.0, cooldown - delta)
 	target_refresh_timer = maxf(0.0, target_refresh_timer - delta)
+	hover_angle = wrapf(hover_angle + hover_speed * delta, 0.0, TAU)
 	_update_drone_positions()
 	if cooldown <= 0.0:
 		_fire_volley()
@@ -87,8 +91,10 @@ func _update_drone_visual() -> void:
 func _update_drone_positions() -> void:
 	if drones.is_empty():
 		return
-	for drone in drones:
-		drone.position = fixed_offset
+	for index in drones.size():
+		var angle := hover_angle + TAU * float(index) / float(drones.size())
+		var offset := Vector2(cos(angle) * hover_radius.x, sin(angle) * hover_radius.y)
+		drones[index].position = fixed_offset + offset
 
 func _fire_volley() -> void:
 	var target := _find_nearest_enemy()

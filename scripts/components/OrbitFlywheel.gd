@@ -2,12 +2,12 @@ extends Node2D
 
 @export var flywheel_texture: Texture2D
 @export var flywheel_count: int = 0
-@export var orbit_radius: float = 92.0
+@export var orbit_radius: float = 122.0
 @export var spin_speed: float = 5.2
 @export var damage: float = 9.0
 @export var hit_interval: float = 0.38
-@export var hit_radius: float = 20.0
-@export var sprite_scale: float = 0.021
+@export var hit_radius: float = 26.0
+@export var sprite_scale: float = 0.028
 
 var orbit_angle: float = 0.0
 var hit_cooldowns: Dictionary = {}

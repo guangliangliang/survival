@@ -11,6 +11,7 @@ var anim_time: float = 0.0
 const FRAME_COUNT := 4
 const ANIMATION_FPS := 8.0
 const VISUAL_HEIGHT := 30.0
+const FRAME_BOTTOM_CROP := 14.0
 
 func _ready() -> void:
 	body_entered.connect(_on_body_entered)
@@ -37,6 +38,7 @@ func activate(spawn_position: Vector2, exp_value: int, player: Node2D, owner: No
 	pool_owner = owner
 	active = true
 	anim_time = randf() * 0.4
+	_update_visual()
 	visible = true
 	set_deferred("monitoring", true)
 
@@ -61,7 +63,7 @@ func _update_visual() -> void:
 	if visual == null or visual.texture == null:
 		return
 	var frame_width := visual.texture.get_width() / FRAME_COUNT
-	var frame_height := visual.texture.get_height()
+	var frame_height := visual.texture.get_height() - FRAME_BOTTOM_CROP
 	var frame := int(anim_time * ANIMATION_FPS) % FRAME_COUNT
 	visual.region_rect = Rect2(frame * frame_width, 0, frame_width, frame_height)
 
@@ -70,7 +72,7 @@ func _configure_visual() -> void:
 	if visual == null or visual.texture == null:
 		return
 	visual.region_enabled = true
-	var frame_height := visual.texture.get_height()
+	var frame_height := visual.texture.get_height() - FRAME_BOTTOM_CROP
 	if frame_height > 0:
 		var scale_factor := VISUAL_HEIGHT / float(frame_height)
 		visual.scale = Vector2.ONE * scale_factor

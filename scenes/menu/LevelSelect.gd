@@ -2,6 +2,8 @@ extends Control
 
 const LevelPreviewControl = preload("res://scripts/ui/LevelPreview.gd")
 const ENEMY_ATTACK_TEST_SCENE := "res://scenes/debug/EnemyAttackTest.tscn"
+const ICON_BACK := preload("res://assets/images/ui/icons/back.svg")
+const ICON_START := preload("res://assets/images/ui/icons/start.svg")
 
 @onready var layout_box: VBoxContainer = $Margin/VBox
 @onready var cards: HBoxContainer = $Margin/VBox/Cards
@@ -14,6 +16,11 @@ func _ready() -> void:
 	AudioManager.play_music_by_key(&"menu")
 	back_button.pressed.connect(_return_home)
 	debug_button.pressed.connect(_start_enemy_attack_test)
+	back_button.icon = ICON_BACK
+	back_button.icon_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	back_button.vertical_icon_alignment = VERTICAL_ALIGNMENT_CENTER
+	back_button.add_theme_constant_override("icon_max_width", 24)
+	back_button.add_theme_constant_override("h_separation", 8)
 	_style_button(back_button, Color("3b332d"), Color("8e8069"))
 	_style_button(debug_button, Color("3b332d"), Color("8e8069"))
 	_build_character_selector()
@@ -177,6 +184,11 @@ func _create_level_card(level_data: Resource, index: int) -> Control:
 	var play := Button.new()
 	play.text = "进入关卡"
 	play.custom_minimum_size = Vector2(0, 58)
+	play.icon = ICON_START
+	play.icon_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	play.vertical_icon_alignment = VERTICAL_ALIGNMENT_CENTER
+	play.add_theme_constant_override("icon_max_width", 26)
+	play.add_theme_constant_override("h_separation", 10)
 	_style_button(play, level_data.accent_color.darkened(0.32), level_data.accent_color.lightened(0.12))
 	play.pressed.connect(_start_level.bind(level_data))
 	box.add_child(play)
@@ -202,6 +214,7 @@ func _style_button(button: Button, fill: Color, border: Color) -> void:
 	button.add_theme_color_override("font_color", Color("f4e2b2"))
 	button.add_theme_color_override("font_hover_color", Color("fff0c6"))
 	button.add_theme_font_size_override("font_size", 18)
+	button.add_theme_constant_override("h_separation", 10)
 
 func _style_character_button(button: Button, selected: bool) -> void:
 	var fill := Color("594728") if selected else Color("3b332d")
@@ -217,4 +230,8 @@ func _button_box(fill: Color, border: Color) -> StyleBoxFlat:
 	box.border_color = border
 	box.set_border_width_all(2)
 	box.set_corner_radius_all(6)
+	box.set_content_margin_all(10)
+	box.shadow_color = Color(0, 0, 0, 0.32)
+	box.shadow_size = 6
+	box.shadow_offset = Vector2(0, 2)
 	return box

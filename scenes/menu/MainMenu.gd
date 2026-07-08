@@ -1,5 +1,8 @@
 extends Control
 
+const ICON_BACK := preload("res://assets/images/ui/icons/back.svg")
+const ICON_START := preload("res://assets/images/ui/icons/start.svg")
+
 @onready var start_button: Button = $VBoxContainer/StartButton
 @onready var quit_button: Button = $VBoxContainer/QuitButton
 @onready var title_label: Label = $VBoxContainer/TitleLabel
@@ -26,6 +29,13 @@ func _apply_style() -> void:
 	title_label.add_theme_constant_override("shadow_offset_y", 4)
 	subtitle.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.85))
 	subtitle.add_theme_constant_override("shadow_offset_y", 2)
+	start_button.icon = ICON_START
+	quit_button.icon = ICON_BACK
+	for button in [start_button, quit_button]:
+		button.icon_alignment = HORIZONTAL_ALIGNMENT_LEFT
+		button.vertical_icon_alignment = VERTICAL_ALIGNMENT_CENTER
+		button.add_theme_constant_override("icon_max_width", 28)
+		button.add_theme_constant_override("h_separation", 12)
 	_style_button(start_button, Color("8a4b27"), Color("d9b56b"))
 	_style_button(quit_button, Color("3b332d"), Color("8e8069"))
 
@@ -44,6 +54,7 @@ func _button_box(fill: Color, border: Color) -> StyleBoxFlat:
 	box.border_color = border
 	box.set_border_width_all(3)
 	box.set_corner_radius_all(6)
+	box.set_content_margin_all(12)
 	box.shadow_color = Color(0, 0, 0, 0.45)
 	box.shadow_size = 8
 	box.shadow_offset = Vector2(0, 3)

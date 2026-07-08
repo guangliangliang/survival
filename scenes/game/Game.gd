@@ -5,9 +5,11 @@ const DEFEAT_EMBLEM := preload("res://assets/images/ui/emblem_defeat.png")
 const ICON_RIFLE := preload("res://assets/images/weapons/old_rifle_128.png")
 const ICON_FLYWHEEL := preload("res://assets/images/weapons/weapon_orbit_flywheel.png")
 const ICON_DRONE := preload("res://assets/images/weapons/weapon_combat_drone.png")
-const ICON_HEALTH := preload("res://assets/images/ui/icon_health.png")
-const ICON_LEVEL := preload("res://assets/images/ui/icon_level.png")
+const ICON_HEALTH := preload("res://assets/images/ui/icons/health.svg")
+const ICON_LEVEL := preload("res://assets/images/ui/icons/level.svg")
+const ICON_PAUSE := preload("res://assets/images/ui/icons/pause.svg")
 const ICON_PROJECTILE := preload("res://assets/images/projectiles/bullet_player.png")
+const ICON_REFRESH := preload("res://assets/images/ui/icons/refresh.svg")
 const ICON_SCATTER := preload("res://assets/images/projectiles/projectile_wizard_orb.png")
 const UPGRADE_ICON_MAX_SIZE := Vector2i(92, 92)
 
@@ -396,6 +398,7 @@ func _on_game_ended(result: StringName) -> void:
 	pause_screen.visible = false
 	upgrade_screen.visible = false
 	game_over_screen.visible = true
+	result_emblem.texture = VICTORY_EMBLEM if result == &"victory" else DEFEAT_EMBLEM
 	var next_level := GameManager.get_next_level()
 	next_button.visible = result == &"victory" and next_level != null
 	result_label.text = "任务完成" if result == &"victory" else "守卫倒下"
@@ -493,6 +496,16 @@ func _run_upgrade_exhaustion_test() -> void:
 func _apply_overlay_style() -> void:
 	status_panel_bg.add_theme_stylebox_override("panel", _status_panel_box())
 	_style_exp_bar(exp_bar)
+	pause_button.text = ""
+	pause_button.icon = ICON_PAUSE
+	pause_button.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	pause_button.vertical_icon_alignment = VERTICAL_ALIGNMENT_CENTER
+	pause_button.add_theme_constant_override("icon_max_width", 28)
+	upgrade_refresh_button.icon = ICON_REFRESH
+	upgrade_refresh_button.icon_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	upgrade_refresh_button.vertical_icon_alignment = VERTICAL_ALIGNMENT_CENTER
+	upgrade_refresh_button.add_theme_constant_override("icon_max_width", 24)
+	upgrade_refresh_button.add_theme_constant_override("h_separation", 10)
 	for panel_path in ["CanvasLayer/GameUI/GameOverScreen/Panel", "CanvasLayer/GameUI/PauseScreen/Panel", "CanvasLayer/GameUI/UpgradeScreen/Panel"]:
 		var panel := get_node_or_null(panel_path) as PanelContainer
 		if panel != null:
@@ -634,6 +647,10 @@ func _button_box(fill: Color, border: Color) -> StyleBoxFlat:
 	box.border_color = border
 	box.set_border_width_all(2)
 	box.set_corner_radius_all(5)
+	box.set_content_margin_all(10)
+	box.shadow_color = Color(0, 0, 0, 0.34)
+	box.shadow_size = 6
+	box.shadow_offset = Vector2(0, 2)
 	return box
 
 func _upgrade_card_box(fill: Color, border: Color) -> StyleBoxFlat:

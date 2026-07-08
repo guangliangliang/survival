@@ -1,5 +1,7 @@
 extends Control
 
+const ICON_MOVE := preload("res://assets/images/ui/icons/move.svg")
+
 @export var radius: float = 82.0
 @export var knob_radius: float = 34.0
 
@@ -49,6 +51,15 @@ func _release() -> void:
 
 func _draw() -> void:
 	var center := size * 0.5
-	draw_circle(center, radius, Color(0.08, 0.1, 0.12, 0.45))
-	draw_circle(center, radius - 5.0, Color(0.6, 0.7, 0.65, 0.15), false, 4.0)
-	draw_circle(center + knob_offset, knob_radius, Color(0.85, 0.9, 0.82, 0.7))
+	draw_circle(center, radius, Color(0.06, 0.075, 0.07, 0.5))
+	draw_circle(center, radius - 5.0, Color(0.78, 0.68, 0.38, 0.22), false, 4.0)
+	draw_circle(center, radius * 0.48, Color(0.1, 0.12, 0.1, 0.25), false, 2.0)
+	draw_circle(center + knob_offset, knob_radius, Color(0.72, 0.78, 0.66, 0.72))
+	draw_circle(center + knob_offset, knob_radius - 5.0, Color(0.98, 0.88, 0.52, 0.28), false, 3.0)
+	_draw_icon(ICON_MOVE, center + knob_offset, 42.0, 0.72)
+
+func _draw_icon(texture: Texture2D, center: Vector2, icon_size: float, alpha: float) -> void:
+	if texture == null:
+		return
+	var rect := Rect2(center - Vector2(icon_size, icon_size) * 0.5, Vector2(icon_size, icon_size))
+	draw_texture_rect(texture, rect, false, Color(1.0, 1.0, 1.0, alpha))

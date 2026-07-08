@@ -6,3 +6,6 @@ extends Resource
 @export_multiline var description: String = ""
 @export var body_texture: Texture2D
 @export var rifle_texture: Texture2D
+@export var model_scene: PackedScene
+@export var weapon_model_scene: PackedScene
+@export var model_scale: float = 1.0

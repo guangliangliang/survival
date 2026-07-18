@@ -7,6 +7,10 @@ const ANIM_FRAME_COUNT := 4
 const WALK_ANIM_FPS := 8.0
 const ATTACK_ANIM_FPS := 9.5
 const ATTACK_VISUAL_DURATION := 0.42
+const OBSTACLE_AVOIDANCE_LOOKAHEAD := 190.0
+const OBSTACLE_AVOIDANCE_PADDING := 62.0
+const OBSTACLE_AVOIDANCE_STRENGTH := 1.45
+const OBSTACLE_AVOIDANCE_SAMPLES := 6
 
 @export var enemy_data: Resource
 @onready var health_component = $HealthComponent
@@ -27,6 +31,8 @@ var attack_animation_time: float = 0.0
 var in_attack_range: bool = false
 var facing_left: bool = false
 var current_animation_texture: Texture2D
+var world_map: Node2D
+var obstacle_avoid_side: float = 1.0
 
 func _ready() -> void:
 	health_component.died.connect(_on_died)
@@ -42,7 +48,8 @@ func _physics_process(delta: float) -> void:
 	active_time += delta
 	attack_timer = maxf(0.0, attack_timer - delta)
 	var direction := (target.global_position - global_position).normalized()
-	_update_facing(direction)
+	var move_direction := _get_obstacle_aware_direction(direction)
+	_update_facing(move_direction)
 	var distance := global_position.distance_to(target.global_position)
 	var was_in_attack_range := in_attack_range
 	in_attack_range = distance <= enemy_data.attack_range
@@ -60,13 +67,13 @@ func _physics_process(delta: float) -> void:
 			_perform_attack()
 		return
 	if knockback_velocity.length_squared() > 1.0:
-		velocity = direction * enemy_data.move_speed + knockback_velocity
+		velocity = move_direction * enemy_data.move_speed + knockback_velocity
 		knockback_velocity = knockback_velocity.move_toward(Vector2.ZERO, 700.0 * delta)
 		move_and_slide()
 		_update_visual_animation(delta)
 		return
 	if not in_attack_range:
-		velocity = direction * enemy_data.move_speed
+		velocity = move_direction * enemy_data.move_speed
 		move_and_slide()
 	else:
 		velocity = Vector2.ZERO
@@ -81,9 +88,10 @@ func _process(delta: float) -> void:
 		if flash_timer <= 0.0:
 			sprite.modulate = Color.WHITE
 
-func reset_for_spawn(data: Resource, player_target: Node2D, spawn_position: Vector2) -> void:
+func reset_for_spawn(data: Resource, player_target: Node2D, spawn_position: Vector2, map_node: Node2D = null) -> void:
 	enemy_data = data
 	target = player_target
+	world_map = map_node
 	global_position = spawn_position
 	is_alive = true
 	active_time = 0.0
@@ -96,6 +104,7 @@ func reset_for_spawn(data: Resource, player_target: Node2D, spawn_position: Vect
 	attack_animation_time = 0.0
 	in_attack_range = false
 	facing_left = false
+	obstacle_avoid_side = -1.0 if randf() < 0.5 else 1.0
 	current_animation_texture = null
 	visible = true
 	process_mode = Node.PROCESS_MODE_INHERIT
@@ -104,6 +113,49 @@ func reset_for_spawn(data: Resource, player_target: Node2D, spawn_position: Vect
 	collision_mask = 1
 	_apply_data()
 	health_component.reset(enemy_data.max_health)
+
+func _get_obstacle_aware_direction(direct_direction: Vector2) -> Vector2:
+	if direct_direction.length_squared() <= 0.001 or world_map == null or not world_map.has_method("get_obstacle_block_rects"):
+		return direct_direction
+	var obstacle_rects: Array = world_map.call("get_obstacle_block_rects")
+	if obstacle_rects.is_empty():
+		return direct_direction
+	var blocking_rect := _get_blocking_obstacle_rect(direct_direction, obstacle_rects)
+	if blocking_rect.size == Vector2.ZERO:
+		return direct_direction
+	var to_obstacle := blocking_rect.get_center() - global_position
+	var left_tangent := Vector2(-direct_direction.y, direct_direction.x)
+	var right_tangent := Vector2(direct_direction.y, -direct_direction.x)
+	var tangent := left_tangent if left_tangent.dot(to_obstacle) < right_tangent.dot(to_obstacle) else right_tangent
+	if absf(left_tangent.dot(to_obstacle) - right_tangent.dot(to_obstacle)) < 1.0:
+		tangent = left_tangent * obstacle_avoid_side
+	var push_away := (global_position - blocking_rect.get_center()).normalized()
+	if push_away.length_squared() <= 0.001:
+		push_away = tangent
+	return (direct_direction + tangent * OBSTACLE_AVOIDANCE_STRENGTH + push_away * 0.45).normalized()
+
+func _get_blocking_obstacle_rect(direct_direction: Vector2, obstacle_rects: Array) -> Rect2:
+	var best_rect := Rect2()
+	var best_distance_sq := INF
+	var lookahead := maxf(OBSTACLE_AVOIDANCE_LOOKAHEAD, enemy_data.size * 6.0)
+	for rect: Rect2 in obstacle_rects:
+		var expanded_rect := rect.grow(enemy_data.size + OBSTACLE_AVOIDANCE_PADDING)
+		if not _path_samples_hit_rect(global_position, direct_direction, lookahead, expanded_rect):
+			continue
+		var distance_sq := global_position.distance_squared_to(expanded_rect.get_center())
+		if distance_sq < best_distance_sq:
+			best_distance_sq = distance_sq
+			best_rect = expanded_rect
+	return best_rect
+
+func _path_samples_hit_rect(origin: Vector2, direction: Vector2, lookahead: float, rect: Rect2) -> bool:
+	if rect.has_point(origin):
+		return true
+	for index in OBSTACLE_AVOIDANCE_SAMPLES:
+		var ratio := float(index + 1) / float(OBSTACLE_AVOIDANCE_SAMPLES)
+		if rect.has_point(origin + direction * lookahead * ratio):
+			return true
+	return false
 
 func _apply_data() -> void:
 	if not is_node_ready():

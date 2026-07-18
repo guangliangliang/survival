@@ -4,7 +4,10 @@ extends Control
 const PREVIEW_TEXTURES := {
 	&"village": preload("res://assets/images/maps/map_village_outskirts.png"),
 	&"forest": preload("res://assets/images/maps/map_dark_forest.png"),
-	&"camp": preload("res://assets/images/maps/map_bandit_camp.png")
+	&"camp": preload("res://assets/images/maps/map_bandit_camp.png"),
+	&"frontier_desert": preload("res://assets/images/maps/map_frontier_desert_plain.png"),
+	&"frontier_grassland": preload("res://assets/images/maps/map_frontier_grassland_plain.png"),
+	&"frontier_red_earth": preload("res://assets/images/maps/map_frontier_red_earth_plain.png")
 }
 
 var map_variant: StringName = &"village"

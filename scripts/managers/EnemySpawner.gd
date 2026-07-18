@@ -122,7 +122,7 @@ func spawn_enemy(data: Resource) -> bool:
 	var spawn_position := player.global_position + Vector2.from_angle(randf() * TAU) * 700.0
 	if world_map and world_map.has_method("get_spawn_position"):
 		spawn_position = world_map.call("get_spawn_position", data.spawn_region, player.global_position)
-	enemy.call("reset_for_spawn", data, player, spawn_position)
+	enemy.call("reset_for_spawn", data, player, spawn_position, world_map)
 	return true
 
 func _on_enemy_released(enemy: CharacterBody2D) -> void:

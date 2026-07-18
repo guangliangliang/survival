@@ -129,6 +129,12 @@ func _process(delta: float) -> void:
 func shake_camera(strength: float) -> void:
 	camera_shake_strength = maxf(camera_shake_strength, strength)
 
+func _apply_camera_limits(bounds: Rect2) -> void:
+	camera.limit_left = floori(bounds.position.x)
+	camera.limit_top = floori(bounds.position.y)
+	camera.limit_right = ceili(bounds.end.x)
+	camera.limit_bottom = ceili(bounds.end.y)
+
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("toggle_pause"):
 		_toggle_manual_pause()
@@ -169,7 +175,9 @@ func _start_game() -> void:
 	player.global_position = Vector2.ZERO
 	game_world.add_child(player)
 	world_map.configure(level_data)
-	player.set_world_bounds(world_map.get_world_bounds())
+	var world_bounds: Rect2 = world_map.get_world_bounds()
+	player.set_world_bounds(world_bounds)
+	_apply_camera_limits(world_bounds)
 	enemy_spawner.configure(level_data, player, world_map, game_world)
 	if smoke_test:
 		enemy_spawner.boss_spawn_time = 2.0

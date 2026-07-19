@@ -27,9 +27,7 @@ var level_catalog: Array[Resource] = [
 
 var character_catalog: Array[Resource] = [
 	preload("res://resources/characters/sentinel.tres"),
-	preload("res://resources/characters/ranger.tres"),
-	preload("res://resources/characters/gunsmith.tres"),
-	preload("res://resources/characters/medic.tres")
+	preload("res://resources/characters/vanguard.tres")
 ]
 
 func start_run(level_data: Resource = null) -> void:

@@ -4,6 +4,7 @@ const ICON_START := preload("res://assets/images/ui/icons/start.svg")
 const ICON_BACK := preload("res://assets/images/ui/icons/back.svg")
 const ICON_CODEX := preload("res://assets/images/ui/icons/level.svg")
 const ICON_UPGRADE := preload("res://assets/images/ui/icons/skill.svg")
+const ICON_SETTINGS := preload("res://assets/images/ui/icons/settings.svg")
 const ICON_RIFLE := preload("res://assets/images/weapons/old_rifle_128.png")
 const ICON_FLYWHEEL := preload("res://assets/images/weapons/weapon_orbit_flywheel.png")
 const ICON_DRONE := preload("res://assets/images/weapons/weapon_combat_drone.png")
@@ -16,6 +17,7 @@ const TEXT_BODY := Color("d8d0b0")
 const PANEL_FILL := Color(0.055, 0.07, 0.052, 0.94)
 const CARD_FILL := Color(0.04, 0.05, 0.043, 0.92)
 const CARD_BORDER := Color("7e6846")
+const AUDIO_VOLUME_MIN_DB := -32.0
 
 @onready var start_button: Button = $VBoxContainer/StartButton
 @onready var title_label: Label = $VBoxContainer/TitleLabel
@@ -23,6 +25,7 @@ const CARD_BORDER := Color("7e6846")
 
 var codex_button: Button
 var upgrades_button: Button
+var settings_button: Button
 var info_overlay: Control
 var overlay_title_label: Label
 var overlay_subtitle_label: Label
@@ -70,13 +73,14 @@ func _apply_style() -> void:
 	_style_button(start_button, Color("8a4b27"), Color("d9b56b"))
 	_style_button(codex_button, Color("3b332d"), Color("8e8069"), 17)
 	_style_button(upgrades_button, Color("3b332d"), Color("8e8069"), 17)
+	_style_button(settings_button, Color("3b332d"), Color("8e8069"), 17)
 
 func _build_corner_actions() -> void:
 	var actions := HBoxContainer.new()
 	actions.name = "CornerActions"
 	actions.anchor_left = 1.0
 	actions.anchor_right = 1.0
-	actions.offset_left = -284.0
+	actions.offset_left = -416.0
 	actions.offset_top = 22.0
 	actions.offset_right = -24.0
 	actions.offset_bottom = 74.0
@@ -91,6 +95,10 @@ func _build_corner_actions() -> void:
 	upgrades_button = _create_corner_button("升级", ICON_UPGRADE)
 	upgrades_button.pressed.connect(_show_upgrade_reference)
 	actions.add_child(upgrades_button)
+
+	settings_button = _create_corner_button("设置", ICON_SETTINGS)
+	settings_button.pressed.connect(_show_settings)
+	actions.add_child(settings_button)
 
 func _create_corner_button(label_text: String, texture: Texture2D) -> Button:
 	var button := Button.new()
@@ -193,6 +201,20 @@ func _show_upgrade_reference() -> void:
 	for upgrade in upgrade_catalog:
 		overlay_content.add_child(_create_upgrade_card(upgrade))
 
+func _show_settings() -> void:
+	AudioManager.play_sfx_by_key(&"upgrade_panel_open", -5.0)
+	_open_info_overlay("设置", "调整本次游戏的背景音乐与战斗音效")
+	overlay_content.add_child(_create_audio_control_card(
+		"背景音乐",
+		"控制首页、战斗和首领阶段的音乐。",
+		&"Music"
+	))
+	overlay_content.add_child(_create_audio_control_card(
+		"战斗音效",
+		"控制开火、命中、受伤、升级与首领提示等战斗反馈。",
+		&"SFX"
+	))
+
 func _open_info_overlay(title_text: String, subtitle_text: String) -> void:
 	overlay_title_label.text = title_text
 	overlay_subtitle_label.text = subtitle_text
@@ -203,6 +225,106 @@ func _open_info_overlay(title_text: String, subtitle_text: String) -> void:
 func _hide_info_overlay() -> void:
 	AudioManager.play_ui_by_key(&"back")
 	info_overlay.visible = false
+
+func _create_audio_control_card(title_text: String, description: String, bus_name: StringName) -> Control:
+	var card := PanelContainer.new()
+	card.custom_minimum_size = Vector2(0, 126)
+	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	card.add_theme_stylebox_override("panel", _panel_box(CARD_FILL, Color("a98955"), 14, 2))
+
+	var layout := VBoxContainer.new()
+	layout.add_theme_constant_override("separation", 12)
+	card.add_child(layout)
+
+	var header := HBoxContainer.new()
+	header.add_theme_constant_override("separation", 12)
+	layout.add_child(header)
+
+	var title_box := VBoxContainer.new()
+	title_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	title_box.add_theme_constant_override("separation", 3)
+	header.add_child(title_box)
+
+	var title := _create_label(title_text, 22, Color("fff0c6"))
+	title_box.add_child(title)
+
+	var desc := _create_label(description, 14, TEXT_MUTED)
+	desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	title_box.add_child(desc)
+
+	var toggle := CheckButton.new()
+	toggle.custom_minimum_size = Vector2(92, 42)
+	toggle.text = "开启"
+	toggle.button_pressed = _is_audio_bus_enabled(bus_name)
+	toggle.add_theme_font_size_override("font_size", 16)
+	toggle.add_theme_color_override("font_color", BUTTON_TEXT_COLOR)
+	header.add_child(toggle)
+
+	var slider_row := HBoxContainer.new()
+	slider_row.add_theme_constant_override("separation", 12)
+	layout.add_child(slider_row)
+
+	var volume_label := _create_label("音量", 16, TEXT_BODY)
+	volume_label.custom_minimum_size = Vector2(48, 0)
+	slider_row.add_child(volume_label)
+
+	var slider := HSlider.new()
+	slider.min_value = 0.0
+	slider.max_value = 100.0
+	slider.step = 1.0
+	slider.value = round(_get_audio_bus_volume(bus_name) * 100.0)
+	slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	slider.editable = toggle.button_pressed
+	slider_row.add_child(slider)
+
+	var value_label := _create_label("", 16, Color("fff0c6"))
+	value_label.custom_minimum_size = Vector2(56, 0)
+	value_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	slider_row.add_child(value_label)
+	_update_audio_value_label(value_label, slider.value, toggle.button_pressed)
+
+	toggle.toggled.connect(_on_audio_toggle_toggled.bind(bus_name, slider, value_label))
+	slider.value_changed.connect(_on_audio_slider_changed.bind(bus_name, value_label))
+	return card
+
+func _on_audio_toggle_toggled(enabled: bool, bus_name: StringName, slider: HSlider, value_label: Label) -> void:
+	_set_audio_bus_enabled(bus_name, enabled)
+	slider.editable = enabled
+	_update_audio_value_label(value_label, slider.value, enabled)
+	AudioManager.play_ui_by_key(&"button_click")
+
+func _on_audio_slider_changed(value: float, bus_name: StringName, value_label: Label) -> void:
+	_set_audio_bus_volume(bus_name, value / 100.0)
+	_update_audio_value_label(value_label, value, _is_audio_bus_enabled(bus_name))
+
+func _set_audio_bus_enabled(bus_name: StringName, enabled: bool) -> void:
+	var bus_index := AudioServer.get_bus_index(bus_name)
+	if bus_index >= 0:
+		AudioServer.set_bus_mute(bus_index, not enabled)
+
+func _is_audio_bus_enabled(bus_name: StringName) -> bool:
+	var bus_index := AudioServer.get_bus_index(bus_name)
+	return bus_index < 0 or not AudioServer.is_bus_mute(bus_index)
+
+func _set_audio_bus_volume(bus_name: StringName, volume: float) -> void:
+	var bus_index := AudioServer.get_bus_index(bus_name)
+	if bus_index < 0:
+		return
+	var clamped := clampf(volume, 0.0, 1.0)
+	var volume_db := AUDIO_VOLUME_MIN_DB if clamped <= 0.0 else linear_to_db(clamped)
+	AudioServer.set_bus_volume_db(bus_index, volume_db)
+
+func _get_audio_bus_volume(bus_name: StringName) -> float:
+	var bus_index := AudioServer.get_bus_index(bus_name)
+	if bus_index < 0:
+		return 1.0
+	var volume_db := AudioServer.get_bus_volume_db(bus_index)
+	if volume_db <= AUDIO_VOLUME_MIN_DB:
+		return 0.0
+	return clampf(db_to_linear(volume_db), 0.0, 1.0)
+
+func _update_audio_value_label(label: Label, value: float, enabled: bool) -> void:
+	label.text = "%d%%" % int(round(value)) if enabled else "关闭"
 
 func _create_character_card(character_data: Resource) -> Control:
 	var card := PanelContainer.new()

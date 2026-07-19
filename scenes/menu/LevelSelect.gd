@@ -1,28 +1,24 @@
 extends Control
 
 const LevelPreviewControl = preload("res://scripts/ui/LevelPreview.gd")
-const ENEMY_ATTACK_TEST_SCENE := "res://scenes/debug/EnemyAttackTest.tscn"
 const ICON_BACK := preload("res://assets/images/ui/icons/back.svg")
 const ICON_START := preload("res://assets/images/ui/icons/start.svg")
 
 @onready var layout_box: VBoxContainer = $Margin/VBox
 @onready var cards: HBoxContainer = $Margin/VBox/Cards
 @onready var back_button: Button = $Margin/VBox/Header/BackButton
-@onready var debug_button: Button = $Margin/VBox/Header/DebugButton
 
 var character_buttons: Dictionary = {}
 
 func _ready() -> void:
 	AudioManager.play_music_by_key(&"menu")
 	back_button.pressed.connect(_return_home)
-	debug_button.pressed.connect(_start_enemy_attack_test)
 	back_button.icon = ICON_BACK
 	back_button.icon_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	back_button.vertical_icon_alignment = VERTICAL_ALIGNMENT_CENTER
 	back_button.add_theme_constant_override("icon_max_width", 24)
 	back_button.add_theme_constant_override("h_separation", 8)
 	_style_button(back_button, Color("3b332d"), Color("8e8069"))
-	_style_button(debug_button, Color("3b332d"), Color("8e8069"))
 	_build_character_selector()
 	_build_level_cards()
 
@@ -202,10 +198,6 @@ func _start_level(level_data: Resource) -> void:
 func _return_home() -> void:
 	AudioManager.play_ui_by_key(&"back")
 	get_tree().change_scene_to_file("res://scenes/menu/MainMenu.tscn")
-
-func _start_enemy_attack_test() -> void:
-	AudioManager.play_ui_by_key(&"button_click")
-	get_tree().change_scene_to_file(ENEMY_ATTACK_TEST_SCENE)
 
 func _style_button(button: Button, fill: Color, border: Color) -> void:
 	button.add_theme_stylebox_override("normal", _button_box(fill, border))

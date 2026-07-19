@@ -11,7 +11,10 @@ var anim_time: float = 0.0
 const FRAME_COUNT := 4
 const ANIMATION_FPS := 8.0
 const VISUAL_HEIGHT := 30.0
-const FRAME_BOTTOM_CROP := 14.0
+# The source strip has distant sparkle pixels around the gem; crop them out.
+const FRAME_SIDE_CROP := 112.0
+const FRAME_TOP_CROP := 56.0
+const FRAME_BOTTOM_CROP := 84.0
 
 func _ready() -> void:
 	body_entered.connect(_on_body_entered)
@@ -63,16 +66,17 @@ func _update_visual() -> void:
 	if visual == null or visual.texture == null:
 		return
 	var frame_width := visual.texture.get_width() / FRAME_COUNT
-	var frame_height := visual.texture.get_height() - FRAME_BOTTOM_CROP
+	var visible_width := frame_width - FRAME_SIDE_CROP * 2.0
+	var frame_height := visual.texture.get_height() - FRAME_TOP_CROP - FRAME_BOTTOM_CROP
 	var frame := int(anim_time * ANIMATION_FPS) % FRAME_COUNT
-	visual.region_rect = Rect2(frame * frame_width, 0, frame_width, frame_height)
+	visual.region_rect = Rect2(frame * frame_width + FRAME_SIDE_CROP, FRAME_TOP_CROP, visible_width, frame_height)
 
 func _configure_visual() -> void:
 	var visual := get_node_or_null("Visual") as Sprite2D
 	if visual == null or visual.texture == null:
 		return
 	visual.region_enabled = true
-	var frame_height := visual.texture.get_height() - FRAME_BOTTOM_CROP
+	var frame_height := visual.texture.get_height() - FRAME_TOP_CROP - FRAME_BOTTOM_CROP
 	if frame_height > 0:
 		var scale_factor := VISUAL_HEIGHT / float(frame_height)
 		visual.scale = Vector2.ONE * scale_factor

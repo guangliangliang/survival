@@ -12,6 +12,8 @@ const ICON_PROJECTILE := preload("res://assets/images/projectiles/bullet_player.
 const ICON_REFRESH := preload("res://assets/images/ui/icons/refresh.svg")
 const ICON_SCATTER := preload("res://assets/images/projectiles/projectile_wizard_orb.png")
 const UPGRADE_ICON_MAX_SIZE := Vector2i(92, 92)
+const BUTTON_TEXT_COLOR := Color("f2dfb0")
+const BUTTON_DISABLED_TEXT_COLOR := Color("998966")
 
 @export var run_duration: float = 720.0
 
@@ -336,11 +338,11 @@ func _update_refresh_button() -> void:
 	var can_refresh := not upgrade_refresh_used and available_count > current_choices.size()
 	upgrade_refresh_button.disabled = not can_refresh
 	if upgrade_refresh_used:
-		upgrade_refresh_button.text = "本次已刷新"
+		_set_centered_button_label(upgrade_refresh_button, "本次已刷新")
 	elif can_refresh:
-		upgrade_refresh_button.text = "刷新技能"
+		_set_centered_button_label(upgrade_refresh_button, "刷新技能")
 	else:
-		upgrade_refresh_button.text = "没有可刷新技能"
+		_set_centered_button_label(upgrade_refresh_button, "没有可刷新技能")
 
 func _get_upgrade_tier(next_level: int, max_level: int) -> int:
 	if max_level <= 1:
@@ -509,11 +511,7 @@ func _apply_overlay_style() -> void:
 	pause_button.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	pause_button.vertical_icon_alignment = VERTICAL_ALIGNMENT_CENTER
 	pause_button.add_theme_constant_override("icon_max_width", 28)
-	upgrade_refresh_button.icon = ICON_REFRESH
-	upgrade_refresh_button.icon_alignment = HORIZONTAL_ALIGNMENT_LEFT
-	upgrade_refresh_button.vertical_icon_alignment = VERTICAL_ALIGNMENT_CENTER
-	upgrade_refresh_button.add_theme_constant_override("icon_max_width", 24)
-	upgrade_refresh_button.add_theme_constant_override("h_separation", 10)
+	_set_centered_button_content(upgrade_refresh_button, ICON_REFRESH, 24, 10, 18)
 	for panel_path in ["CanvasLayer/GameUI/GameOverScreen/Panel", "CanvasLayer/GameUI/PauseScreen/Panel", "CanvasLayer/GameUI/UpgradeScreen/Panel"]:
 		var panel := get_node_or_null(panel_path) as PanelContainer
 		if panel != null:
@@ -563,6 +561,48 @@ func _style_game_button(button: Button) -> void:
 	button.add_theme_color_override("font_color", Color("f2dfb0"))
 	button.add_theme_color_override("font_hover_color", Color("fff0c6"))
 	button.add_theme_color_override("font_disabled_color", Color("998966"))
+
+func _set_centered_button_content(button: Button, texture: Texture2D, icon_size: int, gap: int, font_size: int) -> void:
+	var label_text := button.text
+	button.text = ""
+	button.icon = null
+
+	var content := HBoxContainer.new()
+	content.name = "CenteredContent"
+	content.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	content.alignment = BoxContainer.ALIGNMENT_CENTER
+	content.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	content.add_theme_constant_override("separation", gap)
+	button.add_child(content)
+
+	var icon := TextureRect.new()
+	icon.custom_minimum_size = Vector2(icon_size, icon_size)
+	icon.texture = texture
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	content.add_child(icon)
+
+	var label := Label.new()
+	label.name = "Text"
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	label.add_theme_font_size_override("font_size", font_size)
+	content.add_child(label)
+
+	_set_centered_button_label(button, label_text)
+
+func _set_centered_button_label(button: Button, label_text: String) -> void:
+	var label := button.get_node_or_null("CenteredContent/Text") as Label
+	if label == null:
+		button.text = label_text
+		return
+	button.text = ""
+	label.text = label_text
+	var text_color := BUTTON_DISABLED_TEXT_COLOR if button.disabled else BUTTON_TEXT_COLOR
+	label.add_theme_color_override("font_color", text_color)
 
 func _style_upgrade_button(button: Button) -> void:
 	_ensure_upgrade_card_nodes(button)

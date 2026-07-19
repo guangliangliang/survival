@@ -3,6 +3,7 @@ extends Control
 const LevelPreviewControl = preload("res://scripts/ui/LevelPreview.gd")
 const ICON_BACK := preload("res://assets/images/ui/icons/back.svg")
 const ICON_START := preload("res://assets/images/ui/icons/start.svg")
+const BUTTON_TEXT_COLOR := Color("f4e2b2")
 
 @onready var layout_box: VBoxContainer = $Margin/VBox
 @onready var cards: HBoxContainer = $Margin/VBox/Cards
@@ -13,11 +14,7 @@ var character_buttons: Dictionary = {}
 func _ready() -> void:
 	AudioManager.play_music_by_key(&"menu")
 	back_button.pressed.connect(_return_home)
-	back_button.icon = ICON_BACK
-	back_button.icon_alignment = HORIZONTAL_ALIGNMENT_LEFT
-	back_button.vertical_icon_alignment = VERTICAL_ALIGNMENT_CENTER
-	back_button.add_theme_constant_override("icon_max_width", 24)
-	back_button.add_theme_constant_override("h_separation", 8)
+	_set_centered_button_content(back_button, ICON_BACK, 24, 8, 18)
 	_style_button(back_button, Color("3b332d"), Color("8e8069"))
 	_build_character_selector()
 	_build_level_cards()
@@ -180,11 +177,7 @@ func _create_level_card(level_data: Resource, index: int) -> Control:
 	var play := Button.new()
 	play.text = "进入关卡"
 	play.custom_minimum_size = Vector2(0, 58)
-	play.icon = ICON_START
-	play.icon_alignment = HORIZONTAL_ALIGNMENT_LEFT
-	play.vertical_icon_alignment = VERTICAL_ALIGNMENT_CENTER
-	play.add_theme_constant_override("icon_max_width", 26)
-	play.add_theme_constant_override("h_separation", 10)
+	_set_centered_button_content(play, ICON_START, 26, 10, 18)
 	_style_button(play, level_data.accent_color.darkened(0.32), level_data.accent_color.lightened(0.12))
 	play.pressed.connect(_start_level.bind(level_data))
 	box.add_child(play)
@@ -207,6 +200,37 @@ func _style_button(button: Button, fill: Color, border: Color) -> void:
 	button.add_theme_color_override("font_hover_color", Color("fff0c6"))
 	button.add_theme_font_size_override("font_size", 18)
 	button.add_theme_constant_override("h_separation", 10)
+
+func _set_centered_button_content(button: Button, texture: Texture2D, icon_size: int, gap: int, font_size: int) -> void:
+	var label_text := button.text
+	button.text = ""
+	button.icon = null
+
+	var content := HBoxContainer.new()
+	content.name = "CenteredContent"
+	content.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	content.alignment = BoxContainer.ALIGNMENT_CENTER
+	content.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	content.add_theme_constant_override("separation", gap)
+	button.add_child(content)
+
+	var icon := TextureRect.new()
+	icon.custom_minimum_size = Vector2(icon_size, icon_size)
+	icon.texture = texture
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	content.add_child(icon)
+
+	var label := Label.new()
+	label.text = label_text
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	label.add_theme_color_override("font_color", BUTTON_TEXT_COLOR)
+	label.add_theme_font_size_override("font_size", font_size)
+	content.add_child(label)
 
 func _style_character_button(button: Button, selected: bool) -> void:
 	var fill := Color("594728") if selected else Color("3b332d")

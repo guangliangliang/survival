@@ -11,8 +11,8 @@
 [resource]
 script = ExtResource("1")
 level_id = &"bandit_camp"
-title = "强盗营地"
-description = "突破枪手与精英的交叉火力，最终击败强盗头目。"
+title = "红土边境平原"
+description = "红土平原遍布车辙、刮痕和干裂硬地，西侧与南侧道路是主要周旋带。强盗火力会从粗糙地面一路压上来。"
 duration = 600.0
 boss_spawn_time = 540.0
 map_variant = &"frontier_red_earth"

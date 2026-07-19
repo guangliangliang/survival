@@ -10,8 +10,8 @@
 [resource]
 script = ExtResource("1")
 level_id = &"village_outskirts"
-title = "村庄外围"
-description = "清理村口、农田和道路附近的野兽。适合熟悉移动、自动射击与升级。"
+title = "荒漠边境平原"
+description = "荒漠边境中央是一大片开阔沙地，西侧土路和南侧边境道适合拉开距离。留意北部车辙与东侧荒地里逼近的兽群。"
 duration = 360.0
 boss_spawn_time = 300.0
 map_variant = &"frontier_desert"

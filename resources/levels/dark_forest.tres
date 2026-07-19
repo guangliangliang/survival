@@ -12,8 +12,8 @@
 [resource]
 script = ExtResource("1")
 level_id = &"dark_forest"
-title = "幽暗森林"
-description = "穿过狭窄林道，在高密度兽潮和精英围攻中坚持下来。"
+title = "草原边境平原"
+description = "短草草原视野开阔，西侧土路、南侧巡防道和北部车辙连成多条跑位路线。在开阔地持续周旋，扛住混合兽潮。"
 duration = 480.0
 boss_spawn_time = 420.0
 map_variant = &"frontier_grassland"

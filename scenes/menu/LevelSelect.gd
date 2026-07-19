@@ -175,7 +175,7 @@ func _create_level_card(level_data: Resource, index: int) -> Control:
 	box.add_child(description)
 
 	var play := Button.new()
-	play.text = "进入关卡"
+	play.text = "查看地图敌情"
 	play.custom_minimum_size = Vector2(0, 58)
 	_set_centered_button_content(play, ICON_START, 26, 10, 18)
 	_style_button(play, level_data.accent_color.darkened(0.32), level_data.accent_color.lightened(0.12))
@@ -186,7 +186,7 @@ func _create_level_card(level_data: Resource, index: int) -> Control:
 func _start_level(level_data: Resource) -> void:
 	AudioManager.play_ui_by_key(&"button_click")
 	GameManager.select_level(level_data)
-	get_tree().change_scene_to_file("res://scenes/game/Game.tscn")
+	get_tree().change_scene_to_file("res://scenes/menu/LevelBriefing.tscn")
 
 func _return_home() -> void:
 	AudioManager.play_ui_by_key(&"back")

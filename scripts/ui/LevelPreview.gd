@@ -2,15 +2,12 @@ class_name LevelPreview
 extends Control
 
 const PREVIEW_TEXTURES := {
-	&"village": preload("res://assets/images/maps/map_village_outskirts.png"),
-	&"forest": preload("res://assets/images/maps/map_dark_forest.png"),
-	&"camp": preload("res://assets/images/maps/map_bandit_camp.png"),
 	&"frontier_desert": preload("res://assets/images/maps/map_frontier_desert_plain.png"),
 	&"frontier_grassland": preload("res://assets/images/maps/map_frontier_grassland_plain.png"),
 	&"frontier_red_earth": preload("res://assets/images/maps/map_frontier_red_earth_plain.png")
 }
 
-var map_variant: StringName = &"village"
+var map_variant: StringName = &"frontier_desert"
 var accent_color := Color("b9a35b")
 
 func configure(level_data: Resource) -> void:
@@ -20,7 +17,7 @@ func configure(level_data: Resource) -> void:
 
 func _draw() -> void:
 	var bounds := Rect2(Vector2.ZERO, size)
-	var texture: Texture2D = PREVIEW_TEXTURES.get(map_variant, PREVIEW_TEXTURES[&"village"])
+	var texture: Texture2D = PREVIEW_TEXTURES.get(map_variant, PREVIEW_TEXTURES[&"frontier_desert"])
 	if texture != null:
 		draw_texture_rect(texture, bounds, false)
 		draw_rect(bounds, Color(0.0, 0.0, 0.0, 0.18))

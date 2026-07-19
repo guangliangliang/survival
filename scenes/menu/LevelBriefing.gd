@@ -4,9 +4,6 @@ const ICON_BACK := preload("res://assets/images/ui/icons/back.svg")
 const ICON_START := preload("res://assets/images/ui/icons/start.svg")
 const BUTTON_TEXT_COLOR := Color("f4e2b2")
 const MAP_TEXTURES := {
-	&"village": preload("res://assets/images/maps/map_village_outskirts.png"),
-	&"forest": preload("res://assets/images/maps/map_dark_forest.png"),
-	&"camp": preload("res://assets/images/maps/map_bandit_camp.png"),
 	&"frontier_desert": preload("res://assets/images/maps/map_frontier_desert_plain.png"),
 	&"frontier_grassland": preload("res://assets/images/maps/map_frontier_grassland_plain.png"),
 	&"frontier_red_earth": preload("res://assets/images/maps/map_frontier_red_earth_plain.png")
@@ -259,7 +256,7 @@ func _create_info_chip(label_text: String, value_text: String, accent_color: Col
 	return panel
 
 func _get_map_texture(level_data: Resource) -> Texture2D:
-	var texture: Texture2D = MAP_TEXTURES.get(level_data.map_variant, MAP_TEXTURES[&"village"])
+	var texture: Texture2D = MAP_TEXTURES.get(level_data.map_variant, MAP_TEXTURES[&"frontier_desert"])
 	return texture
 
 func _make_sprite_frame(texture: Texture2D) -> Texture2D:

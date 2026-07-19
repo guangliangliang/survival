@@ -6,7 +6,7 @@ extends Resource
 @export_multiline var description: String = "清理村庄周边的野兽。"
 @export var duration: float = 360.0
 @export var boss_spawn_time: float = 300.0
-@export var map_variant: StringName = &"village"
+@export var map_variant: StringName = &"frontier_desert"
 @export var enemy_catalog: Array[Resource] = []
 @export var boss_data: Resource
 @export var spawn_interval: float = 1.4

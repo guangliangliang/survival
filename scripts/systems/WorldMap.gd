@@ -2,9 +2,6 @@ extends Node2D
 
 const DEFAULT_WORLD_BOUNDS := Rect2(-1800.0, -1100.0, 3600.0, 2200.0)
 const MAP_TEXTURES := {
-	&"village": preload("res://assets/images/maps/map_village_outskirts.png"),
-	&"forest": preload("res://assets/images/maps/map_dark_forest.png"),
-	&"camp": preload("res://assets/images/maps/map_bandit_camp.png"),
 	&"frontier_desert": preload("res://assets/images/maps/map_frontier_desert_plain.png"),
 	&"frontier_grassland": preload("res://assets/images/maps/map_frontier_grassland_plain.png"),
 	&"frontier_red_earth": preload("res://assets/images/maps/map_frontier_red_earth_plain.png")
@@ -56,7 +53,7 @@ var spawn_regions := {
 	&"camp": [Vector2(-1350, 750), Vector2(-850, 850), Vector2(-1550, 350)],
 	&"any": [Vector2(-1400, 0), Vector2(1400, 0), Vector2(0, -900), Vector2(0, 900)]
 }
-var map_variant: StringName = &"village"
+var map_variant: StringName = &"frontier_desert"
 var current_world_bounds := DEFAULT_WORLD_BOUNDS
 var obstacle_rects: Array[Rect2] = []
 var obstacle_block_rects: Array[Rect2] = []
@@ -110,7 +107,7 @@ func _draw() -> void:
 		draw_rect(rect, Color(0.0, 0.0, 0.0, 0.28))
 
 func _get_map_texture() -> Texture2D:
-	return MAP_TEXTURES.get(map_variant, MAP_TEXTURES[&"village"])
+	return MAP_TEXTURES.get(map_variant, MAP_TEXTURES[&"frontier_desert"])
 
 func _refresh_world_bounds() -> void:
 	var texture := _get_map_texture()

@@ -9,4 +9,4 @@ title = "穿透弹"
 description = "子弹额外穿透 1 个敌人"
 stat_key = &"pierce"
 amount = 1.0
-max_level = 3
+max_level = 5

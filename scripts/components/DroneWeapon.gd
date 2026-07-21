@@ -20,6 +20,7 @@ var drones: Array[Node2D] = []
 var cached_target: Node2D
 var target_refresh_timer: float = 0.0
 var hover_angle: float = 0.0
+var upgrade_level: int = 0
 
 func _ready() -> void:
 	_build_pool()
@@ -54,6 +55,21 @@ func apply_upgrade(stat_key: StringName, amount: float) -> void:
 			fire_rate *= 1.0 + amount
 		&"drone_range_multiplier":
 			fire_range *= 1.0 + amount
+		&"drone_upgrade":
+			upgrade_level += int(amount)
+			match upgrade_level:
+				1:
+					drone_unlocked = true
+					_update_drone_visual()
+				2:
+					damage *= 1.3
+				3:
+					fire_rate *= 1.25
+				4:
+					fire_range *= 1.25
+				5:
+					damage *= 1.3
+					fire_rate *= 1.25
 
 func _build_pool() -> void:
 	if bullet_scene == null:

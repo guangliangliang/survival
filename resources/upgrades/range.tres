@@ -9,4 +9,4 @@ title = "远射训练"
 description = "射程提高 20%"
 stat_key = &"range_multiplier"
 amount = 0.2
-max_level = 4
+max_level = 5

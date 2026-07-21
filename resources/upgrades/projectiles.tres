@@ -9,4 +9,4 @@ title = "多重射击"
 description = "每次射击增加 1 发子弹"
 stat_key = &"projectile_count"
 amount = 1.0
-max_level = 3
+max_level = 5

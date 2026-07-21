@@ -12,6 +12,7 @@ extends Node2D
 var orbit_angle: float = 0.0
 var hit_cooldowns: Dictionary = {}
 var flywheels: Array[Area2D] = []
+var upgrade_level: int = 0
 
 func _ready() -> void:
 	_rebuild_flywheels()
@@ -35,8 +36,12 @@ func apply_upgrade(stat_key: StringName, amount: float) -> void:
 		&"range_multiplier":
 			orbit_radius *= 1.0 + amount
 		&"flywheel_count":
-			flywheel_count += int(amount)
-			_rebuild_flywheels()
+			upgrade_level += int(amount)
+			if upgrade_level <= 3:
+				flywheel_count += int(amount)
+				_rebuild_flywheels()
+			else:
+				damage *= 1.25
 
 func _rebuild_flywheels() -> void:
 	for flywheel in flywheels:

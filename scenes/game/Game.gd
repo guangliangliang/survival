@@ -38,10 +38,13 @@ const BUTTON_DISABLED_TEXT_COLOR := Color("998966")
 @onready var level_select_button: Button = $CanvasLayer/GameUI/GameOverScreen/Panel/VBox/LevelSelectButton
 @onready var home_button: Button = $CanvasLayer/GameUI/GameOverScreen/Panel/VBox/HomeButton
 @onready var pause_screen: Control = $CanvasLayer/GameUI/PauseScreen
-@onready var resume_button: Button = $CanvasLayer/GameUI/PauseScreen/Panel/VBox/ResumeButton
-@onready var pause_restart_button: Button = $CanvasLayer/GameUI/PauseScreen/Panel/VBox/RestartButton
-@onready var pause_level_select_button: Button = $CanvasLayer/GameUI/PauseScreen/Panel/VBox/LevelSelectButton
-@onready var pause_home_button: Button = $CanvasLayer/GameUI/PauseScreen/Panel/VBox/HomeButton
+@onready var resume_button: Button = $CanvasLayer/GameUI/PauseScreen/Panel/MainBox/ButtonSection/ResumeButton
+@onready var pause_restart_button: Button = $CanvasLayer/GameUI/PauseScreen/Panel/MainBox/ButtonSection/RestartButton
+@onready var pause_level_select_button: Button = $CanvasLayer/GameUI/PauseScreen/Panel/MainBox/ButtonSection/LevelSelectButton
+@onready var pause_home_button: Button = $CanvasLayer/GameUI/PauseScreen/Panel/MainBox/ButtonSection/HomeButton
+@onready var upgrade_grid: GridContainer = $CanvasLayer/GameUI/PauseScreen/Panel/MainBox/UpgradeSection/UpgradeGrid
+@onready var upgrade_title: Label = $CanvasLayer/GameUI/PauseScreen/Panel/MainBox/UpgradeSection/UpgradeTitle
+var upgrade_status_cards: Array[PanelContainer] = []
 @onready var upgrade_screen: Control = $CanvasLayer/GameUI/UpgradeScreen
 @onready var upgrade_buttons: Array[Button] = [
 	$CanvasLayer/GameUI/UpgradeScreen/Panel/VBox/Choices/Choice1,
@@ -198,6 +201,8 @@ func _toggle_manual_pause() -> void:
 	manual_pause = not manual_pause
 	AudioManager.play_ui_by_key(&"pause" if manual_pause else &"resume")
 	pause_screen.visible = manual_pause
+	if manual_pause:
+		_update_pause_upgrade_status()
 	InputAdapter.clear_virtual_inputs()
 	get_tree().paused = manual_pause
 
@@ -517,6 +522,7 @@ func _apply_overlay_style() -> void:
 		_style_game_button(button)
 	for button in upgrade_buttons:
 		_style_upgrade_button(button)
+	upgrade_title.add_theme_color_override("font_color", Color("f2dfb0"))
 
 func _panel_box() -> StyleBoxFlat:
 	var box := StyleBoxFlat.new()
@@ -758,3 +764,114 @@ func _fit_texture_to_max_size(texture: Texture2D, max_size: Vector2i) -> Texture
 	var image := texture.get_image()
 	image.resize(fitted_size.x, fitted_size.y, Image.INTERPOLATE_LANCZOS)
 	return ImageTexture.create_from_image(image)
+
+func _update_pause_upgrade_status() -> void:
+	_clear_upgrade_status_cards()
+	
+	var has_upgrades := false
+	for upgrade in upgrade_catalog:
+		var level := int(upgrade_levels.get(upgrade.upgrade_id, 0))
+		if level > 0:
+			has_upgrades = true
+			var card := _create_upgrade_status_card(upgrade, level)
+			upgrade_grid.add_child(card)
+			upgrade_status_cards.append(card)
+	
+	if not has_upgrades:
+		var no_upgrade_label := Label.new()
+		no_upgrade_label.text = "暂无升级"
+		no_upgrade_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		no_upgrade_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		no_upgrade_label.add_theme_color_override("font_color", Color("998966"))
+		no_upgrade_label.add_theme_font_size_override("font_size", 18)
+		upgrade_grid.add_child(no_upgrade_label)
+
+func _clear_upgrade_status_cards() -> void:
+	for card in upgrade_status_cards:
+		if is_instance_valid(card):
+			card.queue_free()
+	upgrade_status_cards.clear()
+	
+	for child in upgrade_grid.get_children():
+		if is_instance_valid(child):
+			child.queue_free()
+
+func _create_upgrade_status_card(upgrade: Resource, level: int) -> PanelContainer:
+	var card := PanelContainer.new()
+	card.custom_minimum_size = Vector2(240, 90)
+	
+	var tier := _get_upgrade_tier(level, upgrade.max_level)
+	var palette := _get_upgrade_palette(tier)
+	
+	card.add_theme_stylebox_override("panel", _upgrade_status_card_box(palette["fill"], palette["border"]))
+	
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 12)
+	margin.add_theme_constant_override("margin_top", 8)
+	margin.add_theme_constant_override("margin_right", 12)
+	margin.add_theme_constant_override("margin_bottom", 8)
+	card.add_child(margin)
+	
+	var hbox := HBoxContainer.new()
+	hbox.add_theme_constant_override("separation", 10)
+	margin.add_child(hbox)
+	
+	var icon_frame := PanelContainer.new()
+	icon_frame.custom_minimum_size = Vector2(48, 48)
+	icon_frame.add_theme_stylebox_override("panel", _upgrade_icon_frame_box(palette["frame"], palette["border"]))
+	hbox.add_child(icon_frame)
+	
+	var icon := TextureRect.new()
+	icon.custom_minimum_size = Vector2(40, 40)
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	var small_icon := _get_small_upgrade_icon(upgrade)
+	icon.texture = small_icon
+	icon_frame.add_child(icon)
+	
+	var vbox := VBoxContainer.new()
+	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	vbox.add_theme_constant_override("separation", 2)
+	hbox.add_child(vbox)
+	
+	var title := Label.new()
+	title.text = upgrade.title
+	title.add_theme_color_override("font_color", Color("fff0c6"))
+	title.add_theme_font_size_override("font_size", 16)
+	title.clip_text = true
+	vbox.add_child(title)
+	
+	var stars := Label.new()
+	stars.text = _build_star_text(level, upgrade.max_level)
+	stars.add_theme_color_override("font_color", palette["accent"])
+	stars.add_theme_font_size_override("font_size", 14)
+	vbox.add_child(stars)
+	
+	var level_text := Label.new()
+	level_text.text = "Lv.%d/%d" % [level, upgrade.max_level]
+	level_text.add_theme_color_override("font_color", Color("efe0bb"))
+	level_text.add_theme_font_size_override("font_size", 14)
+	vbox.add_child(level_text)
+	
+	return card
+
+func _get_small_upgrade_icon(upgrade: Resource) -> Texture2D:
+	var source := _get_upgrade_icon(upgrade)
+	var cache_key := "%s:small:48x48" % source.resource_path
+	if upgrade_icon_cache.has(cache_key):
+		return upgrade_icon_cache[cache_key]
+	var fitted := _fit_texture_to_max_size(source, Vector2i(48, 48))
+	upgrade_icon_cache[cache_key] = fitted
+	return fitted
+
+func _upgrade_status_card_box(fill: Color, border: Color) -> StyleBoxFlat:
+	var box := StyleBoxFlat.new()
+	box.bg_color = fill
+	box.border_color = border
+	box.set_border_width_all(2)
+	box.set_corner_radius_all(6)
+	box.set_content_margin_all(0)
+	box.shadow_color = Color(0, 0, 0, 0.3)
+	box.shadow_size = 4
+	box.shadow_offset = Vector2(0, 2)
+	return box

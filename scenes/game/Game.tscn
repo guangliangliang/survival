@@ -395,39 +395,64 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -180.0
-offset_top = -205.0
-offset_right = 180.0
-offset_bottom = 205.0
+offset_left = -410.0
+offset_top = -260.0
+offset_right = 410.0
+offset_bottom = 260.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="VBox" type="VBoxContainer" parent="CanvasLayer/GameUI/PauseScreen/Panel"]
+[node name="MainBox" type="HBoxContainer" parent="CanvasLayer/GameUI/PauseScreen/Panel"]
 layout_mode = 2
-theme_override_constants/separation = 16
+theme_override_constants/separation = 20
 
-[node name="Title" type="Label" parent="CanvasLayer/GameUI/PauseScreen/Panel/VBox"]
+[node name="UpgradeSection" type="VBoxContainer" parent="CanvasLayer/GameUI/PauseScreen/Panel/MainBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="UpgradeTitle" type="Label" parent="CanvasLayer/GameUI/PauseScreen/Panel/MainBox/UpgradeSection"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "当前升级"
+horizontal_alignment = 1
+
+[node name="UpgradeGrid" type="GridContainer" parent="CanvasLayer/GameUI/PauseScreen/Panel/MainBox/UpgradeSection"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+columns = 2
+theme_override_constants/h_separation = 10
+theme_override_constants/v_separation = 10
+
+[node name="ButtonSection" type="VBoxContainer" parent="CanvasLayer/GameUI/PauseScreen/Panel/MainBox"]
+layout_mode = 2
+size_flags_horizontal = 0
+custom_minimum_size = Vector2(240, 0)
+theme_override_constants/separation = 14
+
+[node name="Title" type="Label" parent="CanvasLayer/GameUI/PauseScreen/Panel/MainBox/ButtonSection"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 30
 text = "游戏暂停"
 horizontal_alignment = 1
 
-[node name="ResumeButton" type="Button" parent="CanvasLayer/GameUI/PauseScreen/Panel/VBox"]
+[node name="ResumeButton" type="Button" parent="CanvasLayer/GameUI/PauseScreen/Panel/MainBox/ButtonSection"]
 custom_minimum_size = Vector2(0, 58)
 layout_mode = 2
 text = "继续游戏"
 
-[node name="RestartButton" type="Button" parent="CanvasLayer/GameUI/PauseScreen/Panel/VBox"]
+[node name="RestartButton" type="Button" parent="CanvasLayer/GameUI/PauseScreen/Panel/MainBox/ButtonSection"]
 custom_minimum_size = Vector2(0, 58)
 layout_mode = 2
 text = "重新开始"
 
-[node name="LevelSelectButton" type="Button" parent="CanvasLayer/GameUI/PauseScreen/Panel/VBox"]
+[node name="LevelSelectButton" type="Button" parent="CanvasLayer/GameUI/PauseScreen/Panel/MainBox/ButtonSection"]
 custom_minimum_size = Vector2(0, 58)
 layout_mode = 2
 text = "返回选关"
 
-[node name="HomeButton" type="Button" parent="CanvasLayer/GameUI/PauseScreen/Panel/VBox"]
+[node name="HomeButton" type="Button" parent="CanvasLayer/GameUI/PauseScreen/Panel/MainBox/ButtonSection"]
 custom_minimum_size = Vector2(0, 58)
 layout_mode = 2
 text = "返回首页"

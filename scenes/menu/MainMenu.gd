@@ -49,7 +49,22 @@ func _ready() -> void:
 	start_button.pressed.connect(_on_start_button_pressed)
 	_build_corner_actions()
 	_build_info_overlay()
+	_build_boss_test_button()
 	_apply_style()
+
+func _build_boss_test_button() -> void:
+	var boss_test_btn := Button.new()
+	boss_test_btn.name = "BossTestButton"
+	boss_test_btn.custom_minimum_size = Vector2(300, 52)
+	boss_test_btn.text = "Boss 测试"
+	boss_test_btn.pressed.connect(_on_boss_test_button_pressed)
+	$VBoxContainer.add_child(boss_test_btn)
+	_set_centered_button_content(boss_test_btn, ICON_CODEX, 22, 8, 20)
+	_style_button(boss_test_btn, Color("3b332d"), Color("8e8069"), 20)
+
+func _on_boss_test_button_pressed() -> void:
+	AudioManager.play_sfx_by_key(&"button_click")
+	get_tree().change_scene_to_file("res://scenes/debug/BossTest.tscn")
 
 func _unhandled_input(event: InputEvent) -> void:
 	if info_overlay != null and info_overlay.visible and event.is_action_pressed("ui_cancel"):

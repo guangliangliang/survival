@@ -42,44 +42,65 @@ func _ready() -> void:
 	_apply_data()
 
 func _physics_process(delta: float) -> void:
-	if not is_alive or not is_instance_valid(target) or not GameManager.run_active:
+	if not is_alive or not GameManager.run_active:
 		velocity = Vector2.ZERO
 		return
 	active_time += delta
 	attack_timer = maxf(0.0, attack_timer - delta)
-	var direction := (target.global_position - global_position).normalized()
-	var move_direction := _get_obstacle_aware_direction(direction)
-	_update_facing(move_direction)
-	var distance := global_position.distance_to(target.global_position)
-	var was_in_attack_range := in_attack_range
-	in_attack_range = distance <= enemy_data.attack_range
-	if in_attack_range and not was_in_attack_range:
-		attack_timer = 0.0
-		attack_animation_time = 0.0
-		if enemy_data.attack_texture != null:
-			_set_animation_texture(enemy_data.attack_texture)
-			_set_animation_frame(0)
-	if attack_windup > 0.0:
-		attack_windup -= delta
-		velocity = Vector2.ZERO
-		_update_visual_animation(delta)
-		if attack_windup <= 0.0:
-			_perform_attack()
-		return
-	if knockback_velocity.length_squared() > 1.0:
-		velocity = move_direction * enemy_data.move_speed + knockback_velocity
-		knockback_velocity = knockback_velocity.move_toward(Vector2.ZERO, 700.0 * delta)
-		move_and_slide()
-		_update_visual_animation(delta)
-		return
-	if not in_attack_range:
-		velocity = move_direction * enemy_data.move_speed
-		move_and_slide()
+	
+	var has_target: bool = is_instance_valid(target)
+	
+	if has_target:
+		var direction := (target.global_position - global_position).normalized()
+		var move_direction := _get_obstacle_aware_direction(direction)
+		_update_facing(move_direction)
+		var distance := global_position.distance_to(target.global_position)
+		var was_in_attack_range := in_attack_range
+		in_attack_range = distance <= enemy_data.attack_range
+		if in_attack_range and not was_in_attack_range:
+			attack_timer = 0.0
+			attack_animation_time = 0.0
+			if enemy_data.attack_texture != null:
+				_set_animation_texture(enemy_data.attack_texture)
+				_set_animation_frame(0)
+		if attack_windup > 0.0:
+			attack_windup -= delta
+			velocity = Vector2.ZERO
+			_update_visual_animation(delta)
+			if attack_windup <= 0.0:
+				_perform_attack()
+			return
+		if knockback_velocity.length_squared() > 1.0:
+			velocity = move_direction * enemy_data.move_speed + knockback_velocity
+			knockback_velocity = knockback_velocity.move_toward(Vector2.ZERO, 700.0 * delta)
+			move_and_slide()
+			_update_visual_animation(delta)
+			return
+		if not in_attack_range:
+			velocity = move_direction * enemy_data.move_speed
+			move_and_slide()
+		else:
+			velocity = Vector2.ZERO
+			_try_attack()
 	else:
-		velocity = Vector2.ZERO
-		_try_attack()
+		if attack_windup > 0.0:
+			attack_windup -= delta
+			velocity = Vector2.ZERO
+			_update_visual_animation(delta)
+			if attack_windup <= 0.0:
+				_perform_attack()
+			return
+		if knockback_velocity.length_squared() > 1.0:
+			velocity = knockback_velocity
+			knockback_velocity = knockback_velocity.move_toward(Vector2.ZERO, 700.0 * delta)
+			move_and_slide()
+			_update_visual_animation(delta)
+			return
+		move_and_slide()
+	
 	_update_visual_animation(delta)
-	if active_time > 12.0 and distance > 1550.0 and not enemy_data.boss:
+	
+	if has_target and active_time > 12.0 and global_position.distance_to(target.global_position) > 1550.0 and not enemy_data.boss:
 		_release_to_pool()
 
 func _process(delta: float) -> void:
@@ -191,11 +212,32 @@ func _try_attack() -> void:
 		phase_multiplier = 0.65
 	attack_timer = enemy_data.attack_cooldown * phase_multiplier
 
+func trigger_attack() -> void:
+	if not is_alive or attack_timer > 0.0:
+		return
+	attack_windup = 0.28 if not enemy_data.boss else 0.48
+	attack_visual_time = ATTACK_VISUAL_DURATION if enemy_data.attack_texture != null else attack_windup
+	attack_animation_time = 0.0
+	if enemy_data.attack_texture != null:
+		_set_animation_texture(enemy_data.attack_texture)
+		_set_animation_frame(0)
+	sprite.modulate = Color.WHITE if enemy_data.attack_texture != null else Color(1.0, 0.72, 0.18)
+	var phase_multiplier := 1.0
+	if enemy_data.boss and health_component.current_health <= health_component.max_health * 0.5:
+		phase_multiplier = 0.65
+	attack_timer = enemy_data.attack_cooldown * phase_multiplier
+
 func _perform_attack() -> void:
-	if not is_instance_valid(target) or not is_alive:
+	if not is_alive:
 		return
 	attack_count += 1
-	var direction := (target.global_position - global_position).normalized()
+	
+	var direction: Vector2
+	if is_instance_valid(target):
+		direction = (target.global_position - global_position).normalized()
+	else:
+		direction = Vector2.RIGHT if not facing_left else Vector2.LEFT
+	
 	var projectile_pool := get_tree().get_first_node_in_group("enemy_projectile_pool")
 	if enemy_data.ranged:
 		AudioManager.play_sfx_by_key(_get_ranged_attack_sfx_key())
@@ -208,7 +250,7 @@ func _perform_attack() -> void:
 			projectile_pool.call("fire_radial", global_position, projectile_count, enemy_data.damage * 0.65, 300.0)
 	else:
 		AudioManager.play_sfx_by_key(&"enemy_melee_swing", -3.0)
-		if global_position.distance_to(target.global_position) <= enemy_data.attack_range + 28.0:
+		if is_instance_valid(target) and global_position.distance_to(target.global_position) <= enemy_data.attack_range + 28.0:
 			var health := target.get_node_or_null("HealthComponent")
 			if health:
 				health.take_damage(enemy_data.damage)

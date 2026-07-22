@@ -60,8 +60,8 @@ pool_size = 64
 process_mode = 1
 script = ExtResource("3")
 enemy_scene = ExtResource("6")
-pool_size = 130
-active_enemy_limit = 120
+pool_size = 200
+active_enemy_limit = 180
 base_spawn_interval = 1.4
 boss_spawn_time = 660.0
 
@@ -130,6 +130,64 @@ theme_override_font_sizes/font_size = 18
 text = "任务"
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="WaveWarningUI" type="Control" parent="CanvasLayer/GameUI"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Bg" type="ColorRect" parent="CanvasLayer/GameUI/WaveWarningUI"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.55)
+
+[node name="Panel" type="PanelContainer" parent="CanvasLayer/GameUI/WaveWarningUI"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -260.0
+offset_top = -100.0
+offset_right = 260.0
+offset_bottom = 100.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBox" type="VBoxContainer" parent="CanvasLayer/GameUI/WaveWarningUI/Panel"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="WarningLabel" type="Label" parent="CanvasLayer/GameUI/WaveWarningUI/Panel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.4, 0.4, 1)
+theme_override_font_sizes/font_size = 34
+text = "⚠️ 大波怪物来袭！"
+horizontal_alignment = 1
+
+[node name="WaveNameLabel" type="Label" parent="CanvasLayer/GameUI/WaveWarningUI/Panel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.6, 1)
+theme_override_font_sizes/font_size = 26
+text = "怪物潮"
+horizontal_alignment = 1
+
+[node name="CountdownLabel" type="Label" parent="CanvasLayer/GameUI/WaveWarningUI/Panel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 0.7, 1)
+theme_override_font_sizes/font_size = 44
+text = "5秒"
+horizontal_alignment = 1
 
 [node name="StatusPanelBg" type="PanelContainer" parent="CanvasLayer/GameUI"]
 layout_mode = 1

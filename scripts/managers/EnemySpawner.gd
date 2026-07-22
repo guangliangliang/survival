@@ -1,8 +1,15 @@
 extends Node
 
+signal wave_warning(wave_data: Resource, time_left: float)
+signal wave_started(wave_data: Resource)
+signal wave_ended()
+
+const WaveEvent := preload("res://scripts/data/WaveEvent.gd")
+const LevelData := preload("res://scripts/data/LevelData.gd")
+
 @export var enemy_scene: PackedScene
-@export var pool_size: int = 130
-@export var active_enemy_limit: int = 120
+@export var pool_size: int = 200
+@export var active_enemy_limit: int = 180
 @export var base_spawn_interval: float = 1.4
 @export var boss_spawn_time: float = 660.0
 
@@ -14,7 +21,13 @@ var inactive_pool: Array[CharacterBody2D] = []
 var active_enemies: Array[CharacterBody2D] = []
 var is_spawning: bool = false
 var boss_spawned: bool = false
-var level_data: Resource
+var level_data: LevelData
+
+var current_wave_index: int = 0
+var wave_in_progress: bool = false
+var wave_warning_triggered: Dictionary = {}
+var wave_spawn_timer: Timer = Timer.new()
+var enemies_left_to_spawn: int = 0
 
 var enemy_catalog: Array[Resource] = [
 	preload("res://resources/enemies/wolf.tres"),
@@ -32,12 +45,27 @@ func _ready() -> void:
 	spawn_timer.one_shot = false
 	spawn_timer.timeout.connect(_on_spawn_timer_timeout)
 	spawn_timer.wait_time = base_spawn_interval
+	
+	add_child(wave_spawn_timer)
+	wave_spawn_timer.one_shot = false
+	wave_spawn_timer.wait_time = 0.08
+	wave_spawn_timer.timeout.connect(_on_wave_spawn_timer_timeout)
+
+func _reset_wave_state() -> void:
+	current_wave_index = 0
+	wave_in_progress = false
+	wave_warning_triggered.clear()
+	enemies_left_to_spawn = 0
+	wave_spawn_timer.stop()
 
 func _process(_delta: float) -> void:
 	if is_spawning and not boss_spawned and GameManager.game_time >= boss_spawn_time:
 		boss_spawned = spawn_enemy(boss_data)
+	
+	if is_spawning and not wave_in_progress and level_data != null:
+		_check_wave_events()
 
-func configure(config: Resource, player_node: Node2D, map_node: Node2D, container: Node2D) -> void:
+func configure(config: LevelData, player_node: Node2D, map_node: Node2D, container: Node2D) -> void:
 	level_data = config
 	player = player_node
 	world_map = map_node
@@ -49,6 +77,7 @@ func configure(config: Resource, player_node: Node2D, map_node: Node2D, containe
 		base_spawn_interval = level_data.spawn_interval
 		active_enemy_limit = mini(level_data.active_enemy_limit, pool_size - 1)
 	_build_pool()
+	_reset_wave_state()
 
 func _build_pool() -> void:
 	if enemy_scene == null or world_container == null or not inactive_pool.is_empty():
@@ -66,9 +95,57 @@ func _create_enemy() -> CharacterBody2D:
 	enemy.connect("released", _on_enemy_released)
 	return enemy
 
+func _check_wave_events() -> void:
+	if level_data == null:
+		return
+	
+	var waves: Array[Resource] = level_data.wave_events
+	if current_wave_index >= waves.size():
+		return
+	
+	var next_wave := waves[current_wave_index] as WaveEvent
+	if next_wave == null:
+		current_wave_index += 1
+		return
+	
+	var time_until_wave := next_wave.trigger_time - GameManager.game_time
+	
+	if time_until_wave <= 0:
+		_start_wave(next_wave)
+	elif time_until_wave <= next_wave.warning_time and not wave_warning_triggered.has(current_wave_index):
+		wave_warning_triggered[current_wave_index] = true
+		wave_warning.emit(next_wave, time_until_wave)
+
+func _start_wave(wave_data: WaveEvent) -> void:
+	wave_in_progress = true
+	enemies_left_to_spawn = wave_data.enemy_count
+	spawn_timer.stop()
+	wave_started.emit(wave_data)
+	wave_spawn_timer.start()
+
+func _on_wave_spawn_timer_timeout() -> void:
+	if not wave_in_progress or enemies_left_to_spawn <= 0:
+		_end_wave()
+		return
+	
+	if active_enemies.size() < active_enemy_limit:
+		var data := _choose_enemy_data()
+		if data:
+			spawn_enemy(data)
+			enemies_left_to_spawn -= 1
+
+func _end_wave() -> void:
+	wave_in_progress = false
+	wave_spawn_timer.stop()
+	current_wave_index += 1
+	wave_ended.emit()
+	if is_spawning:
+		spawn_timer.start(base_spawn_interval)
+
 func start_spawning() -> void:
 	is_spawning = true
 	boss_spawned = false
+	_reset_wave_state()
 	spawn_timer.start(base_spawn_interval)
 
 func stop_spawning() -> void:

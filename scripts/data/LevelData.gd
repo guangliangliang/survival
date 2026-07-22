@@ -10,9 +10,10 @@ extends Resource
 @export var enemy_catalog: Array[Resource] = []
 @export var boss_data: Resource
 @export var spawn_interval: float = 1.4
-@export var active_enemy_limit: int = 120
+@export var active_enemy_limit: int = 180
 @export var difficulty_multiplier: float = 1.0
 @export var accent_color: Color = Color("b9a35b")
+@export var wave_events: Array[Resource] = []
 
 func formatted_duration() -> String:
 	return "%d 分钟" % int(duration / 60.0)

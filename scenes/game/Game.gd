@@ -11,6 +11,8 @@ const ICON_PAUSE := preload("res://assets/images/ui/icons/pause.svg")
 const ICON_PROJECTILE := preload("res://assets/images/projectiles/bullet_player.png")
 const ICON_REFRESH := preload("res://assets/images/ui/icons/refresh.svg")
 const ICON_SCATTER := preload("res://assets/images/projectiles/projectile_wizard_orb.png")
+const WaveEvent := preload("res://scripts/data/WaveEvent.gd")
+const EnemySpawner := preload("res://scripts/managers/EnemySpawner.gd")
 const UPGRADE_ICON_MAX_SIZE := Vector2i(92, 92)
 const BUTTON_TEXT_COLOR := Color("f2dfb0")
 const BUTTON_DISABLED_TEXT_COLOR := Color("998966")
@@ -19,7 +21,7 @@ const BUTTON_DISABLED_TEXT_COLOR := Color("998966")
 
 @onready var game_world: Node2D = $GameWorld
 @onready var world_map: Node2D = $GameWorld/WorldMap
-@onready var enemy_spawner = $EnemySpawner
+@onready var enemy_spawner: EnemySpawner = $EnemySpawner
 @onready var camera: Camera2D = $Camera2D
 @onready var status_panel_bg: PanelContainer = $CanvasLayer/GameUI/StatusPanelBg
 @onready var health_label: Label = $CanvasLayer/GameUI/TopHUD/HealthRow/HealthLabel
@@ -52,6 +54,14 @@ var upgrade_status_cards: Array[PanelContainer] = []
 	$CanvasLayer/GameUI/UpgradeScreen/Panel/VBox/Choices/Choice3
 ]
 @onready var upgrade_refresh_button: Button = $CanvasLayer/GameUI/UpgradeScreen/Panel/VBox/RefreshButton
+
+@onready var wave_warning_ui: Control = $CanvasLayer/GameUI/WaveWarningUI
+@onready var wave_name_label: Label = $CanvasLayer/GameUI/WaveWarningUI/Panel/VBox/WaveNameLabel
+@onready var wave_countdown_label: Label = $CanvasLayer/GameUI/WaveWarningUI/Panel/VBox/CountdownLabel
+
+var current_wave_data: Resource = null
+var wave_countdown: float = 0.0
+var wave_countdown_timer: Timer = Timer.new()
 
 var player: CharacterBody2D
 var manual_pause: bool = false
@@ -103,6 +113,12 @@ func _ready() -> void:
 		run_duration = level_data.duration
 	if smoke_test:
 		run_duration = 5.0
+	
+	add_child(wave_countdown_timer)
+	wave_countdown_timer.one_shot = false
+	wave_countdown_timer.wait_time = 0.1
+	wave_countdown_timer.timeout.connect(_on_wave_countdown_timer_timeout)
+	
 	_connect_signals()
 	_apply_overlay_style()
 	_start_game()
@@ -158,17 +174,25 @@ func _connect_signals() -> void:
 	upgrade_refresh_button.pressed.connect(_refresh_upgrade_choices)
 	for index in upgrade_buttons.size():
 		upgrade_buttons[index].pressed.connect(_choose_upgrade.bind(index))
+	
+	enemy_spawner.wave_warning.connect(_on_wave_warning)
+	enemy_spawner.wave_started.connect(_on_wave_started)
+	enemy_spawner.wave_ended.connect(_on_wave_ended)
 
 func _start_game() -> void:
 	game_over_screen.visible = false
 	pause_screen.visible = false
 	upgrade_screen.visible = false
+	wave_warning_ui.visible = false
 	manual_pause = false
 	boss_is_defeated = false
 	boss_music_started = false
 	upgrade_pending = 0
 	upgrade_refresh_used = false
 	upgrade_levels.clear()
+	current_wave_data = null
+	wave_countdown = 0.0
+	wave_countdown_timer.stop()
 	InputAdapter.clear_virtual_inputs()
 	InputAdapter.reset_dash_cooldown()
 	InputAdapter.reset_scatter_cooldown()
@@ -875,3 +899,33 @@ func _upgrade_status_card_box(fill: Color, border: Color) -> StyleBoxFlat:
 	box.shadow_size = 4
 	box.shadow_offset = Vector2(0, 2)
 	return box
+
+func _on_wave_warning(wave_data: Resource, time_left: float) -> void:
+	current_wave_data = wave_data
+	wave_countdown = time_left
+	var wave := wave_data as WaveEvent
+	if wave != null:
+		wave_name_label.text = wave.display_name
+		_update_wave_countdown_label()
+		wave_warning_ui.visible = true
+		wave_countdown_timer.start()
+		AudioManager.play_sfx_by_key(&"boss_warning")
+
+func _on_wave_started(wave_data: Resource) -> void:
+	wave_warning_ui.visible = false
+	wave_countdown_timer.stop()
+	if objective_label != null:
+		objective_label.text = "任务：应对怪物潮！"
+
+func _on_wave_ended() -> void:
+	_update_objective_label()
+
+func _on_wave_countdown_timer_timeout() -> void:
+	wave_countdown -= 0.1
+	if wave_countdown <= 0:
+		wave_countdown = 0
+		wave_countdown_timer.stop()
+	_update_wave_countdown_label()
+
+func _update_wave_countdown_label() -> void:
+	wave_countdown_label.text = "%d秒" % max(0, ceil(wave_countdown))

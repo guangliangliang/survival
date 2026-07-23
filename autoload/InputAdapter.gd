@@ -4,10 +4,15 @@ var virtual_move: Vector2 = Vector2.ZERO
 var virtual_attack_requested: bool = false
 var virtual_dash_requested: bool = false
 var virtual_scatter_requested: bool = false
-var auto_attack_enabled: bool = true
+var virtual_sword_rain_requested: bool = false
+var virtual_heal_requested: bool = false
 var dash_cooldown_remaining: float = 0.0
 var scatter_cooldown_remaining: float = 0.0
 var scatter_cooldown_duration: float = 9.0
+var sword_rain_cooldown_remaining: float = 0.0
+var sword_rain_cooldown_duration: float = 10.0
+var heal_cooldown_remaining: float = 0.0
+var heal_cooldown_duration: float = 15.0
 
 func get_move_vector() -> Vector2:
 	var keyboard := Input.get_vector("move_left", "move_right", "move_up", "move_down")
@@ -28,6 +33,16 @@ func consume_dash_requested() -> bool:
 func consume_scatter_requested() -> bool:
 	var requested := virtual_scatter_requested
 	virtual_scatter_requested = false
+	return requested
+
+func consume_sword_rain_requested() -> bool:
+	var requested := virtual_sword_rain_requested
+	virtual_sword_rain_requested = false
+	return requested
+
+func consume_heal_requested() -> bool:
+	var requested := virtual_heal_requested
+	virtual_heal_requested = false
 	return requested
 
 func set_virtual_move(value: Vector2) -> void:
@@ -55,6 +70,20 @@ func request_virtual_scatter() -> void:
 
 func clear_virtual_scatter() -> void:
 	virtual_scatter_requested = false
+
+func request_virtual_sword_rain() -> void:
+	if sword_rain_cooldown_remaining <= 0.0:
+		virtual_sword_rain_requested = true
+
+func clear_virtual_sword_rain() -> void:
+	virtual_sword_rain_requested = false
+
+func request_virtual_heal() -> void:
+	if heal_cooldown_remaining <= 0.0:
+		virtual_heal_requested = true
+
+func clear_virtual_heal() -> void:
+	virtual_heal_requested = false
 
 func set_dash_cooldown_remaining(value: float) -> void:
 	dash_cooldown_remaining = maxf(0.0, value)
@@ -89,14 +118,50 @@ func reset_scatter_cooldown() -> void:
 	scatter_cooldown_remaining = 0.0
 	clear_virtual_scatter()
 
-func set_auto_attack_enabled(value: bool) -> void:
-	auto_attack_enabled = value
+func set_sword_rain_cooldown(remaining: float, duration: float) -> void:
+	sword_rain_cooldown_remaining = maxf(0.0, remaining)
+	sword_rain_cooldown_duration = maxf(0.01, duration)
 
-func is_auto_attack_enabled() -> bool:
-	return auto_attack_enabled
+func get_sword_rain_cooldown_remaining() -> float:
+	return sword_rain_cooldown_remaining
+
+func get_sword_rain_cooldown_duration() -> float:
+	return sword_rain_cooldown_duration
+
+func get_sword_rain_cooldown_ratio() -> float:
+	return clampf(sword_rain_cooldown_remaining / sword_rain_cooldown_duration, 0.0, 1.0)
+
+func is_sword_rain_ready() -> bool:
+	return sword_rain_cooldown_remaining <= 0.0
+
+func reset_sword_rain_cooldown() -> void:
+	sword_rain_cooldown_remaining = 0.0
+	clear_virtual_sword_rain()
+
+func set_heal_cooldown(remaining: float, duration: float) -> void:
+	heal_cooldown_remaining = maxf(0.0, remaining)
+	heal_cooldown_duration = maxf(0.01, duration)
+
+func get_heal_cooldown_remaining() -> float:
+	return heal_cooldown_remaining
+
+func get_heal_cooldown_duration() -> float:
+	return heal_cooldown_duration
+
+func get_heal_cooldown_ratio() -> float:
+	return clampf(heal_cooldown_remaining / heal_cooldown_duration, 0.0, 1.0)
+
+func is_heal_ready() -> bool:
+	return heal_cooldown_remaining <= 0.0
+
+func reset_heal_cooldown() -> void:
+	heal_cooldown_remaining = 0.0
+	clear_virtual_heal()
 
 func clear_virtual_inputs() -> void:
 	clear_virtual_move()
 	clear_virtual_attack()
 	clear_virtual_dash()
 	clear_virtual_scatter()
+	clear_virtual_sword_rain()
+	clear_virtual_heal()

@@ -92,7 +92,9 @@ var upgrade_catalog: Array[Resource] = [
 	preload("res://resources/upgrades/drone.tres"),
 	preload("res://resources/upgrades/range.tres"),
 	preload("res://resources/upgrades/move_speed.tres"),
-	preload("res://resources/upgrades/max_health.tres")
+	preload("res://resources/upgrades/max_health.tres"),
+	preload("res://resources/upgrades/sword_rain.tres"),
+	preload("res://resources/upgrades/heal.tres")
 ]
 
 func _ready() -> void:
@@ -196,6 +198,8 @@ func _start_game() -> void:
 	InputAdapter.clear_virtual_inputs()
 	InputAdapter.reset_dash_cooldown()
 	InputAdapter.reset_scatter_cooldown()
+	InputAdapter.reset_sword_rain_cooldown()
+	InputAdapter.reset_heal_cooldown()
 	GameManager.start_run(level_data)
 	player = preload("res://scenes/game/Player.tscn").instantiate()
 	player.global_position = Vector2.ZERO

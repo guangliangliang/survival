@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="UpgradeData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/UpgradeData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+upgrade_id = &"sword_rain"
+title = "强化剑雨风暴"
+description = "剑数量、伤害和范围提高，冷却缩短。"
+stat_key = &"sword_rain_level"
+amount = 1.0
+max_level = 5

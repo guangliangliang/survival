@@ -111,8 +111,8 @@ base_cooldown = 9.0
 [node name="SwordRainStorm" type="Node2D" parent="WeaponsNode"]
 script = ExtResource("16")
 sword_scene = ExtResource("17")
-sword_pool_size = 64
-base_sword_count = 10
+sword_pool_size = 160
+base_sword_count = 40
 base_damage = 20.0
 base_range = 200.0
 base_cooldown = 10.0

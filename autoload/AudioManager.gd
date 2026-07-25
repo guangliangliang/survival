@@ -34,6 +34,12 @@ const SFX := {
 	&"wizard_orb": [
 		"res://assets/audio/sfx/sfx_wizard_orb_cast.wav",
 	],
+	&"sword_rain": [
+		"res://assets/audio/sfx/sfx_sword_rain.wav",
+	],
+	&"heal_cast": [
+		"res://assets/audio/sfx/sfx_heal_cast.wav",
+	],
 	&"enemy_projectile_land": [
 		"res://assets/audio/sfx/sfx_enemy_projectile_land.wav",
 	],

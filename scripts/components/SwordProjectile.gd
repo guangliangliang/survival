@@ -8,6 +8,7 @@ var lifetime: float = 2.0
 var life_timer: float = 0.0
 var hit_ids: Dictionary = {}
 var fall_duration: float = 0.4
+var landed: bool = false
 
 func _ready() -> void:
 	body_entered.connect(_on_body_entered)
@@ -22,11 +23,22 @@ func _process(delta: float) -> void:
 	var ease_progress: float = ease_out_cubic(progress)
 	global_position = start_position.lerp(target_position, ease_progress)
 	
-	var base_rotation: float = (target_position - start_position).angle() + PI * 0.25
+	if progress >= 1.0 and not landed:
+		landed = true
+		_play_landing_effect()
+		_deactivate()
+		return
+	
+	var base_rotation: float = (target_position - start_position).angle() - PI * 0.5
 	rotation = lerp(rotation, base_rotation, delta * 15.0)
 	
 	if life_timer >= lifetime:
 		_deactivate()
+
+func _play_landing_effect() -> void:
+	var effects := get_tree().get_first_node_in_group("visual_effects")
+	if effects != null and effects.has_method("play_arrow_impact"):
+		effects.call("play_arrow_impact", target_position)
 
 func ease_out_cubic(x: float) -> float:
 	return 1.0 - pow(1.0 - x, 3.0)
@@ -59,6 +71,7 @@ func activate(spawn_position: Vector2, target_pos: Vector2, shot_damage: float) 
 	damage = shot_damage
 	hit_ids.clear()
 	life_timer = 0.0
+	landed = false
 	active = true
 	visible = true
 	set_deferred("monitoring", true)

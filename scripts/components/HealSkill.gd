@@ -48,7 +48,10 @@ func _try_cast() -> void:
 	cooldown_remaining = _get_cooldown()
 	InputAdapter.set_heal_cooldown(cooldown_remaining, _get_cooldown())
 	cast_flash_time = 0.4
-	AudioManager.play_sfx_by_key(&"level_up", -1.0)
+	AudioManager.play_sfx_by_key(&"heal_cast", -1.0)
+	var effects := get_tree().get_first_node_in_group("visual_effects")
+	if effects != null and effects.has_method("play_heal_glow"):
+		effects.call("play_heal_glow", global_position)
 	queue_redraw()
 
 func _get_heal_percent() -> float:

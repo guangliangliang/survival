@@ -110,9 +110,13 @@ short healing spell sound effect, warm bright chime with magical undertones, gen
 
 ## 实施状态
 
-- [ ] 生成 sword.svg
-- [ ] 生成 heal.svg
-- [ ] 生成 sfx_sword_rain.wav
-- [ ] 生成 sfx_heal_cast.wav
+- [x] 生成 sword.svg（代码手绘 SVG，已接入剑雨按钮）
+- [x] 生成 heal.svg（代码手绘 SVG，已接入治疗按钮）
+- [x] 生成 sfx_sword_rain.wav（40层箭声叠加，万箭齐发，2秒，已接线）
+- [x] 生成 sfx_heal_cast.wav（截取后半段主音效，0.63秒，已接线）
+- [x] 生成 projectile_sword_arrow.png（单支箭矢贴图，256²，已接入 SwordProjectile）
+- [x] 生成 fx_arrow_impact.png（天降箭矢落地冲击 4帧，768×512，已接线）
+- [x] 生成 fx_heal_glow.png（绿色治疗光效 4帧，768×512，已接线）
 
-> **说明：** 代码功能将先使用临时替代资源实现，资源生成后无缝替换即可。
+> **说明：** 所有资源已生成并接入代码。序列帧按 4帧横向切分（每帧 192×512）。图标/贴图的 .import 文件会在下次用 Godot 编辑器打开时自动生成。
+

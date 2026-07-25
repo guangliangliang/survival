@@ -1,17 +1,25 @@
 extends Node2D
 
 @export var sword_scene: PackedScene
-@export var sword_pool_size: int = 64
-@export var base_sword_count: int = 10
+@export var sword_pool_size: int = 160
+@export var base_sword_count: int = 40
 @export var base_damage: float = 20.0
 @export var base_range: float = 200.0
 @export var base_cooldown: float = 10.0
+@export var rain_duration: float = 2.0
 
 var upgrade_level: int = 0
 var cooldown_remaining: float = 0.0
 var is_targeting: bool = false
 var target_position: Vector2 = Vector2.ZERO
 var sword_pool: Array[Area2D] = []
+
+var is_raining: bool = false
+var rain_timer: float = 0.0
+var rain_center: Vector2 = Vector2.ZERO
+var swords_remaining: int = 0
+var spawn_accumulator: float = 0.0
+var spawn_interval: float = 0.05
 
 func _ready() -> void:
 	_build_pool()
@@ -20,6 +28,9 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	cooldown_remaining = maxf(0.0, cooldown_remaining - delta)
 	InputAdapter.set_sword_rain_cooldown(cooldown_remaining, _get_cooldown())
+	
+	if is_raining:
+		_update_rain(delta)
 	
 	if is_targeting:
 		target_position = get_global_mouse_position()
@@ -82,32 +93,42 @@ func _cancel_targeting() -> void:
 
 func _confirm_cast() -> void:
 	is_targeting = false
-	var fired := _spawn_swords(target_position)
-	if fired <= 0:
+	rain_center = target_position
+	swords_remaining = _get_sword_count()
+	if swords_remaining <= 0:
 		return
+	is_raining = true
+	rain_timer = 0.0
+	spawn_accumulator = 0.0
+	spawn_interval = rain_duration / float(swords_remaining)
 	cooldown_remaining = _get_cooldown()
 	InputAdapter.set_sword_rain_cooldown(cooldown_remaining, _get_cooldown())
-	AudioManager.play_sfx_by_key(&"wizard_orb", -2.0)
+	AudioManager.play_sfx_by_key(&"sword_rain", -2.0)
 	var controller := get_tree().get_first_node_in_group("game_controller")
 	if controller != null and controller.has_method("shake_camera"):
 		controller.call("shake_camera", 4.0)
 	queue_redraw()
 
-func _spawn_swords(center: Vector2) -> int:
-	var count: int = _get_sword_count()
-	var fired: int = 0
+func _update_rain(delta: float) -> void:
+	rain_timer += delta
+	spawn_accumulator += delta
+	while spawn_accumulator >= spawn_interval and swords_remaining > 0:
+		spawn_accumulator -= spawn_interval
+		_spawn_single_sword(rain_center)
+		swords_remaining -= 1
+	if rain_timer >= rain_duration or swords_remaining <= 0:
+		is_raining = false
+
+func _spawn_single_sword(center: Vector2) -> void:
+	var sword := _get_sword_from_pool()
+	if sword == null:
+		return
 	var range: float = _get_range()
-	for index in count:
-		var sword := _get_sword_from_pool()
-		if sword == null:
-			break
-		var angle := randf() * TAU
-		var spawn_offset := Vector2.from_angle(angle) * (range * 0.3 + randf() * range * 0.5)
-		var spawn_pos := center + spawn_offset
-		var spawn_height := Vector2(randf_range(-50, 50), -400 - randf() * 200)
-		sword.call("activate", spawn_pos + spawn_height, spawn_pos - spawn_pos, _get_damage())
-		fired += 1
-	return fired
+	var angle := randf() * TAU
+	var spawn_offset := Vector2.from_angle(angle) * (range * 0.3 + randf() * range * 0.5)
+	var spawn_pos := center + spawn_offset
+	var spawn_height := Vector2(randf_range(-50, 50), -400 - randf() * 200)
+	sword.call("activate", spawn_pos + spawn_height, spawn_pos, _get_damage())
 
 func _get_sword_from_pool() -> Area2D:
 	for sword in sword_pool:
@@ -116,7 +137,7 @@ func _get_sword_from_pool() -> Area2D:
 	return null
 
 func _get_sword_count() -> int:
-	return base_sword_count + 3 * upgrade_level
+	return base_sword_count + 8 * upgrade_level
 
 func _get_damage() -> float:
 	return base_damage * pow(1.15, float(upgrade_level))

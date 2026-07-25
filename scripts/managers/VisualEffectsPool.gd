@@ -2,6 +2,8 @@ extends Node2D
 
 const IMPACT_TEXTURE := preload("res://assets/images/effects/fx_bullet_impact.png")
 const DEATH_TEXTURE := preload("res://assets/images/effects/fx_death_puff.png")
+const ARROW_IMPACT_TEXTURE := preload("res://assets/images/effects/fx_arrow_impact.png")
+const HEAL_GLOW_TEXTURE := preload("res://assets/images/effects/fx_heal_glow.png")
 
 @export var pool_size: int = 48
 
@@ -40,7 +42,13 @@ func play_impact(world_position: Vector2) -> void:
 func play_death_puff(world_position: Vector2) -> void:
 	_play_strip(DEATH_TEXTURE, world_position, 6, Vector2i(64, 64), 0.42)
 
-func _play_strip(texture: Texture2D, world_position: Vector2, frames: int, frame_size: Vector2i, duration: float) -> void:
+func play_arrow_impact(world_position: Vector2) -> void:
+	_play_strip(ARROW_IMPACT_TEXTURE, world_position, 4, Vector2i(192, 512), 0.28, 0.4)
+
+func play_heal_glow(world_position: Vector2) -> void:
+	_play_strip(HEAL_GLOW_TEXTURE, world_position, 4, Vector2i(192, 512), 0.6, 0.35)
+
+func _play_strip(texture: Texture2D, world_position: Vector2, frames: int, frame_size: Vector2i, duration: float, scale: float = 1.0) -> void:
 	for sprite in effects:
 		if sprite.visible:
 			continue
@@ -48,6 +56,7 @@ func _play_strip(texture: Texture2D, world_position: Vector2, frames: int, frame
 		sprite.region_enabled = true
 		sprite.region_rect = Rect2(0, 0, frame_size.x, frame_size.y)
 		sprite.global_position = world_position
+		sprite.scale = Vector2(scale, scale)
 		sprite.modulate = Color.WHITE
 		sprite.set_meta("frames", frames)
 		sprite.set_meta("frame_width", frame_size.x)

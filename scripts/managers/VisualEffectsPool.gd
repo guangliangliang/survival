@@ -46,7 +46,7 @@ func play_arrow_impact(world_position: Vector2) -> void:
 	_play_strip(ARROW_IMPACT_TEXTURE, world_position, 4, Vector2i(192, 512), 0.28, 0.4)
 
 func play_heal_glow(world_position: Vector2) -> void:
-	_play_strip(HEAL_GLOW_TEXTURE, world_position, 4, Vector2i(192, 512), 0.6, 0.35)
+	_play_strip(HEAL_GLOW_TEXTURE, world_position, 4, Vector2i(192, 512), 0.72, 0.44)
 
 func _play_strip(texture: Texture2D, world_position: Vector2, frames: int, frame_size: Vector2i, duration: float, scale: float = 1.0) -> void:
 	for sprite in effects:

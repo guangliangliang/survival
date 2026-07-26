@@ -41,6 +41,7 @@ func _ready() -> void:
 	health_component.health_changed.connect(_on_health_changed)
 	last_health = health_component.current_health
 	original_modulate = body_sprite.modulate
+	InputAdapter.set_dash_cooldown(dash_cooldown_remaining, dash_cooldown)
 	_update_sprite_frame(0)
 	queue_redraw()
 
@@ -68,7 +69,7 @@ func _physics_process(delta: float) -> void:
 		velocity = move_vector * move_speed
 	move_and_slide()
 	global_position = global_position.clamp(world_bounds.position, world_bounds.end)
-	InputAdapter.set_dash_cooldown_remaining(dash_cooldown_remaining)
+	InputAdapter.set_dash_cooldown(dash_cooldown_remaining, dash_cooldown)
 
 func _process(delta: float) -> void:
 	_update_walk_animation(delta)
@@ -98,11 +99,12 @@ func get_health_component() -> Node:
 	return health_component
 
 func _on_health_changed(current_health: float, _max_health: float) -> void:
-	if current_health < last_health and is_alive:
+	var damaged := current_health < last_health
+	if damaged and is_alive:
 		AudioManager.play_sfx_by_key(&"player_hurt")
+		flash_time = 0.1
+		body_sprite.modulate = Color(1.0, 0.25, 0.25)
 	last_health = current_health
-	flash_time = 0.1
-	body_sprite.modulate = Color(1.0, 0.25, 0.25)
 	queue_redraw()
 
 func _on_died() -> void:
@@ -133,7 +135,7 @@ func _try_start_dash() -> void:
 	dash_velocity = dash_direction * (dash_distance / maxf(dash_duration, 0.01))
 	dash_time_remaining = dash_duration
 	dash_cooldown_remaining = dash_cooldown
-	InputAdapter.set_dash_cooldown_remaining(dash_cooldown_remaining)
+	InputAdapter.set_dash_cooldown(dash_cooldown_remaining, dash_cooldown)
 
 func _get_dash_direction() -> Vector2:
 	var move_vector := InputAdapter.get_move_vector()

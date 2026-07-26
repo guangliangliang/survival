@@ -7,6 +7,7 @@ var virtual_scatter_requested: bool = false
 var virtual_sword_rain_requested: bool = false
 var virtual_heal_requested: bool = false
 var dash_cooldown_remaining: float = 0.0
+var dash_cooldown_duration: float = 10.0
 var scatter_cooldown_remaining: float = 0.0
 var scatter_cooldown_duration: float = 9.0
 var sword_rain_cooldown_remaining: float = 0.0
@@ -88,8 +89,18 @@ func clear_virtual_heal() -> void:
 func set_dash_cooldown_remaining(value: float) -> void:
 	dash_cooldown_remaining = maxf(0.0, value)
 
+func set_dash_cooldown(remaining: float, duration: float) -> void:
+	dash_cooldown_remaining = maxf(0.0, remaining)
+	dash_cooldown_duration = maxf(0.01, duration)
+
 func get_dash_cooldown_remaining() -> float:
 	return dash_cooldown_remaining
+
+func get_dash_cooldown_duration() -> float:
+	return dash_cooldown_duration
+
+func get_dash_cooldown_ratio() -> float:
+	return clampf(dash_cooldown_remaining / dash_cooldown_duration, 0.0, 1.0)
 
 func is_dash_ready() -> bool:
 	return dash_cooldown_remaining <= 0.0

@@ -99,9 +99,14 @@ func _draw_sword_rain_button(center: Vector2, ready: bool) -> void:
 	_draw_icon(ICON_SWORD, center, 36.0, 0.95 if ready else 0.35)
 
 func _draw_dash_button(center: Vector2, ready: bool) -> void:
+	var base_alpha := 0.58 if ready else 0.28
+	var accent_alpha := 0.72 if ready else 0.2
 	draw_circle(center, button_radius, Color(0.08, 0.09, 0.1, 0.52))
-	draw_circle(center, button_radius - 4.0, Color(0.62, 0.74, 0.95, 0.52 if ready else 0.16), false, 4.0)
-	draw_circle(center, button_radius * 0.56, Color(0.3, 0.55, 0.9, 0.58 if ready else 0.18))
+	draw_arc(center, button_radius - 4.0, -PI * 0.5, PI * 1.5, 48, Color(0.62, 0.74, 0.95, accent_alpha), 4.0)
+	if not ready:
+		var cooldown_angle := -PI * 0.5 + TAU * (1.0 - InputAdapter.get_dash_cooldown_ratio())
+		draw_arc(center, button_radius - 4.0, -PI * 0.5, cooldown_angle, 48, Color(0.78, 0.9, 1.0, 0.65), 4.0)
+	draw_circle(center, button_radius * 0.56, Color(0.3, 0.55, 0.9, base_alpha))
 	_draw_icon(ICON_DASH, center, 36.0, 0.95 if ready else 0.35)
 
 func _draw_heal_button(center: Vector2, ready: bool) -> void:

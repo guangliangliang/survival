@@ -22,28 +22,88 @@ const OBSTACLE_TEXTURES := {
 }
 const FRONTIER_OBSTACLES := {
 	&"frontier_desert": [
-		{"texture": &"rock_long", "position": Vector2(-420, -690), "scale": 0.22, "collision": Vector2(265, 92)},
-		{"texture": &"rock_medium", "position": Vector2(1240, -880), "scale": 0.20, "collision": Vector2(155, 110)},
-		{"texture": &"crate_row", "position": Vector2(-2030, 130), "scale": 0.16, "collision": Vector2(225, 78)},
-		{"texture": &"sandbag_short", "position": Vector2(1540, 610), "scale": 0.20, "collision": Vector2(205, 72)},
-		{"texture": &"crate_single", "position": Vector2(-300, 1060), "scale": 0.21, "collision": Vector2(82, 82)}
+		{"texture": &"rock_long", "position": Vector2(-1850, -1040), "scale": 0.18, "collision": Vector2(205, 74)},
+		{"texture": &"rock_medium", "position": Vector2(-1470, -880), "scale": 0.19, "collision": Vector2(150, 100)},
+		{"texture": &"rock_small", "position": Vector2(-1980, -680), "scale": 0.28, "collision": Vector2(82, 62)},
+		{"texture": &"rock_medium", "position": Vector2(1820, -1040), "scale": 0.19, "collision": Vector2(150, 100)},
+		{"texture": &"rock_long", "position": Vector2(1460, -860), "scale": 0.18, "collision": Vector2(205, 74)},
+		{"texture": &"rock_small", "position": Vector2(1980, -670), "scale": 0.28, "collision": Vector2(82, 62)},
+		{"texture": &"rock_long", "position": Vector2(-1830, 1040), "scale": 0.18, "collision": Vector2(205, 74)},
+		{"texture": &"rock_small", "position": Vector2(-1460, 870), "scale": 0.28, "collision": Vector2(82, 62)},
+		{"texture": &"crate_single", "position": Vector2(-1970, 690), "scale": 0.22, "collision": Vector2(92, 92)},
+		{"texture": &"rock_medium", "position": Vector2(1830, 1040), "scale": 0.19, "collision": Vector2(150, 100)},
+		{"texture": &"rock_long", "position": Vector2(1470, 860), "scale": 0.18, "collision": Vector2(205, 74)},
+		{"texture": &"sandbag_short", "position": Vector2(1970, 680), "scale": 0.19, "collision": Vector2(185, 68), "collision_offset": Vector2(0, 40)},
+		{"texture": &"rock_small", "position": Vector2(-360, -1200), "scale": 0.28, "collision": Vector2(82, 62)},
+		{"texture": &"rock_medium", "position": Vector2(420, -1170), "scale": 0.19, "collision": Vector2(150, 100)},
+		{"texture": &"rock_medium", "position": Vector2(-420, 1190), "scale": 0.19, "collision": Vector2(150, 100)},
+		{"texture": &"crate_single", "position": Vector2(360, 1200), "scale": 0.22, "collision": Vector2(92, 92)},
+		{"texture": &"rock_long", "position": Vector2(-2300, -150), "scale": 0.18, "collision": Vector2(205, 74)},
+		{"texture": &"rock_medium", "position": Vector2(-2250, 220), "scale": 0.19, "collision": Vector2(150, 100)},
+		{"texture": &"rock_long", "position": Vector2(2300, 160), "scale": 0.18, "collision": Vector2(205, 74)},
+		{"texture": &"rock_medium", "position": Vector2(2250, -220), "scale": 0.19, "collision": Vector2(150, 100)},
+		{"texture": &"rock_small", "position": Vector2(720, -650), "scale": 0.28, "collision": Vector2(82, 62)},
+		{"texture": &"rock_medium", "position": Vector2(-760, 600), "scale": 0.19, "collision": Vector2(150, 100)},
+		{"texture": &"rock_small", "position": Vector2(-670, -700), "scale": 0.28, "collision": Vector2(82, 62)},
+		{"texture": &"crate_single", "position": Vector2(730, 660), "scale": 0.22, "collision": Vector2(92, 92)}
 	],
 	&"frontier_grassland": [
-		{"texture": &"rock_medium", "position": Vector2(-540, -610), "scale": 0.18, "collision": Vector2(140, 96)},
-		{"texture": &"fence_short", "position": Vector2(-1900, 500), "scale": 0.19, "collision": Vector2(165, 44), "collision_offset": Vector2(8, 52)},
-		{"texture": &"crate_double", "position": Vector2(520, 760), "scale": 0.20, "collision": Vector2(76, 76), "collision_offset": Vector2(0, 48)},
-		{"texture": &"rock_long", "position": Vector2(1640, 250), "scale": 0.17, "collision": Vector2(205, 70)},
-		{"texture": &"rock_small", "position": Vector2(300, -1120), "scale": 0.23, "collision": Vector2(72, 58)}
+		{"texture": &"fence_long", "position": Vector2(-1850, -1040), "scale": 0.19, "collision": Vector2(215, 52), "collision_offset": Vector2(0, 55)},
+		{"texture": &"crate_double", "position": Vector2(-1470, -880), "scale": 0.22, "collision": Vector2(78, 80), "collision_offset": Vector2(0, 48)},
+		{"texture": &"rock_small", "position": Vector2(-1980, -680), "scale": 0.28, "collision": Vector2(82, 62)},
+		{"texture": &"fence_short", "position": Vector2(1820, -1040), "scale": 0.18, "collision": Vector2(165, 50), "collision_offset": Vector2(0, 60)},
+		{"texture": &"crate_single", "position": Vector2(1460, -860), "scale": 0.22, "collision": Vector2(92, 92)},
+		{"texture": &"crate_double", "position": Vector2(1980, -670), "scale": 0.22, "collision": Vector2(78, 80), "collision_offset": Vector2(0, 48)},
+		{"texture": &"fence_long", "position": Vector2(-1830, 1040), "scale": 0.19, "collision": Vector2(215, 52), "collision_offset": Vector2(0, 55)},
+		{"texture": &"crate_single", "position": Vector2(-1460, 870), "scale": 0.22, "collision": Vector2(92, 92)},
+		{"texture": &"rock_medium", "position": Vector2(-1970, 690), "scale": 0.19, "collision": Vector2(150, 100)},
+		{"texture": &"fence_short", "position": Vector2(1830, 1040), "scale": 0.18, "collision": Vector2(165, 50), "collision_offset": Vector2(0, 60)},
+		{"texture": &"crate_double", "position": Vector2(1470, 860), "scale": 0.22, "collision": Vector2(78, 80), "collision_offset": Vector2(0, 48)},
+		{"texture": &"crate_single", "position": Vector2(1970, 680), "scale": 0.22, "collision": Vector2(92, 92)},
+		{"texture": &"fence_long", "position": Vector2(-360, -1190), "scale": 0.19, "collision": Vector2(215, 52), "collision_offset": Vector2(0, 55)},
+		{"texture": &"crate_single", "position": Vector2(420, -1200), "scale": 0.22, "collision": Vector2(92, 92)},
+		{"texture": &"crate_double", "position": Vector2(-420, 1190), "scale": 0.22, "collision": Vector2(78, 80), "collision_offset": Vector2(0, 48)},
+		{"texture": &"fence_short", "position": Vector2(360, 1200), "scale": 0.18, "collision": Vector2(165, 50), "collision_offset": Vector2(0, 60)},
+		{"texture": &"fence_long", "position": Vector2(-2300, -150), "scale": 0.19, "collision": Vector2(215, 52), "collision_offset": Vector2(0, 55)},
+		{"texture": &"rock_medium", "position": Vector2(-2250, 220), "scale": 0.19, "collision": Vector2(150, 100)},
+		{"texture": &"fence_long", "position": Vector2(2300, 160), "scale": 0.19, "collision": Vector2(215, 52), "collision_offset": Vector2(0, 55)},
+		{"texture": &"crate_single", "position": Vector2(2250, -220), "scale": 0.22, "collision": Vector2(92, 92)},
+		{"texture": &"crate_double", "position": Vector2(720, -650), "scale": 0.22, "collision": Vector2(78, 80), "collision_offset": Vector2(0, 48)},
+		{"texture": &"fence_short", "position": Vector2(-760, 600), "scale": 0.18, "collision": Vector2(165, 50), "collision_offset": Vector2(0, 60)},
+		{"texture": &"crate_single", "position": Vector2(-670, -700), "scale": 0.22, "collision": Vector2(92, 92)},
+		{"texture": &"rock_small", "position": Vector2(730, 660), "scale": 0.28, "collision": Vector2(82, 62)}
 	],
 	&"frontier_red_earth": [
-		{"texture": &"sandbag_long", "position": Vector2(-760, -730), "scale": 0.24, "collision": Vector2(285, 82), "collision_offset": Vector2(0, 58)},
-		{"texture": &"sandbag_l", "position": Vector2(930, -540), "scale": 0.22, "collisions": [
+		{"texture": &"sandbag_long", "position": Vector2(-1850, -1040), "scale": 0.21, "collision": Vector2(255, 80), "collision_offset": Vector2(0, 55)},
+		{"texture": &"sandbag_short", "position": Vector2(-1470, -880), "scale": 0.19, "collision": Vector2(185, 68), "collision_offset": Vector2(0, 40)},
+		{"texture": &"rock_small", "position": Vector2(-1980, -680), "scale": 0.28, "collision": Vector2(82, 62)},
+		{"texture": &"sandbag_l", "position": Vector2(1820, -1040), "scale": 0.20, "collisions": [
 			{"size": Vector2(260, 76), "offset": Vector2(42, 62)},
 			{"size": Vector2(76, 210), "offset": Vector2(-105, -16)}
 		]},
-		{"texture": &"fence_damaged", "position": Vector2(-1560, 260), "scale": 0.21, "collision": Vector2(260, 48), "collision_offset": Vector2(0, 82)},
-		{"texture": &"crate_row", "position": Vector2(420, 760), "scale": 0.19, "collision": Vector2(260, 82), "collision_offset": Vector2(0, 52)},
-		{"texture": &"sandbag_short", "position": Vector2(1570, 180), "scale": 0.19, "collision": Vector2(195, 68), "collision_offset": Vector2(0, 42)}
+		{"texture": &"sandbag_long", "position": Vector2(1460, -860), "scale": 0.21, "collision": Vector2(255, 80), "collision_offset": Vector2(0, 55)},
+		{"texture": &"fence_damaged", "position": Vector2(1980, -670), "scale": 0.19, "collision": Vector2(255, 55), "collision_offset": Vector2(0, 80)},
+		{"texture": &"sandbag_long", "position": Vector2(-1830, 1040), "scale": 0.21, "collision": Vector2(255, 80), "collision_offset": Vector2(0, 55)},
+		{"texture": &"fence_damaged", "position": Vector2(-1460, 870), "scale": 0.19, "collision": Vector2(255, 55), "collision_offset": Vector2(0, 80)},
+		{"texture": &"crate_row", "position": Vector2(-1970, 690), "scale": 0.15, "collision": Vector2(225, 95), "collision_offset": Vector2(0, 50)},
+		{"texture": &"sandbag_l", "position": Vector2(1830, 1040), "scale": 0.20, "collisions": [
+			{"size": Vector2(260, 76), "offset": Vector2(42, 62)},
+			{"size": Vector2(76, 210), "offset": Vector2(-105, -16)}
+		]},
+		{"texture": &"sandbag_short", "position": Vector2(1470, 860), "scale": 0.19, "collision": Vector2(185, 68), "collision_offset": Vector2(0, 40)},
+		{"texture": &"sandbag_long", "position": Vector2(1970, 680), "scale": 0.21, "collision": Vector2(255, 80), "collision_offset": Vector2(0, 55)},
+		{"texture": &"sandbag_long", "position": Vector2(-360, -1190), "scale": 0.21, "collision": Vector2(255, 80), "collision_offset": Vector2(0, 55)},
+		{"texture": &"sandbag_short", "position": Vector2(420, -1200), "scale": 0.19, "collision": Vector2(185, 68), "collision_offset": Vector2(0, 40)},
+		{"texture": &"sandbag_short", "position": Vector2(-420, 1190), "scale": 0.19, "collision": Vector2(185, 68), "collision_offset": Vector2(0, 40)},
+		{"texture": &"sandbag_long", "position": Vector2(360, 1200), "scale": 0.21, "collision": Vector2(255, 80), "collision_offset": Vector2(0, 55)},
+		{"texture": &"fence_damaged", "position": Vector2(-2300, -150), "scale": 0.19, "collision": Vector2(255, 55), "collision_offset": Vector2(0, 80)},
+		{"texture": &"rock_medium", "position": Vector2(-2250, 220), "scale": 0.19, "collision": Vector2(150, 100)},
+		{"texture": &"fence_damaged", "position": Vector2(2300, 160), "scale": 0.19, "collision": Vector2(255, 55), "collision_offset": Vector2(0, 80)},
+		{"texture": &"crate_row", "position": Vector2(2250, -220), "scale": 0.15, "collision": Vector2(225, 95), "collision_offset": Vector2(0, 50)},
+		{"texture": &"sandbag_short", "position": Vector2(720, -650), "scale": 0.19, "collision": Vector2(185, 68), "collision_offset": Vector2(0, 40)},
+		{"texture": &"sandbag_long", "position": Vector2(-760, 600), "scale": 0.21, "collision": Vector2(255, 80), "collision_offset": Vector2(0, 55)},
+		{"texture": &"rock_small", "position": Vector2(-670, -700), "scale": 0.28, "collision": Vector2(82, 62)},
+		{"texture": &"sandbag_short", "position": Vector2(730, 660), "scale": 0.19, "collision": Vector2(185, 68), "collision_offset": Vector2(0, 40)}
 	]
 }
 

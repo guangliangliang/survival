@@ -197,16 +197,22 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -260.0
-offset_top = -100.0
-offset_right = 260.0
-offset_bottom = 100.0
+offset_left = -280.0
+offset_top = -110.0
+offset_right = 280.0
+offset_bottom = 110.0
 grow_horizontal = 2
 grow_vertical = 2
+pivot_offset = Vector2(280, 110)
 
 [node name="VBox" type="VBoxContainer" parent="CanvasLayer/GameUI/WaveWarningUI/Panel"]
 layout_mode = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 12
+
+[node name="TopScanBar" type="ColorRect" parent="CanvasLayer/GameUI/WaveWarningUI/Panel/VBox"]
+custom_minimum_size = Vector2(0, 3)
+layout_mode = 2
+color = Color(0.753, 0.224, 0.169, 1)
 
 [node name="WarningLabel" type="Label" parent="CanvasLayer/GameUI/WaveWarningUI/Panel/VBox"]
 layout_mode = 2
@@ -214,6 +220,11 @@ theme_override_colors/font_color = Color(1, 0.4, 0.4, 1)
 theme_override_font_sizes/font_size = 34
 text = "⚠️ 大波怪物来袭！"
 horizontal_alignment = 1
+
+[node name="GoldSeparator" type="ColorRect" parent="CanvasLayer/GameUI/WaveWarningUI/Panel/VBox"]
+custom_minimum_size = Vector2(0, 1)
+layout_mode = 2
+color = Color(0.725, 0.604, 0.345, 0.7)
 
 [node name="WaveNameLabel" type="Label" parent="CanvasLayer/GameUI/WaveWarningUI/Panel/VBox"]
 layout_mode = 2
@@ -228,6 +239,11 @@ theme_override_colors/font_color = Color(1, 1, 0.7, 1)
 theme_override_font_sizes/font_size = 44
 text = "5秒"
 horizontal_alignment = 1
+
+[node name="BottomScanBar" type="ColorRect" parent="CanvasLayer/GameUI/WaveWarningUI/Panel/VBox"]
+custom_minimum_size = Vector2(0, 3)
+layout_mode = 2
+color = Color(0.753, 0.224, 0.169, 1)
 
 [node name="BossBar" type="Control" parent="CanvasLayer/GameUI"]
 visible = false

@@ -7,7 +7,7 @@
 [resource]
 script = ExtResource("1")
 character_id = &"vanguard"
-display_name = "荒原哨兵"
-description = "护目镜、外骨骼手套与短管步枪，握持点已按枪轴校准。"
+display_name = "边境巡航机"
+description = "村庄用旧农机和守夜灯芯改造的巡逻机器，顶部炮塔可自动锁定威胁。"
 body_texture = ExtResource("2")
 rifle_texture = ExtResource("3")

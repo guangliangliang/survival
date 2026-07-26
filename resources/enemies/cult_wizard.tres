@@ -9,7 +9,7 @@
 [resource]
 script = ExtResource("1")
 enemy_id = &"cult_wizard"
-display_name = "Cult Wizard"
+display_name = "邪教巫师"
 color = Color(0.42, 0.16, 0.62, 1)
 texture = ExtResource("2")
 walk_texture = ExtResource("3")

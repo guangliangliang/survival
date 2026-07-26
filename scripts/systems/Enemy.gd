@@ -4,6 +4,8 @@ signal released(enemy: Node)
 
 const EnemyDataResource = preload("res://scripts/data/EnemyData.gd")
 const ANIM_FRAME_COUNT := 4
+const ANIM_ALPHA_THRESHOLD := 0.03
+const ANIM_MIN_CONTENT_RUN_WIDTH := 12
 const WALK_ANIM_FPS := 8.0
 const ATTACK_ANIM_FPS := 9.5
 const ATTACK_VISUAL_DURATION := 0.42
@@ -11,6 +13,7 @@ const OBSTACLE_AVOIDANCE_LOOKAHEAD := 190.0
 const OBSTACLE_AVOIDANCE_PADDING := 62.0
 const OBSTACLE_AVOIDANCE_STRENGTH := 1.45
 const OBSTACLE_AVOIDANCE_SAMPLES := 6
+static var animation_frame_layout_cache: Dictionary = {}
 
 @export var enemy_data: Resource
 @onready var health_component = $HealthComponent
@@ -343,18 +346,103 @@ func _set_animation_texture(texture: Texture2D) -> void:
 	sprite.texture = texture
 	sprite.region_enabled = true
 	sprite.flip_h = facing_left
-	var frame_size := _get_animation_frame_size(texture)
-	sprite.region_rect = Rect2(Vector2.ZERO, frame_size)
-	_apply_sprite_scale(frame_size)
+	var layout := _get_animation_frame_layout(texture)
+	var regions: Array = layout["regions"]
+	sprite.region_rect = regions[0]
+	_apply_sprite_scale(layout["scale_size"])
 
 func _set_animation_frame(frame: int) -> void:
 	if current_animation_texture == null:
 		return
-	var frame_size := _get_animation_frame_size(current_animation_texture)
-	sprite.region_rect = Rect2(Vector2(frame * frame_size.x, 0.0), frame_size)
+	var layout := _get_animation_frame_layout(current_animation_texture)
+	var regions: Array = layout["regions"]
+	sprite.region_rect = regions[clampi(frame, 0, regions.size() - 1)]
 
-func _get_animation_frame_size(texture: Texture2D) -> Vector2:
-	return Vector2(texture.get_width() / ANIM_FRAME_COUNT, texture.get_height())
+func _get_animation_frame_layout(texture: Texture2D) -> Dictionary:
+	var cache_key := texture.resource_path
+	if cache_key.is_empty():
+		cache_key = str(texture.get_instance_id())
+	if animation_frame_layout_cache.has(cache_key):
+		return animation_frame_layout_cache[cache_key]
+	var layout := _build_animation_frame_layout(texture)
+	animation_frame_layout_cache[cache_key] = layout
+	return layout
+
+func _build_animation_frame_layout(texture: Texture2D) -> Dictionary:
+	var regions: Array = []
+	var image := texture.get_image()
+	if image != null and image.get_width() > 0 and image.get_height() > 0:
+		var content_runs := _find_animation_content_runs(image)
+		if content_runs.size() == ANIM_FRAME_COUNT:
+			regions = _build_content_gap_regions(content_runs, image.get_width(), image.get_height())
+	if regions.is_empty():
+		regions = _build_equal_frame_regions(texture.get_width(), texture.get_height())
+	return {
+		"regions": regions,
+		"scale_size": _get_animation_layout_scale_size(regions, texture.get_height()),
+	}
+
+func _find_animation_content_runs(image: Image) -> Array:
+	var runs: Array = []
+	var run_start := -1
+	for x in image.get_width():
+		if _animation_column_has_content(image, x):
+			if run_start < 0:
+				run_start = x
+		elif run_start >= 0:
+			_append_animation_content_run(runs, run_start, x)
+			run_start = -1
+	if run_start >= 0:
+		_append_animation_content_run(runs, run_start, image.get_width())
+	return runs
+
+func _animation_column_has_content(image: Image, x: int) -> bool:
+	for y in image.get_height():
+		if image.get_pixel(x, y).a > ANIM_ALPHA_THRESHOLD:
+			return true
+	return false
+
+func _append_animation_content_run(runs: Array, start: int, end: int) -> void:
+	if end - start >= ANIM_MIN_CONTENT_RUN_WIDTH:
+		runs.append(Vector2i(start, end))
+
+func _build_content_gap_regions(content_runs: Array, texture_width: int, texture_height: int) -> Array:
+	var boundaries: Array = [0]
+	for index in range(ANIM_FRAME_COUNT - 1):
+		var left_run: Vector2i = content_runs[index]
+		var right_run: Vector2i = content_runs[index + 1]
+		var boundary := int(roundf(float(left_run.y + right_run.x) * 0.5))
+		boundaries.append(clampi(boundary, 1, texture_width - 1))
+	boundaries.append(texture_width)
+	return _build_regions_from_boundaries(boundaries, texture_height)
+
+func _build_equal_frame_regions(texture_width: int, texture_height: int) -> Array:
+	var boundaries: Array = []
+	for index in range(ANIM_FRAME_COUNT + 1):
+		boundaries.append(int(roundf(float(index * texture_width) / float(ANIM_FRAME_COUNT))))
+	return _build_regions_from_boundaries(boundaries, texture_height)
+
+func _build_regions_from_boundaries(boundaries: Array, texture_height: int) -> Array:
+	var regions: Array = []
+	for index in range(ANIM_FRAME_COUNT):
+		var left: int = boundaries[index]
+		var right: int = boundaries[index + 1]
+		regions.append(Rect2(Vector2(left, 0.0), Vector2(maxi(1, right - left), texture_height)))
+	return regions
+
+func _get_animation_layout_scale_size(regions: Array, texture_height: int) -> Vector2:
+	var widths: Array = []
+	for region: Rect2 in regions:
+		widths.append(region.size.x)
+	widths.sort()
+	var nominal_width := 1.0
+	if not widths.is_empty():
+		var middle := int(widths.size() / 2)
+		if widths.size() % 2 == 0 and middle > 0:
+			nominal_width = (widths[middle - 1] + widths[middle]) * 0.5
+		else:
+			nominal_width = widths[middle]
+	return Vector2(maxf(1.0, nominal_width), maxf(1.0, float(texture_height)))
 
 func _apply_sprite_scale(texture_size: Vector2) -> void:
 	if texture_size.x <= 0.0 or texture_size.y <= 0.0:

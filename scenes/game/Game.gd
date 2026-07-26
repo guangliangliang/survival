@@ -29,6 +29,9 @@ const BUTTON_DISABLED_TEXT_COLOR := Color("998966")
 @onready var level_label: Label = $CanvasLayer/GameUI/ExpHUD/LevelLabel
 @onready var time_label: Label = $CanvasLayer/GameUI/TopHUD/TimeRow/TimeLabel
 @onready var kill_label: Label = $CanvasLayer/GameUI/TopHUD/KillRow/KillValueLabel
+@onready var boss_bar: Control = $CanvasLayer/GameUI/BossBar
+@onready var boss_name_label: Label = $CanvasLayer/GameUI/BossBar/Panel/VBox/NameLabel
+@onready var boss_progress_bar: ProgressBar = $CanvasLayer/GameUI/BossBar/Panel/VBox/ProgressBar
 @onready var objective_label: Label = $CanvasLayer/GameUI/ObjectiveLabel
 @onready var pause_button: Button = $CanvasLayer/GameUI/PauseButton
 @onready var game_over_screen: Control = $CanvasLayer/GameUI/GameOverScreen
@@ -71,6 +74,8 @@ var upgrade_refresh_used: bool = false
 var upgrade_levels: Dictionary = {}
 var boss_is_defeated: bool = false
 var boss_music_started: bool = false
+var current_boss: CharacterBody2D = null
+var boss_health_component: Node = null
 var smoke_test: bool = false
 var smoke_boss_marked: bool = false
 var stress_test: bool = false
@@ -139,6 +144,7 @@ func _process(delta: float) -> void:
 			boss_music_started = true
 			AudioManager.play_sfx_by_key(&"boss_warning")
 			AudioManager.play_music_by_key(&"boss")
+		_update_boss_bar()
 		if boss_is_defeated and GameManager.game_time >= run_duration:
 			GameManager.finish_run(&"victory")
 	_update_ui()
@@ -189,6 +195,7 @@ func _start_game() -> void:
 	manual_pause = false
 	boss_is_defeated = false
 	boss_music_started = false
+	_hide_boss_bar()
 	upgrade_pending = 0
 	upgrade_refresh_used = false
 	upgrade_levels.clear()
@@ -428,6 +435,51 @@ func _build_star_text(next_level: int, max_level: int) -> String:
 
 func _on_boss_defeated() -> void:
 	boss_is_defeated = true
+	_hide_boss_bar()
+
+func _update_boss_bar() -> void:
+	if is_instance_valid(current_boss) and current_boss.is_alive:
+		return
+	if is_instance_valid(current_boss) and not current_boss.is_alive:
+		_hide_boss_bar()
+	if boss_is_defeated:
+		return
+	if enemy_spawner == null:
+		return
+	for enemy in enemy_spawner.active_enemies:
+		if not is_instance_valid(enemy):
+			continue
+		if not enemy.is_alive:
+			continue
+		var data: Resource = enemy.enemy_data
+		if data != null and data.boss:
+			_bind_boss(enemy)
+			return
+
+func _bind_boss(boss: CharacterBody2D) -> void:
+	current_boss = boss
+	boss_health_component = boss.get_node_or_null("HealthComponent")
+	if boss_health_component == null:
+		return
+	boss_name_label.text = boss.enemy_data.display_name
+	boss_progress_bar.max_value = boss_health_component.max_health
+	boss_progress_bar.value = boss_health_component.current_health
+	if not boss_health_component.health_changed.is_connected(_on_boss_health_changed):
+		boss_health_component.health_changed.connect(_on_boss_health_changed)
+	boss_bar.visible = true
+
+func _on_boss_health_changed(current: float, max_hp: float) -> void:
+	boss_progress_bar.max_value = max_hp
+	boss_progress_bar.value = current
+
+func _hide_boss_bar() -> void:
+	if boss_health_component != null and is_instance_valid(boss_health_component):
+		if boss_health_component.health_changed.is_connected(_on_boss_health_changed):
+			boss_health_component.health_changed.disconnect(_on_boss_health_changed)
+	boss_health_component = null
+	current_boss = null
+	if boss_bar != null:
+		boss_bar.visible = false
 
 func _on_game_ended(result: StringName) -> void:
 	enemy_spawner.stop_spawning()

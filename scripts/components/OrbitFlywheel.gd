@@ -80,7 +80,6 @@ func _update_flywheel_positions() -> void:
 		var angle := orbit_angle + TAU * float(index) / float(flywheels.size())
 		var flywheel := flywheels[index]
 		flywheel.position = Vector2.from_angle(angle) * orbit_radius
-		flywheel.rotation += spin_speed * 3.0 * get_process_delta_time()
 
 func _check_overlaps() -> void:
 	for flywheel in flywheels:

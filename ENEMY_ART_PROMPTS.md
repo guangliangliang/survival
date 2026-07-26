@@ -1,61 +1,93 @@
-﻿# Enemy Art Generation Prompts
+﻿# 敌人美术生成提示词
 
-This document is for regenerating the enemy art with AI image tools.
+本文档用于使用 AI 图像工具重新生成敌人美术资源。
 
-Use one reference image per enemy when possible. Generate two sprite sheets for each enemy:
+> 重要：在使用下面任意单个敌人的提示词之前，请先阅读
+> **「动画质量 — 关键规则」** 一节。把那些规则（尤其是
+> 禁止平移、腿部动作要大而明显、帧间干净分隔）附加到你发给
+> 图像工具的走路/攻击提示词末尾。之前的美术之所以失败，主要是
+> 因为各帧看起来像同一姿势横向平移、腿几乎没动 —— 这些规则就是
+> 为了避免这种情况。
 
-- `*_single.png`: one high-resolution transparent single enemy image, used to lock the design
-- `*_walk_right_4.png`: 4 columns x 1 row, walking to the right
-- `*_attack_right_4.png`: 4 columns x 1 row, attacking to the right
+尽量为每个敌人使用一张参考图。为每个敌人生成两张精灵表：
 
-Left-facing animation can be created later by horizontally flipping the right-facing sheets.
+- `*_single.png`：一张高分辨率透明单帧敌人图，用于锁定设计
+- `*_walk_right_4.png`：4 列 × 1 行，向右走
+- `*_attack_right_4.png`：4 列 × 1 行，向右攻击
 
-## Map Enemy List
+朝左的动画可以之后通过水平翻转朝右的精灵表来制作。
 
-Current maps use these enemy roles:
+## 入库前归一化
 
-| Map | Enemies | Boss |
+AI 生成的走路/攻击精灵表不能直接放进游戏使用，必须先运行归一化工具：
+
+```powershell
+& "C:\Users\ASUS\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe" scripts\tools\normalize_enemy_sprites.py --overwrite
+```
+
+原因：`scripts/systems/Enemy.gd` 当前按 4 帧读取敌人动画，每帧宽度为 612px，帧与帧之间有 20px 透明间隔；最终整张表仍保持 `2508x627`。归一化工具会把 AI 常见的 4 等分输出重新裁切、统一缩放、底部基线对齐，并清空 20px gap，避免前后帧残影或串帧。
+
+## 地图敌人清单
+
+当前地图使用以下敌人角色：
+
+| 地图 | 敌人 | Boss |
 |---|---|---|
-| Village Outskirts | Wolf, Boar, Bandit | Alpha Wolf |
-| Dark Forest | Wolf, Boar, Bandit, Elite Bandit | Forest Beast |
-| Bandit Camp | Bandit, Cult Wizard, Musketeer Bandit, Elite Bandit, Boar | Bandit Chief |
+| 村庄外围 | 野狼、野猪、强盗 | 狼王 |
+| 黑暗森林 | 野狼、野猪、强盗、强盗精英 | 森林巨兽 |
+| 强盗营地 | 强盗、邪教巫师、强盗火铳手、强盗精英、野猪 | 强盗头目 |
 
-Notes:
+说明：
 
-- `gunner` is intentionally replaced by `cult_wizard`, because the human faction should avoid guns.
-- `musketeer_bandit` can be used if the human faction needs a physical ranged enemy. It should feel like an old black-powder bandit, not a modern gunner.
-- `thorn_porcupine` is a planned animal ranged enemy and can be added to forest/village spawn pools later.
+- `gunner`（枪手）被有意替换为 `cult_wizard`（邪教巫师），因为人类阵营应避免使用枪械。
+- 如果人类阵营需要一个物理远程敌人，可以使用 `musketeer_bandit`（强盗火铳手）。它应当像一个使用老式黑火药的强盗，而不是现代枪手。
+- `thorn_porcupine`（荆棘豪猪）是一个规划中的动物远程敌人，之后可以加入森林/村庄的刷怪池。
 
-## Shared Requirements
+## 共享要求
 
-Use these requirements for every prompt:
+每条提示词都需遵循以下要求：
 
-- Transparent PNG sprite sheet.
-- Strict horizontal grid: 4 columns and 1 row.
-- Same enemy design in all 4 frames.
-- One complete enemy centered in each frame.
-- Identical invisible cell size for every frame.
-- Feet/paws aligned to the same horizontal baseline.
-- Body center mostly consistent across frames to avoid animation jitter.
-- No checkerboard background, no ground, no shadow, no text, no numbers, no labels, no UI, no extra objects.
-- High-quality 2D game sprite, crisp readable silhouette, dark fantasy survival style.
-- Side-facing 3/4 game sprite view with only a slight top-down angle.
+- 透明 PNG 精灵表。
+- 严格的水平网格：4 列 1 行。
+- 4 帧中的敌人设计完全相同。
+- 每帧中都是一个完整的敌人，居中放置。
+- 每帧使用相同的隐形单元格尺寸。
+- 脚/爪对齐到同一条水平基线。
+- 各帧身体中心大致一致，避免动画抖动。
+- 无棋盘格背景、无地面、无阴影、无文字、无数字、无标签、无 UI、无多余物体。
+- 高质量 2D 游戏精灵，剪影清晰易读，暗黑奇幻生存风格。
+- 侧面 3/4 游戏精灵视角，仅带轻微俯视角度。
 
-## 1. Wolf
+## 动画质量 — 关键规则（请先阅读，适用于每一张走路/攻击精灵表）
 
-Game ID: `wolf`
+设立这些规则，是因为之前的生成结果中各帧看起来像同一姿势横向滑动（「平移」），腿几乎不动。使用时把下面这段英文规则附加到走路/攻击提示词的末尾：
 
-Chinese name: `野狼`
+```text
+CRITICAL ANIMATION RULES (must follow strictly):
+- NO TRANSLATION: Do NOT create the animation by moving or sliding the same drawing horizontally. Each frame must be a genuinely re-drawn pose. If the character were removed and the 4 frames overlaid, the torso and head must sit at the SAME horizontal position; only the limbs and body posture change.
+- BIG, OBVIOUS LEG MOTION: The legs must swing through a LARGE range. In a walk cycle the two visible legs must clearly ALTERNATE — when one leg is stretched fully forward, the opposite leg must be stretched fully back, with a wide visible gap between them. Exaggerate the stride so it reads clearly at 64x64 pixels.
+- EVERY FRAME DIFFERENT: All 4 frames must be distinctly different poses. Never duplicate or near-duplicate a frame. Frame-to-frame limb positions must change noticeably.
+- FIXED FEET BASELINE, VERTICAL BOB ONLY: Feet touch the same horizontal ground line in every frame. The body may bob slightly UP and DOWN between steps, but must NOT drift left or right.
+- CLEAN FRAME SEPARATION: Leave a fixed empty transparent margin of exactly 10% of the cell width on EACH side of every frame (so the gap between two adjacent characters is about 20% of a cell width), kept identical for all 4 frames. Neighboring frames must never touch or overlap. Nothing from one frame may bleed into the next cell.
+- LEGS ALWAYS VISIBLE: Legs and feet must be fully drawn and clearly separated from the body silhouette in every frame — never hide the legs behind the body or crop them at the bottom edge.
+- CONSISTENT SCALE & DESIGN: Same character size, colors, and proportions in all 4 frames.
+```
 
-Role: fast melee animal enemy.
+## 1. 野狼 (Wolf)
 
-Final filenames:
+游戏 ID：`wolf`
+
+中文名：`野狼`
+
+定位：快速近战动物敌人。
+
+最终文件名：
 
 - `enemy_wolf_single.png`
 - `enemy_wolf_walk_right_4.png`
 - `enemy_wolf_attack_right_4.png`
 
-### Single Transparent Image
+### 单帧透明图
 
 ```text
 Use the reference wolf image only as design inspiration.
@@ -71,7 +103,7 @@ High-quality 2D game art, hand-painted sprite style, crisp edges, clean readable
 Transparent background only. No checkerboard background. No ground. No shadow. No text. No UI. No extra objects. The entire wolf must be visible, centered, with enough empty space around it for cropping.
 ```
 
-### Walk Right 4 Frames
+### 向右走 4 帧
 
 ```text
 Use the reference wolf image as the exact character design.
@@ -99,7 +131,7 @@ Same dark charcoal gray hostile wolf in every frame, shaggy fur, lean wild body,
 Transparent background only. No checkerboard background. No ground. No shadow. No text. No numbers. No labels. No UI. No extra objects. Do not create a character concept sheet. Do not make identical frames.
 ```
 
-### Attack Right 4 Frames
+### 向右攻击 4 帧
 
 ```text
 Use the reference wolf image as the exact character design.
@@ -127,21 +159,21 @@ Same dark charcoal gray hostile wolf in every frame, shaggy fur, lean wild body,
 Transparent background only. No checkerboard background. No ground. No shadow. No text. No numbers. No labels. No UI. No extra objects. Do not create a character concept sheet. Do not make identical frames.
 ```
 
-## 2. Boar
+## 2. 野猪 (Boar)
 
-Game ID: `boar`
+游戏 ID：`boar`
 
-Chinese name: `野猪`
+中文名：`野猪`
 
-Role: sturdy melee animal enemy.
+定位：坚实的近战动物敌人。
 
-Final filenames:
+最终文件名：
 
 - `enemy_boar_single.png`
 - `enemy_boar_walk_right_4.png`
 - `enemy_boar_attack_right_4.png`
 
-### Single Transparent Image
+### 单帧透明图
 
 ```text
 Use the reference boar image only as design inspiration.
@@ -157,7 +189,7 @@ High-quality 2D game art, hand-painted sprite style, crisp edges, clean readable
 Transparent background only. No checkerboard background. No ground. No shadow. No text. No UI. No extra objects. The entire boar must be visible, centered, with enough empty space around it for cropping.
 ```
 
-### Walk Right 4 Frames
+### 向右走 4 帧
 
 ```text
 Use the reference boar image as the exact character design.
@@ -185,7 +217,7 @@ Same hostile wild boar in every frame, dark brown coarse bristles, compact muscu
 Transparent background only. No checkerboard background. No ground. No shadow. No text. No numbers. No labels. No UI. No extra objects. Do not create a character concept sheet. Do not make identical frames.
 ```
 
-### Attack Right 4 Frames
+### 向右攻击 4 帧
 
 ```text
 Use the reference boar image as the exact character design.
@@ -213,21 +245,21 @@ Same hostile wild boar in every frame, dark brown coarse bristles, compact muscu
 Transparent background only. No checkerboard background. No ground. No shadow. No text. No numbers. No labels. No UI. No extra objects. Do not create a character concept sheet. Do not make identical frames.
 ```
 
-## 3. Thorn Porcupine
+## 3. 荆棘豪猪 (Thorn Porcupine)
 
-Game ID: `thorn_porcupine`
+游戏 ID：`thorn_porcupine`
 
-Chinese name: `荆棘豪猪`
+中文名：`荆棘豪猪`
 
-Role: ranged animal enemy that fires poison quills.
+定位：发射毒刺的远程动物敌人。
 
-Final filenames:
+最终文件名：
 
 - `enemy_thorn_porcupine_single.png`
 - `enemy_thorn_porcupine_walk_right_4.png`
 - `enemy_thorn_porcupine_attack_right_4.png`
 
-### Single Transparent Image
+### 单帧透明图
 
 ```text
 Create one high-resolution transparent PNG of a hostile thorn porcupine enemy for a 2D survival game. The porcupine should be a full-body creature sprite, facing RIGHT, viewed from a side-facing 3/4 game sprite view with only a slight top-down angle.
@@ -241,7 +273,7 @@ High-quality 2D game art, hand-painted sprite style, crisp edges, clean readable
 Transparent background only. No checkerboard background. No ground. No shadow. No text. No UI. No extra objects. The entire porcupine must be visible, centered, with enough empty space around it for cropping.
 ```
 
-### Walk Right 4 Frames
+### 向右走 4 帧
 
 ```text
 Create ONE transparent PNG sprite sheet for a 2D game. The image must be a strict horizontal sprite sheet with 4 columns and 1 row, 4 frames total.
@@ -267,7 +299,7 @@ Same hostile thorn porcupine in every frame, low stocky body, dark brown and bla
 Transparent background only. No checkerboard background. No ground. No shadow. No text. No numbers. No labels. No UI. No extra objects. Do not create a character concept sheet. Do not make identical frames.
 ```
 
-### Attack Right 4 Frames
+### 向右攻击 4 帧
 
 ```text
 Create ONE transparent PNG sprite sheet for a 2D game. The image must be a strict horizontal sprite sheet with 4 columns and 1 row, 4 frames total.
@@ -293,21 +325,21 @@ Same hostile thorn porcupine in every frame, low stocky body, dark brown and bla
 Transparent background only. No checkerboard background. No ground. No shadow. No text. No numbers. No labels. No UI. No extra objects. Do not create a character concept sheet. Do not make identical frames.
 ```
 
-## 4. Alpha Wolf
+## 4. 狼王 (Alpha Wolf)
 
-Game ID: `alpha_wolf`
+游戏 ID：`alpha_wolf`
 
-Chinese name: `狼王`
+中文名：`狼王`
 
-Role: animal boss / elite wolf.
+定位：动物 Boss / 精英狼。
 
-Final filenames:
+最终文件名：
 
 - `enemy_alpha_wolf_single.png`
 - `enemy_alpha_wolf_walk_right_4.png`
 - `enemy_alpha_wolf_attack_right_4.png`
 
-### Single Transparent Image
+### 单帧透明图
 
 ```text
 Use the reference alpha wolf image only as design inspiration.
@@ -323,7 +355,7 @@ High-quality 2D game art, hand-painted sprite style, crisp edges, clean readable
 Transparent background only. No checkerboard background. No ground. No shadow. No text. No UI. No extra objects. The entire alpha wolf must be visible, centered, with enough empty space around it for cropping.
 ```
 
-### Walk Right 4 Frames
+### 向右走 4 帧
 
 ```text
 Use the reference alpha wolf image as the exact character design.
@@ -351,7 +383,7 @@ Same large alpha wolf in every frame, larger body than a normal wolf, dark gray 
 Transparent background only. No checkerboard background. No ground. No shadow. No text. No numbers. No labels. No UI. No extra objects. Do not create a character concept sheet. Do not make identical frames.
 ```
 
-### Attack Right 4 Frames
+### 向右攻击 4 帧
 
 ```text
 Use the reference alpha wolf image as the exact character design.
@@ -379,21 +411,21 @@ Same large alpha wolf in every frame, dark gray and black shaggy fur, raised man
 Transparent background only. No checkerboard background. No ground. No shadow. No text. No numbers. No labels. No UI. No extra objects. Do not create a character concept sheet. Do not make identical frames.
 ```
 
-## 5. Forest Beast
+## 5. 森林巨兽 (Forest Beast)
 
-Game ID: `forest_beast`
+游戏 ID：`forest_beast`
 
-Chinese name: `森林巨兽`
+中文名：`森林巨兽`
 
-Role: large forest boss.
+定位：大型森林 Boss。
 
-Final filenames:
+最终文件名：
 
 - `enemy_forest_beast_single.png`
 - `enemy_forest_beast_walk_right_4.png`
 - `enemy_forest_beast_attack_right_4.png`
 
-### Single Transparent Image
+### 单帧透明图
 
 ```text
 Use the reference forest beast image only as design inspiration.
@@ -409,7 +441,7 @@ High-quality 2D game art, hand-painted sprite style, crisp edges, clean readable
 Transparent background only. No checkerboard background. No ground. No shadow. No text. No UI. No extra objects. The entire forest beast must be visible, centered, with enough empty space around it for cropping.
 ```
 
-### Walk Right 4 Frames
+### 向右走 4 帧
 
 ```text
 Use the reference forest beast image as the exact character design.
@@ -437,7 +469,7 @@ Same massive forest beast in every frame, huge hulking body, dark green and brow
 Transparent background only. No checkerboard background. No ground. No shadow. No text. No numbers. No labels. No UI. No extra objects. Do not create a character concept sheet. Do not make identical frames.
 ```
 
-### Attack Right 4 Frames
+### 向右攻击 4 帧
 
 ```text
 Use the reference forest beast image as the exact character design.
@@ -465,21 +497,21 @@ Same massive forest beast in every frame, huge hulking body, dark green and brow
 Transparent background only. No checkerboard background. No ground. No shadow. No text. No numbers. No labels. No UI. No extra objects. Do not create a character concept sheet. Do not make identical frames.
 ```
 
-## 6. Bandit
+## 6. 强盗 (Bandit)
 
-Game ID: `bandit`
+游戏 ID：`bandit`
 
-Chinese name: `强盗`
+中文名：`强盗`
 
-Role: basic melee human enemy.
+定位：基础近战人类敌人。
 
-Final filenames:
+最终文件名：
 
 - `enemy_bandit_single.png`
 - `enemy_bandit_walk_right_4.png`
 - `enemy_bandit_attack_right_4.png`
 
-### Single Transparent Image
+### 单帧透明图
 
 ```text
 Use the reference bandit image only as design inspiration.
@@ -495,7 +527,7 @@ High-quality 2D game art, hand-painted sprite style, crisp edges, clean readable
 Transparent background only. No checkerboard background. No ground. No shadow. No text. No UI. No extra objects. The entire bandit must be visible, centered, with enough empty space around it for cropping.
 ```
 
-### Walk Right 4 Frames
+### 向右走 4 帧
 
 ```text
 Use the reference bandit image as the exact character design.
@@ -523,7 +555,7 @@ Same rough bandit in every frame, ragged dark clothing, leather straps, hood or 
 Transparent background only. No checkerboard background. No ground. No shadow. No text. No numbers. No labels. No UI. No extra objects. Do not create a character concept sheet. Do not make identical frames.
 ```
 
-### Attack Right 4 Frames
+### 向右攻击 4 帧
 
 ```text
 Use the reference bandit image as the exact character design.
@@ -551,21 +583,21 @@ Same rough bandit in every frame, ragged dark clothing, leather straps, hood or 
 Transparent background only. No checkerboard background. No ground. No shadow. No text. No numbers. No labels. No UI. No extra objects. Do not create a character concept sheet. Do not make identical frames.
 ```
 
-## 7. Cult Wizard
+## 7. 邪教巫师 (Cult Wizard)
 
-Game ID: `cult_wizard`
+游戏 ID：`cult_wizard`
 
-Chinese name: `邪教巫师`
+中文名：`邪教巫师`
 
-Role: ranged human enemy replacing the old gunner.
+定位：替代旧枪手的远程人类敌人。
 
-Final filenames:
+最终文件名：
 
 - `enemy_cult_wizard_single.png`
 - `enemy_cult_wizard_walk_right_4.png`
 - `enemy_cult_wizard_attack_right_4.png`
 
-### Single Transparent Image
+### 单帧透明图
 
 ```text
 Create one high-resolution transparent PNG of a dark cult wizard enemy for a 2D survival game. The cult wizard should be a full-body human sprite, facing RIGHT, viewed from a side-facing 3/4 game sprite view with only a slight top-down angle.
@@ -579,7 +611,7 @@ High-quality 2D game art, hand-painted sprite style, crisp edges, clean readable
 Transparent background only. No checkerboard background. No ground. No shadow. No text. No UI. No extra objects. The entire cult wizard must be visible, centered, with enough empty space around it for cropping.
 ```
 
-### Walk Right 4 Frames
+### 向右走 4 帧
 
 ```text
 Create ONE transparent PNG sprite sheet for a 2D game. The image must be a strict horizontal sprite sheet with 4 columns and 1 row, 4 frames total.
@@ -605,7 +637,7 @@ Same dark cult wizard in every frame, hooded robe, tattered cloak, bone charms o
 Transparent background only. No checkerboard background. No ground. No shadow. No text. No numbers. No labels. No UI. No extra objects. Do not create a character concept sheet. Do not make identical frames.
 ```
 
-### Attack Right 4 Frames
+### 向右攻击 4 帧
 
 ```text
 Create ONE transparent PNG sprite sheet for a 2D game. The image must be a strict horizontal sprite sheet with 4 columns and 1 row, 4 frames total.
@@ -631,21 +663,21 @@ Same dark cult wizard in every frame, hooded robe, tattered cloak, bone charms o
 Transparent background only. No checkerboard background. No ground. No shadow. No text. No numbers. No labels. No UI. No extra objects. Do not create a character concept sheet. Do not make identical frames.
 ```
 
-## 8. Musketeer Bandit
+## 8. 强盗火铳手 (Musketeer Bandit)
 
-Game ID: `musketeer_bandit`
+游戏 ID：`musketeer_bandit`
 
-Chinese name: `强盗火铳手`
+中文名：`强盗火铳手`
 
-Role: physical ranged human enemy with an old black-powder firearm.
+定位：使用老式黑火药枪械的物理远程人类敌人。
 
-Final filenames:
+最终文件名：
 
 - `enemy_musketeer_bandit_single.png`
 - `enemy_musketeer_bandit_walk_right_4.png`
 - `enemy_musketeer_bandit_attack_right_4.png`
 
-### Single Transparent Image
+### 单帧透明图
 
 ```text
 Create one high-resolution transparent PNG of a musketeer bandit enemy for a 2D survival game. The musketeer bandit should be a full-body human sprite, facing RIGHT, viewed from a side-facing 3/4 game sprite view with only a slight top-down angle.
@@ -659,7 +691,7 @@ High-quality 2D game art, hand-painted sprite style, crisp edges, clean readable
 Transparent background only. No checkerboard background. No ground. No shadow. No text. No UI. No extra objects. The entire musketeer bandit must be visible, centered, with enough empty space around it for cropping.
 ```
 
-### Walk Right 4 Frames
+### 向右走 4 帧
 
 ```text
 Use the reference musketeer bandit image as the exact character design.
@@ -687,7 +719,7 @@ Same musketeer bandit in every frame, rough outlaw clothing, worn leather armor,
 Transparent background only. No checkerboard background. No ground. No shadow. No text. No numbers. No labels. No UI. No extra objects. Do not create a character concept sheet. Do not make identical frames.
 ```
 
-### Attack Right 4 Frames
+### 向右攻击 4 帧
 
 ```text
 Use the reference musketeer bandit image as the exact character design.
@@ -714,21 +746,21 @@ Same musketeer bandit in every frame, rough outlaw clothing, worn leather armor,
 
 Transparent background only. No checkerboard background. No ground. No shadow. No text. No numbers. No labels. No UI. No extra objects. Do not create a character concept sheet. Do not make identical frames.
 ```
-## 9. Elite Bandit
+## 9. 强盗精英 (Elite Bandit)
 
-Game ID: `elite_bandit`
+游戏 ID：`elite_bandit`
 
-Chinese name: `强盗精英`
+中文名：`强盗精英`
 
-Role: armored melee elite.
+定位：披甲近战精英。
 
-Final filenames:
+最终文件名：
 
 - `enemy_elite_bandit_single.png`
 - `enemy_elite_bandit_walk_right_4.png`
 - `enemy_elite_bandit_attack_right_4.png`
 
-### Single Transparent Image
+### 单帧透明图
 
 ```text
 Use the reference elite bandit image only as design inspiration.
@@ -744,7 +776,7 @@ High-quality 2D game art, hand-painted sprite style, crisp edges, clean readable
 Transparent background only. No checkerboard background. No ground. No shadow. No text. No UI. No extra objects. The entire elite bandit must be visible, centered, with enough empty space around it for cropping.
 ```
 
-### Walk Right 4 Frames
+### 向右走 4 帧
 
 ```text
 Use the reference elite bandit image as the exact character design.
@@ -772,7 +804,7 @@ Same elite bandit in every frame, rugged armor pieces, reinforced leather and me
 Transparent background only. No checkerboard background. No ground. No shadow. No text. No numbers. No labels. No UI. No extra objects. Do not create a character concept sheet. Do not make identical frames.
 ```
 
-### Attack Right 4 Frames
+### 向右攻击 4 帧
 
 ```text
 Use the reference elite bandit image as the exact character design.
@@ -800,21 +832,21 @@ Same elite bandit in every frame, rugged armor pieces, reinforced leather and me
 Transparent background only. No checkerboard background. No ground. No shadow. No text. No numbers. No labels. No UI. No extra objects. Do not create a character concept sheet. Do not make identical frames.
 ```
 
-## 10. Bandit Chief
+## 10. 强盗头目 (Bandit Chief)
 
-Game ID: `bandit_chief`
+游戏 ID：`bandit_chief`
 
-Chinese name: `强盗头目`
+中文名：`强盗头目`
 
-Role: human faction boss.
+定位：人类阵营 Boss。
 
-Final filenames:
+最终文件名：
 
 - `enemy_bandit_chief_single.png`
 - `enemy_bandit_chief_walk_right_4.png`
 - `enemy_bandit_chief_attack_right_4.png`
 
-### Single Transparent Image
+### 单帧透明图
 
 ```text
 Use the reference bandit chief image only as design inspiration.
@@ -830,7 +862,7 @@ High-quality 2D game art, hand-painted sprite style, crisp edges, clean readable
 Transparent background only. No checkerboard background. No ground. No shadow. No text. No UI. No extra objects. The entire bandit chief must be visible, centered, with enough empty space around it for cropping.
 ```
 
-### Walk Right 4 Frames
+### 向右走 4 帧
 
 ```text
 Use the reference bandit chief image as the exact character design.
@@ -858,7 +890,7 @@ Same bandit chief in every frame, large imposing human boss, heavy patched armor
 Transparent background only. No checkerboard background. No ground. No shadow. No text. No numbers. No labels. No UI. No extra objects. Do not create a character concept sheet. Do not make identical frames.
 ```
 
-### Attack Right 4 Frames
+### 向右攻击 4 帧
 
 ```text
 Use the reference bandit chief image as the exact character design.

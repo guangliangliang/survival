@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <defs>
+    <radialGradient id="lscore" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fff7e6"/>
+      <stop offset="45%" stop-color="#ffd27a"/>
+      <stop offset="100%" stop-color="#ff8a1e"/>
+    </radialGradient>
+    <linearGradient id="lsbeam" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#fff7e6" stop-opacity="0.95"/>
+      <stop offset="100%" stop-color="#ff6a12" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(32 32)">
+    <path d="M0 0 L30 -6 A31 31 0 0 1 30 6 Z" fill="url(#lsbeam)" transform="rotate(-20)"/>
+    <path d="M0 0 L29 -5 A29 29 0 0 1 29 5 Z" fill="url(#lsbeam)" transform="rotate(26)"/>
+    <path d="M9 -24 A26 26 0 0 1 25 -9" fill="none" stroke="#ffb04d" stroke-width="3.5" stroke-linecap="round" opacity="0.9"/>
+    <path d="M-25 9 A26 26 0 0 1 -9 25" fill="none" stroke="#ff8a1e" stroke-width="3.5" stroke-linecap="round" opacity="0.75"/>
+    <circle r="8.5" fill="url(#lscore)"/>
+    <circle r="3.6" fill="#fffdf5"/>
+  </g>
+</svg>

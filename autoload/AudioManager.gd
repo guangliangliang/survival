@@ -34,6 +34,9 @@ const SFX := {
 	&"wizard_orb": [
 		"res://assets/audio/sfx/sfx_wizard_orb_cast.wav",
 	],
+	&"laser_sweep": [
+		"res://assets/audio/sfx/sfx_laser_sweep.wav",
+	],
 	&"sword_rain": [
 		"res://assets/audio/sfx/sfx_sword_rain.wav",
 	],

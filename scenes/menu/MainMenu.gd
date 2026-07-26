@@ -10,7 +10,7 @@ const ICON_FLYWHEEL := preload("res://assets/images/weapons/weapon_orbit_flywhee
 const ICON_DRONE := preload("res://assets/images/weapons/weapon_combat_drone.png")
 const ICON_HEALTH := preload("res://assets/images/ui/icons/health.svg")
 const ICON_PROJECTILE := preload("res://assets/images/projectiles/bullet_player.png")
-const ICON_SCATTER := preload("res://assets/images/projectiles/projectile_wizard_orb.png")
+const ICON_SCATTER := preload("res://assets/images/ui/icon_laser_sweep.svg")
 const BUTTON_TEXT_COLOR := Color("f4e2b2")
 const TEXT_MUTED := Color("b8c9ad")
 const TEXT_BODY := Color("d8d0b0")
@@ -565,12 +565,12 @@ func _format_multiplier_effect(subject: String, amount: float, level: int) -> St
 	return "%s累计 x%.2f（+%d%%）" % [subject, multiplier, percent]
 
 func _get_scatter_level_effect(level: int) -> String:
-	var orb_count := 8 + 2 * level
-	var damage := 14.0 * (1.0 + 0.18 * float(level))
-	var orb_range := 360.0 + 35.0 * float(level)
+	var beam_length := 360.0 + 35.0 * float(level)
+	var beam_width := 46.0 + 6.0 * float(level)
+	var dps := 90.0 * (1.0 + 0.18 * float(level))
 	var cooldown := maxf(6.5, 9.0 - 0.5 * float(level))
-	var pierce_text := "，额外穿透 1" if level >= 3 else ""
-	return "法球 %d 个，伤害 %.1f，射程 %d，冷却 %.1fs%s" % [orb_count, damage, int(orb_range), cooldown, pierce_text]
+	var sweep_text := "，扫射一圈半" if level >= 3 else "，扫射一圈"
+	return "激光长度 %.0f，宽度 %.0f，DPS %.0f，冷却 %.1fs%s" % [beam_length, beam_width, dps, cooldown, sweep_text]
 
 func _get_upgrade_type(upgrade: Resource) -> String:
 	match upgrade.upgrade_id:

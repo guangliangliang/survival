@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <defs>
+    <radialGradient id="core" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fff7e6"/>
+      <stop offset="45%" stop-color="#ffd27a"/>
+      <stop offset="100%" stop-color="#ff8a1e"/>
+    </radialGradient>
+    <linearGradient id="beam" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#fff7e6" stop-opacity="0.95"/>
+      <stop offset="100%" stop-color="#ff6a12" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(64 64)">
+    <path d="M0 0 L60 -12 A61 61 0 0 1 60 12 Z" fill="url(#beam)" transform="rotate(-18)"/>
+    <path d="M0 0 L58 -8 A58 58 0 0 1 58 8 Z" fill="url(#beam)" transform="rotate(22)"/>
+    <path d="M0 0 L54 -6 A54 54 0 0 1 54 6 Z" fill="url(#beam)" transform="rotate(64)"/>
+    <path d="M18 -48 A52 52 0 0 1 50 -18" fill="none" stroke="#ffb04d" stroke-width="5" stroke-linecap="round" opacity="0.85"/>
+    <path d="M-50 18 A52 52 0 0 1 -18 50" fill="none" stroke="#ff8a1e" stroke-width="5" stroke-linecap="round" opacity="0.7"/>
+    <circle r="16" fill="url(#core)"/>
+    <circle r="7" fill="#fffdf5"/>
+  </g>
+</svg>

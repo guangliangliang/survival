@@ -1,42 +1,77 @@
 extends Node2D
 
-@export var orb_scene: PackedScene
-@export var orb_pool_size: int = 96
-@export var spawn_radius: float = 30.0
-@export var base_orb_count: int = 8
-@export var base_damage: float = 14.0
-@export var base_speed: float = 480.0
-@export var base_range: float = 360.0
+@export var base_beam_length: float = 360.0
+@export var base_beam_width: float = 46.0
+@export var base_dps: float = 90.0
+@export var base_sweep_duration: float = 0.9
 @export var base_cooldown: float = 9.0
+@export var hit_interval: float = 0.15
 
 var upgrade_level: int = 0
 var cooldown_remaining: float = 0.0
-var cast_flash_time: float = 0.0
-var orb_pool: Array[Area2D] = []
+
+var is_sweeping: bool = false
+var sweep_angle: float = 0.0
+var sweep_progress: float = 0.0
+var next_hit_time: Dictionary = {}
+var sweep_clock: float = 0.0
 
 func _ready() -> void:
-	_build_pool()
 	InputAdapter.set_scatter_cooldown(cooldown_remaining, _get_cooldown())
 
 func _process(delta: float) -> void:
 	cooldown_remaining = maxf(0.0, cooldown_remaining - delta)
 	InputAdapter.set_scatter_cooldown(cooldown_remaining, _get_cooldown())
+	if is_sweeping:
+		_update_sweep(delta)
 	if InputAdapter.consume_scatter_requested():
 		_try_cast()
-	if cast_flash_time > 0.0:
-		cast_flash_time = maxf(0.0, cast_flash_time - delta)
-		queue_redraw()
 
 func _draw() -> void:
-	if cast_flash_time <= 0.0:
+	if not is_sweeping:
 		return
-	var alpha := cast_flash_time / 0.28
-	var ring_radius := 48.0 + (1.0 - alpha) * 54.0
-	draw_arc(Vector2.ZERO, ring_radius, 0.0, TAU, 64, Color(0.58, 0.25, 1.0, 0.48 * alpha), 5.0)
-	draw_arc(Vector2.ZERO, ring_radius * 0.72, 0.0, TAU, 64, Color(0.18, 0.85, 1.0, 0.34 * alpha), 3.0)
-	for index in _get_orb_count():
-		var angle := TAU * float(index) / float(_get_orb_count())
-		draw_circle(Vector2.from_angle(angle) * ring_radius, 4.0, Color(0.7, 0.45, 1.0, 0.72 * alpha))
+	var length := _get_beam_length()
+	var half_width := _get_beam_width() * 0.5
+	var forward := Vector2.from_angle(sweep_angle)
+	var side := forward.orthogonal()
+
+	var trail_span := 0.7
+	var trail_steps := 10
+	for i in range(trail_steps, 0, -1):
+		var t := float(i) / float(trail_steps)
+		var trail_angle := sweep_angle - trail_span * t
+		var tf := Vector2.from_angle(trail_angle)
+		var ts := tf.orthogonal()
+		var tw := half_width * (1.0 - t * 0.55)
+		var alpha := (1.0 - t) * 0.20
+		var poly := PackedVector2Array([
+			ts * tw,
+			tf * length + ts * tw * 0.6,
+			tf * length - ts * tw * 0.6,
+			-ts * tw,
+		])
+		draw_colored_polygon(poly, Color(1.0, 0.55, 0.2, alpha))
+
+	var outer := PackedVector2Array([
+		side * half_width,
+		forward * length + side * half_width * 0.55,
+		forward * length - side * half_width * 0.55,
+		-side * half_width,
+	])
+	draw_colored_polygon(outer, Color(1.0, 0.45, 0.15, 0.5))
+
+	var core_w := half_width * 0.42
+	var core := PackedVector2Array([
+		side * core_w,
+		forward * length + side * core_w * 0.5,
+		forward * length - side * core_w * 0.5,
+		-side * core_w,
+	])
+	draw_colored_polygon(core, Color(1.0, 0.95, 0.85, 0.9))
+
+	var pulse := 0.7 + sin(sweep_clock * 26.0) * 0.2
+	draw_circle(Vector2.ZERO, 18.0, Color(1.0, 0.6, 0.2, 0.3 * pulse))
+	draw_circle(Vector2.ZERO, 9.0, Color(1.0, 0.97, 0.9, 0.9))
 
 func apply_upgrade(stat_key: StringName, amount: float) -> void:
 	if stat_key == &"scatter_level":
@@ -45,75 +80,77 @@ func apply_upgrade(stat_key: StringName, amount: float) -> void:
 		InputAdapter.set_scatter_cooldown(cooldown_remaining, _get_cooldown())
 
 func get_active_orb_count() -> int:
-	var count := 0
-	for orb in orb_pool:
-		if is_instance_valid(orb) and orb.get("active"):
-			count += 1
-	return count
-
-func _build_pool() -> void:
-	if orb_scene == null:
-		return
-	var owner_node: Node = get_tree().get_first_node_in_group("game_world")
-	if owner_node == null:
-		owner_node = get_tree().current_scene
-	for index in orb_pool_size:
-		var orb := orb_scene.instantiate() as Area2D
-		orb.visible = false
-		orb.set("active", false)
-		orb.monitoring = false
-		owner_node.add_child.call_deferred(orb)
-		orb_pool.append(orb)
+	return 1 if is_sweeping else 0
 
 func _try_cast() -> void:
-	if cooldown_remaining > 0.0:
+	if cooldown_remaining > 0.0 or is_sweeping:
 		return
-	var fired := _fire_ring()
-	if fired <= 0:
-		return
+	is_sweeping = true
+	sweep_progress = 0.0
+	sweep_clock = 0.0
+	sweep_angle = randf() * TAU
+	next_hit_time.clear()
 	cooldown_remaining = _get_cooldown()
 	InputAdapter.set_scatter_cooldown(cooldown_remaining, _get_cooldown())
-	cast_flash_time = 0.28
-	AudioManager.play_sfx_by_key(&"wizard_orb", -2.0)
+	AudioManager.play_sfx_by_key(&"laser_sweep", -2.0)
 	var controller := get_tree().get_first_node_in_group("game_controller")
 	if controller != null and controller.has_method("shake_camera"):
 		controller.call("shake_camera", 3.0)
 	queue_redraw()
 
-func _fire_ring() -> int:
-	var count := _get_orb_count()
-	var fired := 0
-	var start_angle := randf() * TAU
-	for index in count:
-		var orb := _get_orb_from_pool()
-		if orb == null:
-			break
-		var direction := Vector2.from_angle(start_angle + TAU * float(index) / float(count))
-		var spawn_position := global_position + direction * spawn_radius
-		orb.call("activate", spawn_position, direction, _get_speed(), _get_damage(), _get_pierce(), _get_range())
-		fired += 1
-	return fired
+func _update_sweep(delta: float) -> void:
+	sweep_clock += delta
+	var total := _get_sweep_arc()
+	var step := (total / _get_sweep_duration()) * delta
+	sweep_angle += step
+	sweep_progress += step
+	_apply_beam_damage()
+	if sweep_progress >= total:
+		is_sweeping = false
+		next_hit_time.clear()
+	queue_redraw()
 
-func _get_orb_from_pool() -> Area2D:
-	for orb in orb_pool:
-		if is_instance_valid(orb) and not orb.get("active"):
-			return orb
-	return null
+func _apply_beam_damage() -> void:
+	var length := _get_beam_length()
+	var angle_tolerance := atan2(_get_beam_width() * 0.5, maxf(length * 0.35, 1.0))
+	var forward := Vector2.from_angle(sweep_angle)
+	var now := sweep_clock
+	var effects := get_tree().get_first_node_in_group("visual_effects")
+	for enemy in get_tree().get_nodes_in_group("enemy"):
+		if not is_instance_valid(enemy) or not (enemy is Node2D):
+			continue
+		if not enemy.has_method("receive_hit"):
+			continue
+		var offset: Vector2 = enemy.global_position - global_position
+		var distance := offset.length()
+		if distance > length or distance < 4.0:
+			continue
+		var angle_diff := absf(wrapf(offset.angle() - sweep_angle, -PI, PI))
+		if angle_diff > angle_tolerance:
+			continue
+		var enemy_id := enemy.get_instance_id()
+		if next_hit_time.has(enemy_id) and now < next_hit_time[enemy_id]:
+			continue
+		next_hit_time[enemy_id] = now + hit_interval
+		enemy.call("receive_hit", _get_dps() * hit_interval, forward)
+		if effects != null and effects.has_method("play_impact"):
+			effects.call("play_impact", enemy.global_position)
 
-func _get_orb_count() -> int:
-	return base_orb_count + 2 * upgrade_level
+func _get_beam_length() -> float:
+	return base_beam_length + 35.0 * float(upgrade_level)
 
-func _get_damage() -> float:
-	return base_damage * (1.0 + 0.18 * float(upgrade_level))
+func _get_beam_width() -> float:
+	return base_beam_width + 6.0 * float(upgrade_level)
 
-func _get_speed() -> float:
-	return base_speed + 20.0 * float(upgrade_level)
+func _get_dps() -> float:
+	return base_dps * (1.0 + 0.18 * float(upgrade_level))
 
-func _get_range() -> float:
-	return base_range + 35.0 * float(upgrade_level)
+func _get_sweep_arc() -> float:
+	return TAU + (PI if upgrade_level >= 3 else 0.0)
+
+func _get_sweep_duration() -> float:
+	var scale := _get_sweep_arc() / TAU
+	return maxf(0.5, base_sweep_duration - 0.04 * float(upgrade_level)) * scale
 
 func _get_cooldown() -> float:
 	return maxf(6.5, base_cooldown - 0.5 * float(upgrade_level))
-
-func _get_pierce() -> int:
-	return 1 if upgrade_level >= 3 else 0

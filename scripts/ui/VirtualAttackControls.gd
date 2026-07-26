@@ -2,6 +2,7 @@ extends Control
 
 const ICON_DASH := preload("res://assets/images/ui/icons/dash.svg")
 const ICON_SKILL := preload("res://assets/images/ui/icons/skill.svg")
+const ICON_LASER := preload("res://assets/images/ui/icons/laser_sweep.svg")
 const ICON_SWORD := preload("res://assets/images/ui/icons/arrow.svg")
 const ICON_HEAL := preload("res://assets/images/ui/icons/heal.svg")
 
@@ -123,17 +124,17 @@ func _draw_heal_button(center: Vector2, ready: bool) -> void:
 func _draw_scatter_button(center: Vector2, ready: bool) -> void:
 	var base_alpha := 0.58 if ready else 0.28
 	var accent_alpha := 0.78 if ready else 0.2
-	draw_circle(center, button_radius, Color(0.09, 0.07, 0.13, 0.58))
-	draw_arc(center, button_radius - 4.0, -PI * 0.5, PI * 1.5, 48, Color(0.66, 0.38, 1.0, accent_alpha), 4.0)
+	draw_circle(center, button_radius, Color(0.13, 0.08, 0.04, 0.58))
+	draw_arc(center, button_radius - 4.0, -PI * 0.5, PI * 1.5, 48, Color(1.0, 0.66, 0.24, accent_alpha), 4.0)
 	if not ready:
 		var cooldown_angle := -PI * 0.5 + TAU * (1.0 - InputAdapter.get_scatter_cooldown_ratio())
-		draw_arc(center, button_radius - 4.0, -PI * 0.5, cooldown_angle, 48, Color(0.35, 0.9, 1.0, 0.62), 4.0)
-	draw_circle(center, button_radius * 0.55, Color(0.47, 0.18, 0.95, base_alpha))
+		draw_arc(center, button_radius - 4.0, -PI * 0.5, cooldown_angle, 48, Color(1.0, 0.85, 0.4, 0.62), 4.0)
+	draw_circle(center, button_radius * 0.55, Color(0.95, 0.54, 0.15, base_alpha))
 	for index in 8:
 		var angle := TAU * float(index) / 8.0
 		var point := center + Vector2.from_angle(angle) * button_radius * 0.68
-		draw_circle(point, 3.8, Color(0.72, 0.48, 1.0, 0.9 if ready else 0.28))
-	_draw_icon(ICON_SKILL, center, 36.0, 0.95 if ready else 0.35)
+		draw_circle(point, 3.8, Color(1.0, 0.72, 0.3, 0.9 if ready else 0.28))
+	_draw_icon(ICON_LASER, center, 36.0, 0.95 if ready else 0.35)
 
 func _draw_icon(texture: Texture2D, center: Vector2, icon_size: float, alpha: float) -> void:
 	if texture == null:

@@ -5,8 +5,8 @@
 [resource]
 script = ExtResource("1")
 upgrade_id = &"scatter_blossom"
-title = "强化天女散花"
-description = "法球数量、伤害和射程提高，冷却缩短。3级后法球可额外穿透1名敌人。"
+title = "强化激光扫射"
+description = "激光更长更宽、每秒伤害提高，冷却缩短。3级后扫射范围扩大为一圈半。"
 stat_key = &"scatter_level"
 amount = 1.0
 max_level = 5

@@ -38,11 +38,15 @@ var aim_direction := Vector2.RIGHT
 var aim_target_direction := Vector2.RIGHT
 var body_direction_row: int = DIRECTION_DOWN
 var body_frame: int = 0
+var ammo_in_magazine: int = 0
+var is_reloading: bool = false
+var reload_timer: float = 0.0
 
 func _ready() -> void:
 	if weapon_data == null:
 		weapon_data = WeaponDataResource.new()
 	runtime_data = weapon_data.duplicate(true)
+	ammo_in_magazine = maxi(1, runtime_data.magazine_size)
 	rotation = 0.0
 	scale = Vector2.ONE
 	arms_rifle_sprite.centered = false
@@ -53,6 +57,13 @@ func _ready() -> void:
 	_update_aim_visual()
 
 func _process(delta: float) -> void:
+	if is_reloading:
+		reload_timer -= delta
+		if reload_timer <= 0.0:
+			_reload_finish()
+		_update_aim()
+		_smooth_aim(delta)
+		return
 	if cooldown > 0.0:
 		cooldown -= delta
 	_update_aim()
@@ -88,6 +99,9 @@ func _build_pool() -> void:
 		bullet_pool.append(bullet)
 
 func fire() -> void:
+	if ammo_in_magazine <= 0:
+		_start_reload()
+		return
 	var target: Node2D = _find_nearest_enemy()
 	if target == null:
 		return
@@ -98,15 +112,43 @@ func fire() -> void:
 		var bullet: Area2D = _get_bullet_from_pool()
 		if bullet == null:
 			break
+		if ammo_in_magazine <= 0:
+			_start_reload()
+			break
 		var offset: float = float(index) - float(count - 1) * 0.5
 		var direction: Vector2 = base_direction.rotated(deg_to_rad(offset * runtime_data.spread_degrees))
 		bullet.call("activate", muzzle.global_position, direction, runtime_data.bullet_speed, runtime_data.damage, runtime_data.pierce)
+		ammo_in_magazine -= 1
 	AudioManager.play_sfx_by_key(&"player_rifle")
 	muzzle_flash_timer = 0.06
 	muzzle_flash.visible = true
 	_update_muzzle_flash()
 	queue_redraw()
 	cooldown = 1.0 / maxf(runtime_data.fire_rate, 0.1)
+	if ammo_in_magazine <= 0:
+		_start_reload()
+
+func _start_reload() -> void:
+	if is_reloading:
+		return
+	is_reloading = true
+	reload_timer = runtime_data.reload_time
+	muzzle_flash_timer = 0.0
+	muzzle_flash.visible = false
+	queue_redraw()
+
+func _reload_finish() -> void:
+	ammo_in_magazine = maxi(1, runtime_data.magazine_size)
+	is_reloading = false
+	reload_timer = 0.0
+
+func get_ammo_info() -> Dictionary:
+	return {
+		"current": ammo_in_magazine,
+		"max": maxi(1, runtime_data.magazine_size),
+		"reloading": is_reloading,
+		"reload_progress": 1.0 - (reload_timer / maxf(runtime_data.reload_time, 0.01)) if is_reloading and runtime_data.reload_time > 0.0 else 0.0
+	}
 
 func _find_nearest_enemy() -> Node2D:
 	if target_refresh_timer > 0.0 and is_instance_valid(cached_target) and cached_target.get("is_alive"):
@@ -148,6 +190,11 @@ func apply_upgrade(stat_key: StringName, amount: float) -> void:
 			runtime_data.projectile_count += int(amount)
 		&"pierce":
 			runtime_data.pierce += int(amount)
+		&"magazine_size":
+			runtime_data.magazine_size += int(amount)
+			ammo_in_magazine += int(amount)
+		&"reload_speed_multiplier":
+			runtime_data.reload_time = maxf(0.2, runtime_data.reload_time / (1.0 + amount))
 
 func get_active_bullet_count() -> int:
 	var count := 0

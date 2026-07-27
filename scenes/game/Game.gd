@@ -108,6 +108,8 @@ var upgrade_catalog: Array[Resource] = [
 	preload("res://resources/upgrades/fire_rate.tres"),
 	preload("res://resources/upgrades/pierce.tres"),
 	preload("res://resources/upgrades/projectiles.tres"),
+	preload("res://resources/upgrades/magazine_size.tres"),
+	preload("res://resources/upgrades/reload_speed.tres"),
 	preload("res://resources/upgrades/scatter_blossom.tres"),
 	preload("res://resources/upgrades/flywheel.tres"),
 	preload("res://resources/upgrades/drone.tres"),
@@ -849,6 +851,10 @@ func _get_upgrade_icon(upgrade: Resource) -> Texture2D:
 			return ICON_PIERCE
 		&"projectiles":
 			return ICON_PROJECTILE
+		&"magazine_size":
+			return ICON_PROJECTILE
+		&"reload_speed":
+			return ICON_FIRE_RATE
 		&"scatter_blossom":
 			return ICON_SCATTER
 		&"flywheel":

@@ -22,6 +22,13 @@ const DIRECTION_RIGHT := 1
 const DIRECTION_LEFT := 3
 const HEALTH_BAR_SIZE := Vector2(58.0, 7.0)
 const HEALTH_BAR_OFFSET_Y := -104.0
+const AMMO_BAR_OFFSET_Y := -116.0
+const AMMO_BAR_WIDTH := 46.0
+const AMMO_BAR_HEIGHT := 5.0
+const AMMO_DOT_SIZE := 4.0
+const AMMO_DOT_SPACING := 6.0
+const AMMO_MAX_SPAN := 58.0
+const AMMO_SEGMENT_THRESHOLD := 14
 
 var is_alive: bool = true
 var world_bounds := Rect2(-1760.0, -1060.0, 3520.0, 2120.0)
@@ -68,6 +75,7 @@ func _physics_process(delta: float) -> void:
 		var move_vector := InputAdapter.get_move_vector()
 		velocity = move_vector * move_speed
 	move_and_slide()
+	queue_redraw()
 	global_position = global_position.clamp(world_bounds.position, world_bounds.end)
 	InputAdapter.set_dash_cooldown(dash_cooldown_remaining, dash_cooldown)
 
@@ -127,6 +135,44 @@ func _draw() -> void:
 	draw_rect(background_rect, Color(0.14, 0.04, 0.035, 0.88))
 	draw_rect(fill_rect, Color(0.86, 0.08, 0.06, 0.96))
 	draw_rect(background_rect, Color(0.02, 0.015, 0.01, 0.95), false, 1.0)
+	_draw_ammo()
+
+func _draw_ammo() -> void:
+	var info: Dictionary = ranged_weapon.get_ammo_info()
+	var max_ammo: int = int(info.get("max", 0))
+	if max_ammo <= 0:
+		return
+	if info.get("reloading", false):
+		var progress := clampf(float(info.get("reload_progress", 0.0)), 0.0, 1.0)
+		var bar_left := Vector2(-AMMO_BAR_WIDTH * 0.5, AMMO_BAR_OFFSET_Y)
+		var bg := Rect2(bar_left, Vector2(AMMO_BAR_WIDTH, AMMO_BAR_HEIGHT))
+		var fill := Rect2(bar_left, Vector2(AMMO_BAR_WIDTH * progress, AMMO_BAR_HEIGHT))
+		draw_rect(bg.grow(1.5), Color(0.0, 0.0, 0.0, 0.6))
+		draw_rect(bg, Color(0.1, 0.1, 0.12, 0.85))
+		draw_rect(fill, Color(0.98, 0.78, 0.22, 0.96))
+		return
+	var current: int = int(info.get("current", 0))
+	if max_ammo > AMMO_SEGMENT_THRESHOLD:
+		var spacing := AMMO_MAX_SPAN / float(max_ammo)
+		var bar_left := -AMMO_MAX_SPAN * 0.5
+		for index in max_ammo:
+			var x := bar_left + float(index) * spacing
+			var seg := Rect2(Vector2(x, AMMO_BAR_OFFSET_Y), Vector2(maxf(spacing - 1.0, 1.0), AMMO_BAR_HEIGHT))
+			if index < current:
+				draw_rect(seg, Color(0.98, 0.82, 0.3, 0.96))
+			else:
+				draw_rect(seg, Color(0.2, 0.18, 0.14, 0.7))
+		return
+	var spacing := minf(AMMO_DOT_SPACING, AMMO_MAX_SPAN / float(maxi(1, max_ammo - 1)))
+	var total_width := float(max_ammo - 1) * spacing
+	var start_x := -total_width * 0.5
+	for index in max_ammo:
+		var center := Vector2(start_x + float(index) * spacing, AMMO_BAR_OFFSET_Y)
+		var dot := Rect2(center - Vector2(AMMO_DOT_SIZE * 0.5, AMMO_DOT_SIZE * 0.5), Vector2(AMMO_DOT_SIZE, AMMO_DOT_SIZE))
+		if index < current:
+			draw_rect(dot, Color(0.98, 0.82, 0.3, 0.96))
+		else:
+			draw_rect(dot, Color(0.2, 0.18, 0.14, 0.7))
 
 func _try_start_dash() -> void:
 	if dash_cooldown_remaining > 0.0 or dash_time_remaining > 0.0:

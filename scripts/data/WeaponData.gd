@@ -8,3 +8,5 @@ extends Resource
 @export var projectile_count: int = 1
 @export var pierce: int = 0
 @export var spread_degrees: float = 8.0
+@export var magazine_size: int = 8
+@export var reload_time: float = 1.2

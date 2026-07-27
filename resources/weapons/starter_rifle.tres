@@ -11,3 +11,5 @@ fire_range = 680.0
 projectile_count = 1
 pierce = 0
 spread_degrees = 8.0
+magazine_size = 8
+reload_time = 1.2

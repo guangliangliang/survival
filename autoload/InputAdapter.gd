@@ -6,6 +6,8 @@ var virtual_dash_requested: bool = false
 var virtual_scatter_requested: bool = false
 var virtual_sword_rain_requested: bool = false
 var virtual_heal_requested: bool = false
+var attack_held: bool = false
+var auto_attack_enabled: bool = true
 var dash_cooldown_remaining: float = 0.0
 var dash_cooldown_duration: float = 10.0
 var scatter_cooldown_remaining: float = 0.0
@@ -169,6 +171,21 @@ func reset_heal_cooldown() -> void:
 	heal_cooldown_remaining = 0.0
 	clear_virtual_heal()
 
+func set_attack_held(value: bool) -> void:
+	attack_held = value
+
+func is_attack_held() -> bool:
+	return attack_held or Input.is_action_pressed("attack")
+
+func set_auto_attack_enabled(value: bool) -> void:
+	auto_attack_enabled = value
+
+func toggle_auto_attack() -> void:
+	auto_attack_enabled = not auto_attack_enabled
+
+func is_auto_attack_enabled() -> bool:
+	return auto_attack_enabled
+
 func clear_virtual_inputs() -> void:
 	clear_virtual_move()
 	clear_virtual_attack()
@@ -176,3 +193,4 @@ func clear_virtual_inputs() -> void:
 	clear_virtual_scatter()
 	clear_virtual_sword_rain()
 	clear_virtual_heal()
+	attack_held = false

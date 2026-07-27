@@ -5,60 +5,119 @@ const ICON_SKILL := preload("res://assets/images/ui/icons/skill.svg")
 const ICON_LASER := preload("res://assets/images/ui/icons/laser_sweep.svg")
 const ICON_SWORD := preload("res://assets/images/ui/icons/arrow.svg")
 const ICON_HEAL := preload("res://assets/images/ui/icons/heal.svg")
+const ICON_ARROW := preload("res://assets/images/ui/icons/arrow.svg")
 
-@export var button_radius: float = 42.0
-@export var sword_rain_offset := Vector2(125.0, 166.0)
-@export var dash_offset := Vector2(176.0, 106.0)
-@export var heal_offset := Vector2(74.0, 106.0)
-@export var scatter_offset := Vector2(125.0, 46.0)
+const MOUSE_TOUCH_INDEX := -2
+
+@export var attack_radius: float = 66.0
+@export var skill_radius: float = 40.0
+@export var auto_radius: float = 22.0
+@export var attack_offset := Vector2(110.0, 90.0)
+@export var auto_offset := Vector2(22.0, 155.0)
+@export var sword_rain_offset := Vector2(110.0, 250.0)
+@export var dash_offset := Vector2(202.0, 221.0)
+@export var heal_offset := Vector2(260.0, 145.0)
+@export var scatter_offset := Vector2(265.0, 49.0)
+
+var _attack_touch_index: int = -1
+var _attack_press_time: float = 0.0
+var _auto_flash_time: float = 0.0
 
 func _ready() -> void:
-	custom_minimum_size = Vector2(250.0, 210.0)
+	custom_minimum_size = Vector2(360.0, 360.0)
 	set_process(true)
 	queue_redraw()
 
 func _exit_tree() -> void:
+	InputAdapter.set_attack_held(false)
 	InputAdapter.clear_virtual_dash()
 	InputAdapter.clear_virtual_scatter()
 	InputAdapter.clear_virtual_sword_rain()
 	InputAdapter.clear_virtual_heal()
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
+	if _attack_press_time > 0.0:
+		_attack_press_time = maxf(0.0, _attack_press_time - delta)
+	if _auto_flash_time > 0.0:
+		_auto_flash_time = maxf(0.0, _auto_flash_time - delta)
 	queue_redraw()
 
 func _gui_input(event: InputEvent) -> void:
-	if event is InputEventScreenTouch and event.pressed:
-		_handle_press(event.position)
+	if event is InputEventScreenTouch:
+		if event.pressed:
+			_handle_press(event.position, event.index)
+		else:
+			_handle_release(event.index)
 		accept_event()
-	elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-		_handle_press(event.position)
+	elif event is InputEventScreenDrag:
+		_handle_drag(event.position, event.index)
 		accept_event()
+	elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+		if event.pressed:
+			_handle_press(event.position, MOUSE_TOUCH_INDEX)
+		else:
+			_handle_release(MOUSE_TOUCH_INDEX)
+		accept_event()
+	elif event is InputEventMouseMotion and _attack_touch_index == MOUSE_TOUCH_INDEX:
+		_handle_drag(event.position, MOUSE_TOUCH_INDEX)
 
-func _handle_press(local_position: Vector2) -> void:
+func _handle_press(local_position: Vector2, touch_index: int) -> void:
 	if _is_inside_sword_rain(local_position):
 		InputAdapter.request_virtual_sword_rain()
-		queue_redraw()
-	elif _is_inside_dash(local_position):
+		return
+	if _is_inside_dash(local_position):
 		InputAdapter.request_virtual_dash()
-		queue_redraw()
-	elif _is_inside_heal(local_position):
+		return
+	if _is_inside_heal(local_position):
 		InputAdapter.request_virtual_heal()
-		queue_redraw()
-	elif _is_inside_scatter(local_position):
+		return
+	if _is_inside_scatter(local_position):
 		InputAdapter.request_virtual_scatter()
-		queue_redraw()
+		return
+	if _is_inside_auto(local_position):
+		InputAdapter.toggle_auto_attack()
+		_auto_flash_time = 0.18
+		return
+	if _is_inside_attack(local_position):
+		_attack_touch_index = touch_index
+		_attack_press_time = 0.08
+		InputAdapter.set_attack_held(true)
+
+func _handle_release(touch_index: int) -> void:
+	if _attack_touch_index == touch_index:
+		_attack_touch_index = -1
+		InputAdapter.set_attack_held(false)
+
+func _handle_drag(local_position: Vector2, touch_index: int) -> void:
+	if _attack_touch_index != touch_index:
+		return
+	if not _is_inside_attack(local_position):
+		_attack_touch_index = -1
+		InputAdapter.set_attack_held(false)
+
+func _is_inside_attack(local_position: Vector2) -> bool:
+	return local_position.distance_to(_attack_center()) <= attack_radius
+
+func _is_inside_auto(local_position: Vector2) -> bool:
+	return local_position.distance_to(_auto_center()) <= auto_radius
 
 func _is_inside_sword_rain(local_position: Vector2) -> bool:
-	return local_position.distance_to(_sword_rain_center()) <= button_radius
+	return local_position.distance_to(_sword_rain_center()) <= skill_radius
 
 func _is_inside_dash(local_position: Vector2) -> bool:
-	return local_position.distance_to(_dash_center()) <= button_radius
+	return local_position.distance_to(_dash_center()) <= skill_radius
 
 func _is_inside_heal(local_position: Vector2) -> bool:
-	return local_position.distance_to(_heal_center()) <= button_radius
+	return local_position.distance_to(_heal_center()) <= skill_radius
 
 func _is_inside_scatter(local_position: Vector2) -> bool:
-	return local_position.distance_to(_scatter_center()) <= button_radius
+	return local_position.distance_to(_scatter_center()) <= skill_radius
+
+func _attack_center() -> Vector2:
+	return size - attack_offset
+
+func _auto_center() -> Vector2:
+	return size - auto_offset
 
 func _sword_rain_center() -> Vector2:
 	return size - sword_rain_offset
@@ -73,68 +132,100 @@ func _scatter_center() -> Vector2:
 	return size - scatter_offset
 
 func _draw() -> void:
-	var sword_rain_center := _sword_rain_center()
-	var dash_center := _dash_center()
-	var heal_center := _heal_center()
-	var scatter_center := _scatter_center()
-	
-	var sword_rain_ready := InputAdapter.is_sword_rain_ready()
-	var dash_ready := InputAdapter.is_dash_ready()
-	var heal_ready := InputAdapter.is_heal_ready()
-	var scatter_ready := InputAdapter.is_scatter_ready()
-	
-	_draw_sword_rain_button(sword_rain_center, sword_rain_ready)
-	_draw_dash_button(dash_center, dash_ready)
-	_draw_heal_button(heal_center, heal_ready)
-	_draw_scatter_button(scatter_center, scatter_ready)
+	_draw_sword_rain_button(_sword_rain_center(), InputAdapter.is_sword_rain_ready())
+	_draw_dash_button(_dash_center(), InputAdapter.is_dash_ready())
+	_draw_heal_button(_heal_center(), InputAdapter.is_heal_ready())
+	_draw_scatter_button(_scatter_center(), InputAdapter.is_scatter_ready())
+	_draw_attack_button(_attack_center(), _attack_touch_index != -1)
+	_draw_auto_button(_auto_center(), InputAdapter.is_auto_attack_enabled())
+
+func _draw_attack_button(center: Vector2, pressed: bool) -> void:
+	var press_ratio := 0.0
+	if pressed:
+		press_ratio = 1.0
+	elif _attack_press_time > 0.0:
+		press_ratio = _attack_press_time / 0.08
+	var radius := attack_radius * (1.0 - 0.06 * press_ratio)
+	draw_circle(center, radius + 4.0, Color(0.05, 0.02, 0.02, 0.55))
+	draw_circle(center, radius, Color(0.14, 0.05, 0.04, 0.78))
+	draw_arc(center, radius - 4.0, -PI * 0.5, PI * 1.5, 64, Color(1.0, 0.55, 0.2, 0.85), 4.0)
+	var inner_color := Color(0.95, 0.32, 0.18, 0.82) if pressed else Color(0.82, 0.24, 0.14, 0.72)
+	draw_circle(center, radius * 0.62, inner_color)
+	if pressed:
+		draw_arc(center, radius - 2.0, 0.0, TAU, 72, Color(1.0, 0.85, 0.45, 0.9), 2.5)
+	_draw_icon(ICON_SKILL, center, 50.0, 0.98)
+
+func _draw_auto_button(center: Vector2, enabled: bool) -> void:
+	var flash := 0.0
+	if _auto_flash_time > 0.0:
+		flash = _auto_flash_time / 0.18
+	if enabled:
+		var ring_color := Color(1.0, 0.72, 0.28, 0.85).lerp(Color(1.0, 1.0, 0.9, 1.0), flash)
+		draw_circle(center, auto_radius + 3.0, Color(0.1, 0.06, 0.02, 0.55))
+		draw_circle(center, auto_radius, Color(0.95, 0.55, 0.18, 0.78))
+		draw_arc(center, auto_radius - 2.0, -PI * 0.5, PI * 1.5, 40, ring_color, 2.5)
+		var t := Time.get_ticks_msec() / 1000.0
+		var dash_start := t * 1.8
+		for index in 8:
+			var a0 := dash_start + TAU * float(index) / 8.0
+			var a1 := a0 + TAU / 16.0
+			draw_arc(center, auto_radius + 5.0, a0, a1, 8, Color(1.0, 0.85, 0.4, 0.55), 1.8)
+		_draw_icon(ICON_ARROW, center, 24.0, 1.0)
+	else:
+		draw_circle(center, auto_radius + 3.0, Color(0.05, 0.05, 0.06, 0.5))
+		draw_circle(center, auto_radius, Color(0.22, 0.24, 0.28, 0.72))
+		draw_arc(center, auto_radius - 2.0, -PI * 0.5, PI * 1.5, 40, Color(0.55, 0.6, 0.65, 0.7), 2.0)
+		_draw_icon(ICON_ARROW, center, 24.0, 0.35)
+		var slash_dir := Vector2(1.0, -1.0).normalized() * (auto_radius - 2.0)
+		draw_line(center - slash_dir, center + slash_dir, Color(0.9, 0.35, 0.32, 0.85), 3.0)
 
 func _draw_sword_rain_button(center: Vector2, ready: bool) -> void:
 	var base_alpha := 0.58 if ready else 0.28
 	var accent_alpha := 0.78 if ready else 0.2
-	draw_circle(center, button_radius, Color(0.12, 0.08, 0.05, 0.55))
-	draw_arc(center, button_radius - 4.0, -PI * 0.5, PI * 1.5, 48, Color(0.95, 0.65, 0.3, accent_alpha), 4.0)
+	draw_circle(center, skill_radius, Color(0.12, 0.08, 0.05, 0.55))
+	draw_arc(center, skill_radius - 4.0, -PI * 0.5, PI * 1.5, 48, Color(0.95, 0.65, 0.3, accent_alpha), 4.0)
 	if not ready:
 		var cooldown_angle := -PI * 0.5 + TAU * (1.0 - InputAdapter.get_sword_rain_cooldown_ratio())
-		draw_arc(center, button_radius - 4.0, -PI * 0.5, cooldown_angle, 48, Color(1.0, 0.85, 0.4, 0.65), 4.0)
-	draw_circle(center, button_radius * 0.55, Color(0.85, 0.55, 0.2, base_alpha))
-	_draw_icon(ICON_SWORD, center, 36.0, 0.95 if ready else 0.35)
+		draw_arc(center, skill_radius - 4.0, -PI * 0.5, cooldown_angle, 48, Color(1.0, 0.85, 0.4, 0.65), 4.0)
+	draw_circle(center, skill_radius * 0.55, Color(0.85, 0.55, 0.2, base_alpha))
+	_draw_icon(ICON_SWORD, center, 34.0, 0.95 if ready else 0.35)
 
 func _draw_dash_button(center: Vector2, ready: bool) -> void:
 	var base_alpha := 0.58 if ready else 0.28
 	var accent_alpha := 0.72 if ready else 0.2
-	draw_circle(center, button_radius, Color(0.08, 0.09, 0.1, 0.52))
-	draw_arc(center, button_radius - 4.0, -PI * 0.5, PI * 1.5, 48, Color(0.62, 0.74, 0.95, accent_alpha), 4.0)
+	draw_circle(center, skill_radius, Color(0.08, 0.09, 0.1, 0.52))
+	draw_arc(center, skill_radius - 4.0, -PI * 0.5, PI * 1.5, 48, Color(0.62, 0.74, 0.95, accent_alpha), 4.0)
 	if not ready:
 		var cooldown_angle := -PI * 0.5 + TAU * (1.0 - InputAdapter.get_dash_cooldown_ratio())
-		draw_arc(center, button_radius - 4.0, -PI * 0.5, cooldown_angle, 48, Color(0.78, 0.9, 1.0, 0.65), 4.0)
-	draw_circle(center, button_radius * 0.56, Color(0.3, 0.55, 0.9, base_alpha))
-	_draw_icon(ICON_DASH, center, 36.0, 0.95 if ready else 0.35)
+		draw_arc(center, skill_radius - 4.0, -PI * 0.5, cooldown_angle, 48, Color(0.78, 0.9, 1.0, 0.65), 4.0)
+	draw_circle(center, skill_radius * 0.56, Color(0.3, 0.55, 0.9, base_alpha))
+	_draw_icon(ICON_DASH, center, 34.0, 0.95 if ready else 0.35)
 
 func _draw_heal_button(center: Vector2, ready: bool) -> void:
 	var base_alpha := 0.58 if ready else 0.28
 	var accent_alpha := 0.78 if ready else 0.2
-	draw_circle(center, button_radius, Color(0.05, 0.12, 0.08, 0.55))
-	draw_arc(center, button_radius - 4.0, -PI * 0.5, PI * 1.5, 48, Color(0.35, 0.95, 0.55, accent_alpha), 4.0)
+	draw_circle(center, skill_radius, Color(0.05, 0.12, 0.08, 0.55))
+	draw_arc(center, skill_radius - 4.0, -PI * 0.5, PI * 1.5, 48, Color(0.35, 0.95, 0.55, accent_alpha), 4.0)
 	if not ready:
 		var cooldown_angle := -PI * 0.5 + TAU * (1.0 - InputAdapter.get_heal_cooldown_ratio())
-		draw_arc(center, button_radius - 4.0, -PI * 0.5, cooldown_angle, 48, Color(0.5, 1.0, 0.6, 0.65), 4.0)
-	draw_circle(center, button_radius * 0.55, Color(0.25, 0.85, 0.4, base_alpha))
-	_draw_icon(ICON_HEAL, center, 36.0, 0.95 if ready else 0.35)
+		draw_arc(center, skill_radius - 4.0, -PI * 0.5, cooldown_angle, 48, Color(0.5, 1.0, 0.6, 0.65), 4.0)
+	draw_circle(center, skill_radius * 0.55, Color(0.25, 0.85, 0.4, base_alpha))
+	_draw_icon(ICON_HEAL, center, 34.0, 0.95 if ready else 0.35)
 
 func _draw_scatter_button(center: Vector2, ready: bool) -> void:
 	var base_alpha := 0.58 if ready else 0.28
 	var accent_alpha := 0.78 if ready else 0.2
-	draw_circle(center, button_radius, Color(0.13, 0.08, 0.04, 0.58))
-	draw_arc(center, button_radius - 4.0, -PI * 0.5, PI * 1.5, 48, Color(1.0, 0.66, 0.24, accent_alpha), 4.0)
+	draw_circle(center, skill_radius, Color(0.13, 0.08, 0.04, 0.58))
+	draw_arc(center, skill_radius - 4.0, -PI * 0.5, PI * 1.5, 48, Color(1.0, 0.66, 0.24, accent_alpha), 4.0)
 	if not ready:
 		var cooldown_angle := -PI * 0.5 + TAU * (1.0 - InputAdapter.get_scatter_cooldown_ratio())
-		draw_arc(center, button_radius - 4.0, -PI * 0.5, cooldown_angle, 48, Color(1.0, 0.85, 0.4, 0.62), 4.0)
-	draw_circle(center, button_radius * 0.55, Color(0.95, 0.54, 0.15, base_alpha))
+		draw_arc(center, skill_radius - 4.0, -PI * 0.5, cooldown_angle, 48, Color(1.0, 0.85, 0.4, 0.62), 4.0)
+	draw_circle(center, skill_radius * 0.55, Color(0.95, 0.54, 0.15, base_alpha))
 	for index in 8:
 		var angle := TAU * float(index) / 8.0
-		var point := center + Vector2.from_angle(angle) * button_radius * 0.68
-		draw_circle(point, 3.8, Color(1.0, 0.72, 0.3, 0.9 if ready else 0.28))
-	_draw_icon(ICON_LASER, center, 36.0, 0.95 if ready else 0.35)
+		var point := center + Vector2.from_angle(angle) * skill_radius * 0.68
+		draw_circle(point, 3.4, Color(1.0, 0.72, 0.3, 0.9 if ready else 0.28))
+	_draw_icon(ICON_LASER, center, 34.0, 0.95 if ready else 0.35)
 
 func _draw_icon(texture: Texture2D, center: Vector2, icon_size: float, alpha: float) -> void:
 	if texture == null:

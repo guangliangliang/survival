@@ -57,8 +57,14 @@ func _process(delta: float) -> void:
 		cooldown -= delta
 	_update_aim()
 	_smooth_aim(delta)
-	if firing_enabled and cooldown <= 0.0:
-		fire()
+	if cooldown <= 0.0:
+		var should_fire := false
+		if firing_enabled and InputAdapter.is_auto_attack_enabled():
+			should_fire = true
+		if InputAdapter.is_attack_held():
+			should_fire = true
+		if should_fire:
+			fire()
 	if muzzle_flash_timer > 0.0:
 		muzzle_flash_timer -= delta
 		_update_muzzle_flash()

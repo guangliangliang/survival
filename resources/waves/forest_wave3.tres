@@ -5,6 +5,6 @@
 [resource]
 script = ExtResource("1")
 trigger_time = 390.0
-enemy_count = 75
+enemy_count = 130
 warning_time = 5.0
 display_name = "大规模入侵"

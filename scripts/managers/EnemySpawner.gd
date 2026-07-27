@@ -8,8 +8,8 @@ const WaveEvent := preload("res://scripts/data/WaveEvent.gd")
 const LevelData := preload("res://scripts/data/LevelData.gd")
 
 @export var enemy_scene: PackedScene
-@export var pool_size: int = 200
-@export var active_enemy_limit: int = 180
+@export var pool_size: int = 350
+@export var active_enemy_limit: int = 300
 @export var base_spawn_interval: float = 1.4
 @export var boss_spawn_time: float = 660.0
 

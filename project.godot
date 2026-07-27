@@ -22,6 +22,10 @@ GameManager="*res://autoload/GameManager.gd"
 InputAdapter="*res://autoload/InputAdapter.gd"
 AudioManager="*res://autoload/AudioManager.gd"
 
+[gui]
+
+theme/custom_font="res://assets/fonts/simhei.ttf"
+
 [display]
 
 window/size/viewport_width=1280

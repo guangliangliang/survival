@@ -5,11 +5,14 @@ const ICON_BACK := preload("res://assets/images/ui/icons/back.svg")
 const ICON_CODEX := preload("res://assets/images/ui/icons/level.svg")
 const ICON_UPGRADE := preload("res://assets/images/ui/icons/skill.svg")
 const ICON_SETTINGS := preload("res://assets/images/ui/icons/settings.svg")
-const ICON_RIFLE := preload("res://assets/images/weapons/old_rifle_128.png")
+const ICON_DAMAGE := preload("res://assets/images/ui/icons/damage.svg")
+const ICON_FIRE_RATE := preload("res://assets/images/ui/icons/fire_rate.svg")
+const ICON_RANGE := preload("res://assets/images/ui/icons/range.svg")
+const ICON_PIERCE := preload("res://assets/images/ui/icons/pierce.svg")
 const ICON_FLYWHEEL := preload("res://assets/images/weapons/weapon_orbit_flywheel.png")
 const ICON_DRONE := preload("res://assets/images/weapons/weapon_combat_drone.png")
 const ICON_HEALTH := preload("res://assets/images/ui/icons/health.svg")
-const ICON_PROJECTILE := preload("res://assets/images/projectiles/bullet_player.png")
+const ICON_PROJECTILE := preload("res://assets/images/ui/icons/projectiles.svg")
 const ICON_SCATTER := preload("res://assets/images/ui/icon_laser_sweep.svg")
 const ICON_ARROW := preload("res://assets/images/ui/icons/arrow.svg")
 const ICON_HEAL := preload("res://assets/images/ui/icons/heal.svg")
@@ -593,8 +596,14 @@ func _get_upgrade_type(upgrade: Resource) -> String:
 
 func _get_upgrade_icon(upgrade: Resource) -> Texture2D:
 	match upgrade.upgrade_id:
-		&"damage", &"fire_rate", &"range", &"pierce":
-			return ICON_RIFLE
+		&"damage":
+			return ICON_DAMAGE
+		&"fire_rate":
+			return ICON_FIRE_RATE
+		&"range":
+			return ICON_RANGE
+		&"pierce":
+			return ICON_PIERCE
 		&"projectiles":
 			return ICON_PROJECTILE
 		&"scatter_blossom":

@@ -1023,7 +1023,6 @@ func _on_wave_warning(wave_data: Resource, time_left: float) -> void:
 
 	wave_warning_intro_tween = create_tween()
 	wave_warning_intro_tween.set_parallel(true)
-	wave_warning_intro_tween.tween_property(wave_warning_bg, "color:a", 0.55, 0.25).set_trans(Tween.TRANS_QUAD)
 	wave_warning_intro_tween.tween_property(wave_warning_panel, "modulate:a", 1.0, 0.30)
 	wave_warning_intro_tween.tween_property(wave_warning_panel, "scale", Vector2.ONE, 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	wave_warning_intro_tween.chain().tween_callback(_start_wave_pulse)
@@ -1074,7 +1073,6 @@ func _on_wave_started(_wave_data: Resource) -> void:
 	wave_warning_outro_tween.set_parallel(true)
 	wave_warning_outro_tween.tween_property(wave_warning_panel, "scale", Vector2(1.15, 1.15), 0.20).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	wave_warning_outro_tween.tween_property(wave_warning_panel, "modulate:a", 0.0, 0.20)
-	wave_warning_outro_tween.tween_property(wave_warning_bg, "color:a", 0.0, 0.25)
 	wave_warning_outro_tween.chain().tween_callback(_on_wave_warning_outro_finished)
 	if objective_label != null:
 		objective_label.text = "任务：应对怪物潮！"

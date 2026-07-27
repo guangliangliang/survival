@@ -76,12 +76,12 @@ offset = Vector2(12, 0)
 script = ExtResource("9")
 flywheel_texture = ExtResource("10")
 flywheel_count = 0
-orbit_radius = 122.0
+orbit_radius = 185.0
 spin_speed = 5.2
 damage = 9.0
 hit_interval = 0.38
 hit_radius = 26.0
-sprite_scale = 0.028
+sprite_scale = 0.018
 
 [node name="DroneWeapon" type="Node2D" parent="WeaponsNode"]
 script = ExtResource("11")

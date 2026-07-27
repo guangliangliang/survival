@@ -11,6 +11,8 @@ const ICON_DRONE := preload("res://assets/images/weapons/weapon_combat_drone.png
 const ICON_HEALTH := preload("res://assets/images/ui/icons/health.svg")
 const ICON_PROJECTILE := preload("res://assets/images/projectiles/bullet_player.png")
 const ICON_SCATTER := preload("res://assets/images/ui/icon_laser_sweep.svg")
+const ICON_ARROW := preload("res://assets/images/ui/icons/arrow.svg")
+const ICON_HEAL := preload("res://assets/images/ui/icons/heal.svg")
 const BUTTON_TEXT_COLOR := Color("f4e2b2")
 const TEXT_MUTED := Color("b8c9ad")
 const TEXT_BODY := Color("d8d0b0")
@@ -41,7 +43,9 @@ var upgrade_catalog: Array[Resource] = [
 	preload("res://resources/upgrades/drone.tres"),
 	preload("res://resources/upgrades/range.tres"),
 	preload("res://resources/upgrades/move_speed.tres"),
-	preload("res://resources/upgrades/max_health.tres")
+	preload("res://resources/upgrades/max_health.tres"),
+	preload("res://resources/upgrades/sword_rain.tres"),
+	preload("res://resources/upgrades/heal.tres")
 ]
 
 func _ready() -> void:
@@ -603,6 +607,10 @@ func _get_upgrade_icon(upgrade: Resource) -> Texture2D:
 			return ICON_CODEX
 		&"max_health":
 			return ICON_HEALTH
+		&"sword_rain":
+			return ICON_ARROW
+		&"heal":
+			return ICON_HEAL
 		_:
 			return ICON_UPGRADE
 

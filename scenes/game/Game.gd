@@ -11,6 +11,8 @@ const ICON_PAUSE := preload("res://assets/images/ui/icons/pause.svg")
 const ICON_PROJECTILE := preload("res://assets/images/projectiles/bullet_player.png")
 const ICON_REFRESH := preload("res://assets/images/ui/icons/refresh.svg")
 const ICON_SCATTER := preload("res://assets/images/ui/icon_laser_sweep.svg")
+const ICON_ARROW := preload("res://assets/images/ui/icons/arrow.svg")
+const ICON_HEAL := preload("res://assets/images/ui/icons/heal.svg")
 const WaveEvent := preload("res://scripts/data/WaveEvent.gd")
 const EnemySpawner := preload("res://scripts/managers/EnemySpawner.gd")
 const UPGRADE_ICON_MAX_SIZE := Vector2i(92, 92)
@@ -848,6 +850,10 @@ func _get_upgrade_icon(upgrade: Resource) -> Texture2D:
 			return ICON_LEVEL
 		&"max_health":
 			return ICON_HEALTH
+		&"sword_rain":
+			return ICON_ARROW
+		&"heal":
+			return ICON_HEAL
 		_:
 			return ICON_LEVEL
 

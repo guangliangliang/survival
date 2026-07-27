@@ -136,6 +136,7 @@ func _try_start_dash() -> void:
 	dash_time_remaining = dash_duration
 	dash_cooldown_remaining = dash_cooldown
 	InputAdapter.set_dash_cooldown(dash_cooldown_remaining, dash_cooldown)
+	AudioManager.play_sfx_by_key(&"dash_cast", -3.0)
 
 func _get_dash_direction() -> Vector2:
 	var move_vector := InputAdapter.get_move_vector()

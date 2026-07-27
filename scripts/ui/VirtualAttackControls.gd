@@ -221,10 +221,6 @@ func _draw_scatter_button(center: Vector2, ready: bool) -> void:
 		var cooldown_angle := -PI * 0.5 + TAU * (1.0 - InputAdapter.get_scatter_cooldown_ratio())
 		draw_arc(center, skill_radius - 4.0, -PI * 0.5, cooldown_angle, 48, Color(1.0, 0.85, 0.4, 0.62), 4.0)
 	draw_circle(center, skill_radius * 0.55, Color(0.95, 0.54, 0.15, base_alpha))
-	for index in 8:
-		var angle := TAU * float(index) / 8.0
-		var point := center + Vector2.from_angle(angle) * skill_radius * 0.68
-		draw_circle(point, 3.4, Color(1.0, 0.72, 0.3, 0.9 if ready else 0.28))
 	_draw_icon(ICON_LASER, center, 34.0, 0.95 if ready else 0.35)
 
 func _draw_icon(texture: Texture2D, center: Vector2, icon_size: float, alpha: float) -> void:

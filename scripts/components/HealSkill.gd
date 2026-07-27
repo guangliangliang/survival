@@ -58,8 +58,8 @@ func _try_cast() -> void:
 
 func _play_heal_glow() -> void:
 	var effects := get_tree().get_first_node_in_group("visual_effects")
-	if effects != null and effects.has_method("play_heal_glow"):
-		effects.call("play_heal_glow", global_position)
+	if effects != null and effects.has_method("play_heal_glow_follow"):
+		effects.call("play_heal_glow_follow", self)
 
 func _get_heal_percent() -> float:
 	return base_heal_percent + 0.08 * float(upgrade_level)

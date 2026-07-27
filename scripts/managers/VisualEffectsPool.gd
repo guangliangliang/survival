@@ -32,6 +32,9 @@ func _process(delta: float) -> void:
 		var frame := clampi(int(elapsed / duration * frames), 0, frames - 1)
 		sprite.region_rect = Rect2(frame * frame_width, 0, frame_width, frame_height)
 		sprite.modulate.a = clampf(remaining / duration * 1.6, 0.0, 1.0)
+		var follow_target: Node2D = sprite.get_meta("follow_target", null)
+		if follow_target != null and is_instance_valid(follow_target):
+			sprite.global_position = follow_target.global_position
 		sprite.set_meta("remaining", remaining)
 		if remaining <= 0.0:
 			sprite.visible = false
@@ -48,7 +51,10 @@ func play_arrow_impact(world_position: Vector2) -> void:
 func play_heal_glow(world_position: Vector2) -> void:
 	_play_strip(HEAL_GLOW_TEXTURE, world_position, 4, Vector2i(192, 512), 0.72, 0.44)
 
-func _play_strip(texture: Texture2D, world_position: Vector2, frames: int, frame_size: Vector2i, duration: float, scale: float = 1.0) -> void:
+func play_heal_glow_follow(target: Node2D) -> void:
+	_play_strip(HEAL_GLOW_TEXTURE, target.global_position, 4, Vector2i(192, 512), 0.72, 0.44, target)
+
+func _play_strip(texture: Texture2D, world_position: Vector2, frames: int, frame_size: Vector2i, duration: float, scale: float = 1.0, follow_target: Node2D = null) -> void:
 	for sprite in effects:
 		if sprite.visible:
 			continue
@@ -63,5 +69,9 @@ func _play_strip(texture: Texture2D, world_position: Vector2, frames: int, frame
 		sprite.set_meta("frame_height", frame_size.y)
 		sprite.set_meta("duration", duration)
 		sprite.set_meta("remaining", duration)
+		if follow_target != null:
+			sprite.set_meta("follow_target", follow_target)
+		else:
+			sprite.set_meta("follow_target", null)
 		sprite.visible = true
 		return

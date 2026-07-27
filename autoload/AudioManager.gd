@@ -43,6 +43,9 @@ const SFX := {
 	&"heal_cast": [
 		"res://assets/audio/sfx/sfx_heal_cast.wav",
 	],
+	&"dash_cast": [
+		"res://assets/audio/sfx/sfx_dash_cast.wav",
+	],
 	&"enemy_projectile_land": [
 		"res://assets/audio/sfx/sfx_enemy_projectile_land.wav",
 	],

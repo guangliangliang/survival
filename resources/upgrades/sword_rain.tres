@@ -5,8 +5,8 @@
 [resource]
 script = ExtResource("1")
 upgrade_id = &"sword_rain"
-title = "强化剑雨风暴"
-description = "剑数量、伤害和范围提高，冷却缩短。"
+title = "强化箭雨风暴"
+description = "箭数量、伤害和范围提高，冷却缩短。"
 stat_key = &"sword_rain_level"
 amount = 1.0
 max_level = 5

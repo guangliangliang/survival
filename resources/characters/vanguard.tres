@@ -8,6 +8,6 @@
 script = ExtResource("1")
 character_id = &"vanguard"
 display_name = "边境巡航机"
-description = "村庄用旧农机和守夜灯芯改造的巡逻机器，顶部炮塔可自动锁定威胁。"
+description = "旧农机改造的巡逻机器，炮塔自动锁定威胁。"
 body_texture = ExtResource("2")
 rifle_texture = ExtResource("3")

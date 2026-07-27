@@ -296,7 +296,7 @@ layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -252.0
+offset_left = -288.0
 offset_top = 70.0
 offset_right = -18.0
 offset_bottom = 176.0
@@ -308,12 +308,12 @@ layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -242.0
+offset_left = -278.0
 offset_top = 78.0
 offset_right = -28.0
 offset_bottom = 170.0
 grow_horizontal = 0
-theme_override_constants/separation = 5
+theme_override_constants/separation = 7
 
 [node name="ObjectiveLabel" type="Label" parent="CanvasLayer/GameUI/TopHUD"]
 visible = false
@@ -326,45 +326,57 @@ layout_mode = 2
 theme_override_constants/separation = 8
 alignment = 2
 
+[node name="TimeLabel" type="Label" parent="CanvasLayer/GameUI/TopHUD/TimeRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.98, 0.95, 0.86, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.65)
+theme_override_constants/outline_size = 5
+theme_override_font_sizes/font_size = 21
+text = "00:00 / 12:00"
+horizontal_alignment = 2
+vertical_alignment = 1
+
 [node name="TimeIcon" type="TextureRect" parent="CanvasLayer/GameUI/TopHUD/TimeRow"]
-custom_minimum_size = Vector2(28, 28)
+custom_minimum_size = Vector2(26, 26)
 layout_mode = 2
 texture = ExtResource("16")
 expand_mode = 1
 stretch_mode = 5
-
-[node name="TimeLabel" type="Label" parent="CanvasLayer/GameUI/TopHUD/TimeRow"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.95, 0.9, 0.78, 1)
-theme_override_font_sizes/font_size = 18
-text = "00:00 / 12:00"
-horizontal_alignment = 2
-
-[node name="HealthBar" type="ProgressBar" parent="CanvasLayer/GameUI/TopHUD"]
-visible = false
-custom_minimum_size = Vector2(0, 26)
-layout_mode = 2
-value = 100.0
-show_percentage = false
 
 [node name="HealthRow" type="HBoxContainer" parent="CanvasLayer/GameUI/TopHUD"]
 layout_mode = 2
 theme_override_constants/separation = 8
 alignment = 2
 
+[node name="HealthBar" type="ProgressBar" parent="CanvasLayer/GameUI/TopHUD/HealthRow"]
+custom_minimum_size = Vector2(0, 26)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+value = 100.0
+show_percentage = false
+
+[node name="HealthLabel" type="Label" parent="CanvasLayer/GameUI/TopHUD/HealthRow/HealthBar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.7)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 15
+text = "100 / 100"
+horizontal_alignment = 1
+vertical_alignment = 1
+
 [node name="HealthIcon" type="TextureRect" parent="CanvasLayer/GameUI/TopHUD/HealthRow"]
-custom_minimum_size = Vector2(28, 28)
+custom_minimum_size = Vector2(26, 26)
 layout_mode = 2
 texture = ExtResource("14")
 expand_mode = 1
 stretch_mode = 5
-
-[node name="HealthLabel" type="Label" parent="CanvasLayer/GameUI/TopHUD/HealthRow"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.95, 0.9, 0.78, 1)
-theme_override_font_sizes/font_size = 17
-text = "生命 100 / 100"
-horizontal_alignment = 2
 
 [node name="ExpBar" type="ProgressBar" parent="CanvasLayer/GameUI/TopHUD"]
 visible = false
@@ -402,19 +414,22 @@ layout_mode = 2
 theme_override_constants/separation = 8
 alignment = 2
 
+[node name="KillValueLabel" type="Label" parent="CanvasLayer/GameUI/TopHUD/KillRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.9, 0.78, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.65)
+theme_override_constants/outline_size = 5
+theme_override_font_sizes/font_size = 18
+text = "击杀 0"
+horizontal_alignment = 2
+vertical_alignment = 1
+
 [node name="KillIcon" type="TextureRect" parent="CanvasLayer/GameUI/TopHUD/KillRow"]
-custom_minimum_size = Vector2(28, 28)
+custom_minimum_size = Vector2(26, 26)
 layout_mode = 2
 texture = ExtResource("18")
 expand_mode = 1
 stretch_mode = 5
-
-[node name="KillValueLabel" type="Label" parent="CanvasLayer/GameUI/TopHUD/KillRow"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.95, 0.9, 0.78, 1)
-theme_override_font_sizes/font_size = 17
-text = "击杀 0"
-horizontal_alignment = 2
 
 [node name="PauseButton" type="Button" parent="CanvasLayer/GameUI"]
 layout_mode = 1

@@ -26,7 +26,6 @@ const AUDIO_VOLUME_MIN_DB := -32.0
 
 @onready var start_button: Button = $VBoxContainer/StartButton
 @onready var title_label: Label = $VBoxContainer/TitleLabel
-@onready var subtitle: Label = $Subtitle
 
 var codex_button: Button
 var upgrades_button: Button
@@ -73,23 +72,23 @@ func _apply_style() -> void:
 	title_label.add_theme_color_override("font_shadow_color", Color(0.06, 0.035, 0.018, 0.95))
 	title_label.add_theme_constant_override("shadow_offset_x", 4)
 	title_label.add_theme_constant_override("shadow_offset_y", 4)
-	subtitle.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.85))
-	subtitle.add_theme_constant_override("shadow_offset_y", 2)
-	_set_centered_button_content(start_button, ICON_START, 28, 12, 24)
+	_set_centered_button_content(start_button, ICON_START, 36, 14, 32) # 增大图标和字体
 	_style_button(start_button, Color("8a4b27"), Color("d9b56b"))
-	_style_button(codex_button, Color("3b332d"), Color("8e8069"), 17)
-	_style_button(upgrades_button, Color("3b332d"), Color("8e8069"), 17)
-	_style_button(settings_button, Color("3b332d"), Color("8e8069"), 17)
+	_style_button(codex_button, Color("3b332d"), Color("8e8069"), 22) # 增大字体
+	_style_button(upgrades_button, Color("3b332d"), Color("8e8069"), 22)
+	_style_button(settings_button, Color("3b332d"), Color("8e8069"), 22)
 
 func _build_corner_actions() -> void:
 	var actions := HBoxContainer.new()
 	actions.name = "CornerActions"
-	actions.anchor_left = 1.0
+	# 只锚定右上角
 	actions.anchor_right = 1.0
-	actions.offset_left = -416.0
+	actions.anchor_top = 0.0
+	# 距离右侧200像素
+	actions.offset_right = -200.0
 	actions.offset_top = 22.0
-	actions.offset_right = -24.0
-	actions.offset_bottom = 74.0
+	# 设置合适的大小
+	actions.custom_minimum_size = Vector2(350, 52)
 	actions.alignment = BoxContainer.ALIGNMENT_END
 	actions.add_theme_constant_override("separation", 10)
 	add_child(actions)
@@ -110,7 +109,7 @@ func _create_corner_button(label_text: String, texture: Texture2D) -> Button:
 	var button := Button.new()
 	button.custom_minimum_size = Vector2(124, 52)
 	button.text = label_text
-	_set_centered_button_content(button, texture, 22, 8, 17)
+	_set_centered_button_content(button, texture, 28, 10, 22) # 增大图标和字体
 	return button
 
 func _build_info_overlay() -> void:
@@ -678,8 +677,8 @@ func _add_full_rect_texture(parent: Control, texture: Texture2D, inset: int) -> 
 	image.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	image.offset_left = inset
 	image.offset_top = inset
-	image.offset_right = -inset
-	image.offset_bottom = -inset
+	image.offset_right = - inset
+	image.offset_bottom = - inset
 	image.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	image.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	image.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -746,7 +745,7 @@ func _set_centered_button_content(button: Button, texture: Texture2D, icon_size:
 	label.add_theme_font_size_override("font_size", font_size)
 	content.add_child(label)
 
-func _style_button(button: Button, fill: Color, border: Color, font_size: int = 24) -> void:
+func _style_button(button: Button, fill: Color, border: Color, font_size: int = 32) -> void: # 增大默认字体
 	if button == null:
 		return
 	button.add_theme_stylebox_override("normal", _button_box(fill, border))
@@ -763,7 +762,11 @@ func _button_box(fill: Color, border: Color) -> StyleBoxFlat:
 	box.border_color = border
 	box.set_border_width_all(3)
 	box.set_corner_radius_all(6)
-	box.set_content_margin_all(12)
+	# 再增加左右边距
+	box.content_margin_left = 32
+	box.content_margin_right = 32
+	box.content_margin_top = 12
+	box.content_margin_bottom = 12
 	box.shadow_color = Color(0, 0, 0, 0.45)
 	box.shadow_size = 8
 	box.shadow_offset = Vector2(0, 3)

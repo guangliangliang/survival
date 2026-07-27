@@ -14,7 +14,7 @@ var character_buttons: Dictionary = {}
 func _ready() -> void:
 	AudioManager.play_music_by_key(&"menu")
 	back_button.pressed.connect(_return_home)
-	_set_centered_button_content(back_button, ICON_BACK, 24, 8, 18)
+	_set_centered_button_content(back_button, ICON_BACK, 30, 10, 24)  # 增大图标和字体
 	_style_button(back_button, Color("3b332d"), Color("8e8069"))
 	_build_character_selector()
 	_build_level_cards()
@@ -22,29 +22,33 @@ func _ready() -> void:
 func _build_character_selector() -> void:
 	character_buttons.clear()
 	var panel := PanelContainer.new()
-	panel.custom_minimum_size = Vector2(0, 124)
 	var panel_style := StyleBoxFlat.new()
 	panel_style.bg_color = Color(0.045, 0.052, 0.043, 0.9)
 	panel_style.border_color = Color("7e6846")
 	panel_style.set_border_width_all(2)
-	panel_style.set_corner_radius_all(6)
-	panel_style.set_content_margin_all(14.0)
+	panel_style.set_corner_radius_all(8)
+	panel_style.set_content_margin_all(18.0)
+	panel_style.shadow_color = Color(0, 0, 0, 0.35)
+	panel_style.shadow_size = 8
+	panel_style.shadow_offset = Vector2(0, 3)
 	panel.add_theme_stylebox_override("panel", panel_style)
 	layout_box.add_child(panel)
 	layout_box.move_child(panel, cards.get_index())
 
 	var box := VBoxContainer.new()
-	box.add_theme_constant_override("separation", 10)
+	box.add_theme_constant_override("separation", 14)
 	panel.add_child(box)
 
 	var title := Label.new()
 	title.text = "选择主角"
-	title.add_theme_font_size_override("font_size", 20)
+	title.add_theme_font_size_override("font_size", 26)  # 增大字体
 	title.add_theme_color_override("font_color", Color("e8d99a"))
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	box.add_child(title)
 
 	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 12)
+	row.add_theme_constant_override("separation", 16)
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	box.add_child(row)
 
 	for character_data in GameManager.character_catalog:
@@ -55,7 +59,7 @@ func _build_character_selector() -> void:
 
 func _create_character_button(character_data: Resource) -> Button:
 	var button := Button.new()
-	button.custom_minimum_size = Vector2(235, 72)
+	button.custom_minimum_size = Vector2(300, 96)  # 增加按钮高度以适应文本
 	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	button.toggle_mode = true
 	button.text = ""
@@ -63,30 +67,34 @@ func _create_character_button(character_data: Resource) -> Button:
 
 	var row := HBoxContainer.new()
 	row.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	row.offset_left = 10
-	row.offset_top = 8
-	row.offset_right = -10
-	row.offset_bottom = -8
+	row.offset_left = 14
+	row.offset_top = 10
+	row.offset_right = -14
+	row.offset_bottom = -10
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.add_theme_constant_override("separation", 10)
+	row.add_theme_constant_override("separation", 14)
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	button.add_child(row)
 
 	var preview := TextureRect.new()
-	preview.custom_minimum_size = Vector2(54, 54)
+	preview.custom_minimum_size = Vector2(72, 72)  # 增大图标
 	preview.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
 	preview.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	preview.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	preview.texture = _make_character_preview(character_data.body_texture)
 	preview.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_child(preview)
 
 	var text_box := VBoxContainer.new()
 	text_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	text_box.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	text_box.add_theme_constant_override("separation", 4)
 	text_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_child(text_box)
 
 	var name_label := Label.new()
 	name_label.text = character_data.display_name
-	name_label.add_theme_font_size_override("font_size", 18)
+	name_label.add_theme_font_size_override("font_size", 24)  # 增大字体
 	name_label.add_theme_color_override("font_color", Color("f4e2b2"))
 	name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	text_box.add_child(name_label)
@@ -94,7 +102,7 @@ func _create_character_button(character_data: Resource) -> Button:
 	var desc_label := Label.new()
 	desc_label.text = character_data.description
 	desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	desc_label.add_theme_font_size_override("font_size", 13)
+	desc_label.add_theme_font_size_override("font_size", 15)  # 稍微调整字体大小以适应
 	desc_label.add_theme_color_override("font_color", Color("b8c9ad"))
 	desc_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	text_box.add_child(desc_label)
@@ -153,31 +161,32 @@ func _create_level_card(level_data: Resource, index: int) -> Control:
 
 	var number := Label.new()
 	number.text = "关卡 %d" % (index + 1)
-	number.add_theme_font_size_override("font_size", 17)
+	number.add_theme_font_size_override("font_size", 22)  # 增大字体
 	number.add_theme_color_override("font_color", Color("e8d99a"))
 	box.add_child(number)
 
 	var title := Label.new()
 	title.text = level_data.title
-	title.add_theme_font_size_override("font_size", 26)
+	title.add_theme_font_size_override("font_size", 34)  # 增大字体
 	box.add_child(title)
 
 	var duration := Label.new()
 	duration.text = "预计时间  %s" % level_data.formatted_duration()
 	duration.add_theme_color_override("font_color", Color("b8c9ad"))
+	duration.add_theme_font_size_override("font_size", 20)  # 增大字体
 	box.add_child(duration)
 
 	var description := Label.new()
 	description.text = level_data.description
 	description.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	description.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	description.add_theme_font_size_override("font_size", 15)
+	description.add_theme_font_size_override("font_size", 20)  # 增大字体
 	box.add_child(description)
 
 	var play := Button.new()
 	play.text = "查看地图敌情"
 	play.custom_minimum_size = Vector2(0, 58)
-	_set_centered_button_content(play, ICON_START, 26, 10, 18)
+	_set_centered_button_content(play, ICON_START, 32, 12, 24)  # 增大图标和字体
 	_style_button(play, level_data.accent_color.darkened(0.32), level_data.accent_color.lightened(0.12))
 	play.pressed.connect(_start_level.bind(level_data))
 	box.add_child(play)
@@ -198,7 +207,7 @@ func _style_button(button: Button, fill: Color, border: Color) -> void:
 	button.add_theme_stylebox_override("pressed", _button_box(fill.darkened(0.12), border.darkened(0.1)))
 	button.add_theme_color_override("font_color", Color("f4e2b2"))
 	button.add_theme_color_override("font_hover_color", Color("fff0c6"))
-	button.add_theme_font_size_override("font_size", 18)
+	button.add_theme_font_size_override("font_size", 24)
 	button.add_theme_constant_override("h_separation", 10)
 
 func _set_centered_button_content(button: Button, texture: Texture2D, icon_size: int, gap: int, font_size: int) -> void:
@@ -246,7 +255,11 @@ func _button_box(fill: Color, border: Color) -> StyleBoxFlat:
 	box.border_color = border
 	box.set_border_width_all(2)
 	box.set_corner_radius_all(6)
-	box.set_content_margin_all(10)
+	# 再增加左右边距
+	box.content_margin_left = 32
+	box.content_margin_right = 32
+	box.content_margin_top = 10
+	box.content_margin_bottom = 10
 	box.shadow_color = Color(0, 0, 0, 0.32)
 	box.shadow_size = 6
 	box.shadow_offset = Vector2(0, 2)

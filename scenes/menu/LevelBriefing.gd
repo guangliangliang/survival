@@ -19,8 +19,8 @@ func _ready() -> void:
 	AudioManager.play_music_by_key(&"menu")
 	back_button.pressed.connect(_return_to_level_select)
 	start_button.pressed.connect(_start_game)
-	_set_centered_button_content(back_button, ICON_BACK, 24, 8, 18)
-	_set_centered_button_content(start_button, ICON_START, 24, 8, 18)
+	_set_centered_button_content(back_button, ICON_BACK, 30, 10, 24)  # 增大图标和字体
+	_set_centered_button_content(start_button, ICON_START, 30, 10, 24)
 	_style_button(back_button, Color("3b332d"), Color("8e8069"))
 	_style_button(start_button, Color("6f3d25"), Color("d9b56b"))
 	_build_briefing()
@@ -63,7 +63,7 @@ func _create_character_panel(character_data: Resource) -> Control:
 	var name_label := Label.new()
 	name_label.text = character_data.display_name if character_data != null else "未选择"
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	name_label.add_theme_font_size_override("font_size", 25)
+	name_label.add_theme_font_size_override("font_size", 32)  # 增大字体
 	name_label.add_theme_color_override("font_color", Color("fff0c6"))
 	box.add_child(name_label)
 
@@ -71,7 +71,7 @@ func _create_character_panel(character_data: Resource) -> Control:
 	desc_label.text = character_data.description if character_data != null else ""
 	desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	desc_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	desc_label.add_theme_font_size_override("font_size", 15)
+	desc_label.add_theme_font_size_override("font_size", 20)  # 增大字体
 	desc_label.add_theme_color_override("font_color", Color("b8c9ad"))
 	box.add_child(desc_label)
 	return panel
@@ -104,7 +104,7 @@ func _create_map_panel(level_data: Resource) -> Control:
 	desc_label.text = level_data.description
 	desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	desc_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	desc_label.add_theme_font_size_override("font_size", 15)
+	desc_label.add_theme_font_size_override("font_size", 20)
 	desc_label.add_theme_color_override("font_color", Color("d8d0b0"))
 	box.add_child(desc_label)
 	return panel
@@ -162,26 +162,26 @@ func _create_enemy_row(enemy_data: Resource, is_boss: bool, accent_color: Color,
 	var name_label := Label.new()
 	name_label.text = enemy_data.display_name
 	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	name_label.add_theme_font_size_override("font_size", 18)
+	name_label.add_theme_font_size_override("font_size", 24)  # 增大字体
 	name_label.add_theme_color_override("font_color", Color("fff0c6"))
 	name_row.add_child(name_label)
 
 	if is_boss:
 		var badge := Label.new()
 		badge.text = "首领"
-		badge.add_theme_font_size_override("font_size", 14)
+		badge.add_theme_font_size_override("font_size", 18)  # 增大字体
 		badge.add_theme_color_override("font_color", Color("ffdf7a"))
 		name_row.add_child(badge)
 
 	var stat_label := Label.new()
 	stat_label.text = "生命 %d  攻击 %d" % [int(enemy_data.max_health), int(enemy_data.damage)]
-	stat_label.add_theme_font_size_override("font_size", 13)
+	stat_label.add_theme_font_size_override("font_size", 18)  # 增大字体
 	stat_label.add_theme_color_override("font_color", Color("c8d1bd"))
 	text_box.add_child(stat_label)
 
 	var trait_label := Label.new()
 	trait_label.text = _get_enemy_trait_text(enemy_data, is_boss, boss_spawn_time)
-	trait_label.add_theme_font_size_override("font_size", 13)
+	trait_label.add_theme_font_size_override("font_size", 18)  # 增大字体
 	trait_label.add_theme_color_override("font_color", Color("aeb89e"))
 	text_box.add_child(trait_label)
 	return row_panel
@@ -212,7 +212,7 @@ func _add_section_title(parent: VBoxContainer, text: String) -> void:
 	var label := Label.new()
 	label.text = text
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	label.add_theme_font_size_override("font_size", 23)
+	label.add_theme_font_size_override("font_size", 30)
 	label.add_theme_color_override("font_color", Color("e8d99a"))
 	parent.add_child(label)
 
@@ -243,14 +243,14 @@ func _create_info_chip(label_text: String, value_text: String, accent_color: Col
 	var label := Label.new()
 	label.text = label_text
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	label.add_theme_font_size_override("font_size", 13)
+	label.add_theme_font_size_override("font_size", 17)  # 增大字体
 	label.add_theme_color_override("font_color", Color("b8c9ad"))
 	box.add_child(label)
 
 	var value := Label.new()
 	value.text = value_text
 	value.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	value.add_theme_font_size_override("font_size", 18)
+	value.add_theme_font_size_override("font_size", 24)  # 增大字体
 	value.add_theme_color_override("font_color", Color("fff0c6"))
 	box.add_child(value)
 	return panel
@@ -293,7 +293,7 @@ func _style_button(button: Button, fill: Color, border: Color) -> void:
 	button.add_theme_stylebox_override("focus", _button_box(fill.lightened(0.08), border.lightened(0.12)))
 	button.add_theme_color_override("font_color", BUTTON_TEXT_COLOR)
 	button.add_theme_color_override("font_hover_color", Color("fff0c6"))
-	button.add_theme_font_size_override("font_size", 18)
+	button.add_theme_font_size_override("font_size", 24)
 	button.add_theme_constant_override("h_separation", 10)
 
 func _set_centered_button_content(button: Button, texture: Texture2D, icon_size: int, gap: int, font_size: int) -> void:
@@ -349,7 +349,11 @@ func _button_box(fill: Color, border: Color) -> StyleBoxFlat:
 	box.border_color = border
 	box.set_border_width_all(2)
 	box.set_corner_radius_all(6)
-	box.set_content_margin_all(10)
+	# 再增加左右边距
+	box.content_margin_left = 32
+	box.content_margin_right = 32
+	box.content_margin_top = 10
+	box.content_margin_bottom = 10
 	box.shadow_color = Color(0, 0, 0, 0.32)
 	box.shadow_size = 6
 	box.shadow_offset = Vector2(0, 2)

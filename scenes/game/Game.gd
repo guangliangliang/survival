@@ -29,7 +29,8 @@ const BUTTON_DISABLED_TEXT_COLOR := Color("998966")
 @onready var enemy_spawner: EnemySpawner = $EnemySpawner
 @onready var camera: Camera2D = $Camera2D
 @onready var status_panel_bg: PanelContainer = $CanvasLayer/GameUI/StatusPanelBg
-@onready var health_label: Label = $CanvasLayer/GameUI/TopHUD/HealthRow/HealthLabel
+@onready var health_bar: ProgressBar = $CanvasLayer/GameUI/TopHUD/HealthRow/HealthBar
+@onready var health_label: Label = $CanvasLayer/GameUI/TopHUD/HealthRow/HealthBar/HealthLabel
 @onready var exp_bar: ProgressBar = $CanvasLayer/GameUI/ExpHUD/ExpBar
 @onready var level_label: Label = $CanvasLayer/GameUI/ExpHUD/LevelLabel
 @onready var time_label: Label = $CanvasLayer/GameUI/TopHUD/TimeRow/TimeLabel
@@ -524,7 +525,12 @@ func _on_game_ended(result: StringName) -> void:
 
 func _update_ui() -> void:
 	if is_instance_valid(player):
-		health_label.text = "生命 %d / %d" % [int(player.health_component.current_health), int(player.health_component.max_health)]
+		var current: float = player.health_component.current_health
+		var maximum: float = player.health_component.max_health
+		health_bar.max_value = maximum
+		health_bar.value = current
+		health_label.text = "%d / %d" % [int(current), int(maximum)]
+		_apply_health_bar_color(health_bar, current / max(maximum, 1.0))
 	exp_bar.max_value = GameManager.exp_to_next_level
 	exp_bar.value = GameManager.current_exp
 	level_label.text = "等级 %d" % GameManager.current_level
@@ -608,6 +614,7 @@ func _run_upgrade_exhaustion_test() -> void:
 func _apply_overlay_style() -> void:
 	status_panel_bg.add_theme_stylebox_override("panel", _status_panel_box())
 	_style_exp_bar(exp_bar)
+	_style_health_bar(health_bar)
 	pause_button.text = ""
 	pause_button.icon = ICON_PAUSE
 	pause_button.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -654,6 +661,18 @@ func _style_exp_bar(bar: ProgressBar) -> void:
 	bar.add_theme_stylebox_override("background", _bar_box(Color(0.0, 0.0, 0.0, 0.92), Color("2b2113"), 10))
 	bar.add_theme_stylebox_override("fill", _bar_box(Color("f1bd32"), Color("f1bd32"), 10))
 
+func _style_health_bar(bar: ProgressBar) -> void:
+	bar.add_theme_stylebox_override("background", _bar_box(Color(0.04, 0.02, 0.02, 0.9), Color("3a1f1a"), 8))
+	_apply_health_bar_color(bar, 1.0)
+
+func _apply_health_bar_color(bar: ProgressBar, ratio: float) -> void:
+	var fill: Color
+	if ratio > 0.5:
+		fill = Color("46c85a").lerp(Color("f1bd32"), inverse_lerp(1.0, 0.5, ratio))
+	else:
+		fill = Color("f1bd32").lerp(Color("d43a2b"), inverse_lerp(0.5, 0.0, ratio))
+	bar.add_theme_stylebox_override("fill", _bar_box(fill, fill.lightened(0.25), 8))
+
 func _bar_box(fill: Color, border: Color, radius: int) -> StyleBoxFlat:
 	var box := StyleBoxFlat.new()
 	box.bg_color = fill
@@ -664,10 +683,20 @@ func _bar_box(fill: Color, border: Color, radius: int) -> StyleBoxFlat:
 
 func _status_panel_box() -> StyleBoxFlat:
 	var box := StyleBoxFlat.new()
-	box.bg_color = Color(0.02, 0.025, 0.02, 0.68)
-	box.border_color = Color(0.95, 0.74, 0.34, 0.28)
-	box.set_border_width_all(1)
-	box.set_corner_radius_all(6)
+	box.bg_color = Color(0.09, 0.08, 0.07, 0.32)
+	box.border_color = Color(0.95, 0.78, 0.42, 0.35)
+	box.border_width_left = 3
+	box.border_width_top = 0
+	box.border_width_right = 0
+	box.border_width_bottom = 0
+	box.corner_radius_top_left = 10
+	box.corner_radius_bottom_left = 10
+	box.corner_radius_top_right = 4
+	box.corner_radius_bottom_right = 4
+	box.content_margin_left = 14.0
+	box.content_margin_right = 12.0
+	box.content_margin_top = 8.0
+	box.content_margin_bottom = 8.0
 	return box
 
 func _style_game_button(button: Button) -> void:

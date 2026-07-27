@@ -1,4 +1,4 @@
-[gd_scene load_steps=19 format=3]
+[gd_scene load_steps=18 format=3]
 
 [ext_resource type="Script" path="res://scripts/systems/Player.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/components/HealthComponent.gd" id="2"]
@@ -12,7 +12,6 @@
 [ext_resource type="Texture2D" path="res://assets/images/weapons/weapon_orbit_flywheel.png" id="10"]
 [ext_resource type="Script" path="res://scripts/components/DroneWeapon.gd" id="11"]
 [ext_resource type="Texture2D" path="res://assets/images/weapons/weapon_combat_drone.png" id="12"]
-[ext_resource type="PackedScene" path="res://scenes/game/DroneBullet.tscn" id="13"]
 [ext_resource type="Script" path="res://scripts/components/BlossomScatter.gd" id="14"]
 [ext_resource type="Script" path="res://scripts/components/SwordRainStorm.gd" id="16"]
 [ext_resource type="PackedScene" path="res://scenes/game/SwordProjectile.tscn" id="17"]
@@ -86,15 +85,13 @@ sprite_scale = 0.018
 [node name="DroneWeapon" type="Node2D" parent="WeaponsNode"]
 script = ExtResource("11")
 drone_texture = ExtResource("12")
-bullet_scene = ExtResource("13")
 drone_unlocked = false
 fixed_offset = Vector2(88, -86)
-fire_rate = 1.4
-damage = 11.0
-bullet_speed = 620.0
-fire_range = 560.0
-bullet_pool_size = 80
+damage = 22.0
+fire_range = 300.0
 sprite_scale = 0.027
+laser_width = 14.0
+laser_hit_interval = 0.15
 
 [node name="BlossomScatter" type="Node2D" parent="WeaponsNode"]
 script = ExtResource("14")

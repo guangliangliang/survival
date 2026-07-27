@@ -560,9 +560,11 @@ func _get_upgrade_level_effect(upgrade: Resource, level: int) -> String:
 		&"flywheel_count":
 			return "环绕飞轮累计 +%d 个" % (int(upgrade.amount) * level)
 		&"drone_unlock":
-			return "获得右上方支援无人机，自动索敌射击"
+			return "获得右上方支援无人机，发射激光自动索敌"
 		&"scatter_level":
 			return _get_scatter_level_effect(level)
+		&"drone_upgrade":
+			return _get_drone_upgrade_effect(level)
 		_:
 			return upgrade.description
 
@@ -570,6 +572,21 @@ func _format_multiplier_effect(subject: String, amount: float, level: int) -> St
 	var multiplier := pow(1.0 + amount, level)
 	var percent := int(round((multiplier - 1.0) * 100.0))
 	return "%s累计 x%.2f（+%d%%）" % [subject, multiplier, percent]
+
+func _get_drone_upgrade_effect(level: int) -> String:
+	match level:
+		1:
+			return "获得右上方支援无人机，发射激光自动索敌"
+		2:
+			return "激光伤害 x1.3，射程 x1.25"
+		3:
+			return "灼烧频率提升，射程 x1.25"
+		4:
+			return "激光宽度翻倍，射程 x1.3"
+		5:
+			return "激光伤害 x1.3，灼烧频率再次提升，射程 x1.3"
+		_:
+			return "解锁或强化激光无人机"
 
 func _get_scatter_level_effect(level: int) -> String:
 	var beam_length := 360.0 + 35.0 * float(level)

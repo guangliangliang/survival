@@ -55,9 +55,6 @@ const SFX := {
 	&"flywheel_hit": [
 		"res://assets/audio/sfx/sfx_flywheel_hit.wav",
 	],
-	&"drone_shot": [
-		"res://assets/audio/sfx/sfx_drone_shot.wav",
-	],
 	&"exp_pickup": [
 		"res://assets/audio/sfx/sfx_exp_pickup.wav",
 	],

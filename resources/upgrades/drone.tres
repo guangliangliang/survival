@@ -5,8 +5,8 @@
 [resource]
 script = ExtResource("1")
 upgrade_id = &"drone"
-title = "无人机支援"
-description = "解锁或强化支援无人机"
+title = "激光无人机"
+description = "解锁或强化激光无人机"
 stat_key = &"drone_upgrade"
 amount = 1.0
 max_level = 5

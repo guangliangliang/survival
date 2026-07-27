@@ -15,7 +15,6 @@ const DISPLAY_NAMES := {
 	"sfx_enemy_projectile_land.wav": "敌方弹丸落地",
 	"sfx_flywheel_loop.wav": "环绕飞轮旋转",
 	"sfx_flywheel_hit.wav": "飞轮切中敌人",
-	"sfx_drone_shot.wav": "支援无人机开火",
 	"sfx_weapon_unlock.wav": "新武器解锁",
 	"sfx_exp_pickup.wav": "经验宝石拾取",
 	"sfx_level_up.wav": "升级",

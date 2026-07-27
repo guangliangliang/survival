@@ -41,6 +41,8 @@ var upgrade_catalog: Array[Resource] = [
 	preload("res://resources/upgrades/fire_rate.tres"),
 	preload("res://resources/upgrades/pierce.tres"),
 	preload("res://resources/upgrades/projectiles.tres"),
+	preload("res://resources/upgrades/magazine_size.tres"),
+	preload("res://resources/upgrades/reload_speed.tres"),
 	preload("res://resources/upgrades/scatter_blossom.tres"),
 	preload("res://resources/upgrades/flywheel.tres"),
 	preload("res://resources/upgrades/drone.tres"),

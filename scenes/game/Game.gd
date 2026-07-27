@@ -906,13 +906,18 @@ func _update_pause_upgrade_status() -> void:
 			upgrade_status_cards.append(card)
 	
 	if not has_upgrades:
+		upgrade_grid.columns = 1
 		var no_upgrade_label := Label.new()
 		no_upgrade_label.text = "暂无升级"
 		no_upgrade_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		no_upgrade_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		no_upgrade_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		no_upgrade_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
 		no_upgrade_label.add_theme_color_override("font_color", Color("998966"))
 		no_upgrade_label.add_theme_font_size_override("font_size", 18)
 		upgrade_grid.add_child(no_upgrade_label)
+	else:
+		upgrade_grid.columns = 2
 
 func _clear_upgrade_status_cards() -> void:
 	for card in upgrade_status_cards:

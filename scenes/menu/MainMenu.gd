@@ -84,8 +84,8 @@ func _build_corner_actions() -> void:
 	# 只锚定右上角
 	actions.anchor_right = 1.0
 	actions.anchor_top = 0.0
-	# 距离右侧200像素
-	actions.offset_right = -200.0
+	# 距离右侧的间距
+	actions.offset_right = -320.0
 	actions.offset_top = 22.0
 	# 设置合适的大小
 	actions.custom_minimum_size = Vector2(350, 52)

@@ -83,7 +83,7 @@ text = "开始战斗"
 
 [node name="RightSpacer" type="Control" parent="Margin/VBox/Header"]
 layout_mode = 2
-custom_minimum_size = Vector2(80, 0)
+custom_minimum_size = Vector2(220, 0)
 
 [node name="Content" type="HBoxContainer" parent="Margin/VBox"]
 layout_mode = 2

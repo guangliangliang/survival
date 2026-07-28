@@ -114,9 +114,9 @@ func _create_enemy_panel(level_data: Resource) -> Control:
 	var box := _create_panel_box(panel, 12)
 	_add_section_title(box, "怪物列表")
 
-	var scroll := ScrollContainer.new()
+	var scroll := TouchScrollContainer.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	box.add_child(scroll)
 
 	var list := VBoxContainer.new()

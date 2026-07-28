@@ -175,9 +175,9 @@ func _build_info_overlay() -> void:
 	close_button.pressed.connect(_hide_info_overlay)
 	header.add_child(close_button)
 
-	var scroll := ScrollContainer.new()
+	var scroll := TouchScrollContainer.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	layout.add_child(scroll)
 
 	overlay_content = VBoxContainer.new()

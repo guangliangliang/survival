@@ -13,7 +13,7 @@ config_version=5
 config/name="边境守夜人"
 config/description="2D俯视角幸存者游戏"
 run/main_scene="res://scenes/menu/MainMenu.tscn"
-config/features=PackedStringArray("4.5")
+config/features=PackedStringArray("4.5", "Mobile")
 config/icon="res://icon.svg"
 
 [autoload]
@@ -22,16 +22,17 @@ GameManager="*res://autoload/GameManager.gd"
 InputAdapter="*res://autoload/InputAdapter.gd"
 AudioManager="*res://autoload/AudioManager.gd"
 
-[gui]
-
-theme/custom_font="res://assets/fonts/simhei.ttf"
-
 [display]
 
 window/size/viewport_width=1280
 window/size/viewport_height=720
-window/stretch/mode="2d"
-window/stretch/aspect="keep"
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+window/handheld/orientation=1
+
+[gui]
+
+theme/custom_font="res://assets/fonts/simhei.ttf"
 
 [input]
 

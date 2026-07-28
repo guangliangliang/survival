@@ -19,9 +19,13 @@ const MOUSE_TOUCH_INDEX := -2
 @export var heal_offset := Vector2(260.0, 145.0)
 @export var scatter_offset := Vector2(265.0, 49.0)
 
+@export var sword_rain_aim_scale: float = 6.0
+
 var _attack_touch_index: int = -1
 var _attack_press_time: float = 0.0
 var _auto_flash_time: float = 0.0
+var _sword_rain_touch_index: int = -1
+var _sword_rain_press_position: Vector2 = Vector2.ZERO
 
 func _ready() -> void:
 	custom_minimum_size = Vector2(360.0, 360.0)
@@ -63,7 +67,14 @@ func _gui_input(event: InputEvent) -> void:
 
 func _handle_press(local_position: Vector2, touch_index: int) -> void:
 	if _is_inside_sword_rain(local_position):
-		InputAdapter.request_virtual_sword_rain()
+		if touch_index == MOUSE_TOUCH_INDEX:
+			InputAdapter.request_virtual_sword_rain()
+			return
+		InputAdapter.begin_virtual_sword_rain_aim()
+		if InputAdapter.is_virtual_sword_rain_aiming():
+			_sword_rain_touch_index = touch_index
+			_sword_rain_press_position = local_position
+			InputAdapter.set_virtual_sword_rain_aim_offset(Vector2.ZERO)
 		return
 	if _is_inside_dash(local_position):
 		InputAdapter.request_virtual_dash()
@@ -84,11 +95,19 @@ func _handle_press(local_position: Vector2, touch_index: int) -> void:
 		InputAdapter.set_attack_held(true)
 
 func _handle_release(touch_index: int) -> void:
+	if _sword_rain_touch_index == touch_index:
+		_sword_rain_touch_index = -1
+		InputAdapter.confirm_virtual_sword_rain_aim()
+		return
 	if _attack_touch_index == touch_index:
 		_attack_touch_index = -1
 		InputAdapter.set_attack_held(false)
 
 func _handle_drag(local_position: Vector2, touch_index: int) -> void:
+	if _sword_rain_touch_index == touch_index:
+		var offset := (local_position - _sword_rain_press_position) * sword_rain_aim_scale
+		InputAdapter.set_virtual_sword_rain_aim_offset(offset)
+		return
 	if _attack_touch_index != touch_index:
 		return
 	if not _is_inside_attack(local_position):

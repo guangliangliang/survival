@@ -20,6 +20,9 @@ var rain_center: Vector2 = Vector2.ZERO
 var swords_remaining: int = 0
 var spawn_accumulator: float = 0.0
 var spawn_interval: float = 0.05
+var is_virtual_targeting: bool = false
+
+@onready var _player: Node2D = get_parent().get_parent() as Node2D
 
 func _ready() -> void:
 	_build_pool()
@@ -32,7 +35,9 @@ func _process(delta: float) -> void:
 	if is_raining:
 		_update_rain(delta)
 	
-	if is_targeting:
+	_update_virtual_targeting()
+	
+	if is_targeting and not is_virtual_targeting:
 		target_position = get_global_mouse_position()
 		queue_redraw()
 	
@@ -41,6 +46,21 @@ func _process(delta: float) -> void:
 			_confirm_cast()
 		else:
 			_start_targeting()
+
+func _update_virtual_targeting() -> void:
+	if InputAdapter.is_virtual_sword_rain_aiming():
+		if not is_virtual_targeting:
+			is_virtual_targeting = true
+			is_targeting = true
+		var origin := _player.global_position if _player != null else global_position
+		target_position = origin + InputAdapter.get_virtual_sword_rain_aim_offset()
+		queue_redraw()
+	elif is_virtual_targeting:
+		is_virtual_targeting = false
+		if InputAdapter.consume_virtual_sword_rain_cast():
+			_confirm_cast()
+		else:
+			_cancel_targeting()
 
 func _input(event: InputEvent) -> void:
 	if is_targeting:

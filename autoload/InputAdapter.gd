@@ -5,6 +5,9 @@ var virtual_attack_requested: bool = false
 var virtual_dash_requested: bool = false
 var virtual_scatter_requested: bool = false
 var virtual_sword_rain_requested: bool = false
+var virtual_sword_rain_aiming: bool = false
+var virtual_sword_rain_aim_offset: Vector2 = Vector2.ZERO
+var virtual_sword_rain_cast_requested: bool = false
 var virtual_heal_requested: bool = false
 var attack_held: bool = false
 var auto_attack_enabled: bool = true
@@ -80,6 +83,39 @@ func request_virtual_sword_rain() -> void:
 
 func clear_virtual_sword_rain() -> void:
 	virtual_sword_rain_requested = false
+	virtual_sword_rain_aiming = false
+	virtual_sword_rain_aim_offset = Vector2.ZERO
+	virtual_sword_rain_cast_requested = false
+
+func begin_virtual_sword_rain_aim() -> void:
+	if sword_rain_cooldown_remaining <= 0.0:
+		virtual_sword_rain_aiming = true
+		virtual_sword_rain_aim_offset = Vector2.ZERO
+		virtual_sword_rain_cast_requested = false
+
+func set_virtual_sword_rain_aim_offset(offset: Vector2) -> void:
+	if virtual_sword_rain_aiming:
+		virtual_sword_rain_aim_offset = offset
+
+func confirm_virtual_sword_rain_aim() -> void:
+	if virtual_sword_rain_aiming:
+		virtual_sword_rain_aiming = false
+		virtual_sword_rain_cast_requested = true
+
+func cancel_virtual_sword_rain_aim() -> void:
+	virtual_sword_rain_aiming = false
+	virtual_sword_rain_cast_requested = false
+
+func is_virtual_sword_rain_aiming() -> bool:
+	return virtual_sword_rain_aiming
+
+func get_virtual_sword_rain_aim_offset() -> Vector2:
+	return virtual_sword_rain_aim_offset
+
+func consume_virtual_sword_rain_cast() -> bool:
+	var requested := virtual_sword_rain_cast_requested
+	virtual_sword_rain_cast_requested = false
+	return requested
 
 func request_virtual_heal() -> void:
 	if heal_cooldown_remaining <= 0.0:

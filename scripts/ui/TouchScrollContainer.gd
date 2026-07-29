@@ -4,6 +4,11 @@ class_name TouchScrollContainer
 ## 抖音式触摸拖动滚动容器。
 ## 修复微信小游戏中 ScrollContainer 触摸拖动只能滑一下、无法继续上下滚动的问题。
 ## 完全自行接管触摸/鼠标拖动，直接偏移唯一子节点，带惯性与回弹阻尼，不依赖内建滚动逻辑。
+##
+## 注意：使用 _input 全局捕获触摸事件，而不是 _gui_input。
+## 因为子控件（卡片/图标/开关/滑块）默认 mouse_filter=STOP 会先吃掉触摸事件，
+## 导致 _gui_input 收不到、微信里滚动失效。改用 _input 判断落点后再处理，
+## 且只有真正拖动超过阈值才 accept_event()，从而不影响点击子控件。
 
 const DRAG_THRESHOLD := 6.0
 const INERTIA_FRICTION := 9.0
@@ -52,34 +57,44 @@ func _clamp_scroll() -> void:
 	if _content != null:
 		_content.position.y = -_scroll
 
-func _gui_input(event: InputEvent) -> void:
+func _is_inside(global_pos: Vector2) -> bool:
+	return is_visible_in_tree() and get_global_rect().has_point(global_pos)
+
+func _input(event: InputEvent) -> void:
 	if event is InputEventScreenTouch:
-		if event.pressed and _touch_index == -1:
-			_begin_track(event.index, event.position.y)
-			accept_event()
-		elif not event.pressed and event.index == _touch_index:
+		if event.pressed:
+			if _touch_index == -1 and _is_inside(event.position):
+				_begin_track(event.index, event.position.y)
+		elif event.index == _touch_index:
+			var was_dragging := _dragging
 			_end_track()
-			accept_event()
+			if was_dragging:
+				accept_event()
 	elif event is InputEventScreenDrag and event.index == _touch_index:
 		_update_drag(event.position.y)
-		accept_event()
+		if _dragging:
+			accept_event()
 	elif event is InputEventMouseButton:
-		if event.button_index == MOUSE_BUTTON_WHEEL_UP and event.pressed:
+		if event.button_index == MOUSE_BUTTON_WHEEL_UP and event.pressed and _is_inside(event.position):
 			_apply_scroll(-WHEEL_STEP)
 			_velocity = 0.0
 			accept_event()
-		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN and event.pressed:
+		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN and event.pressed and _is_inside(event.position):
 			_apply_scroll(WHEEL_STEP)
 			_velocity = 0.0
 			accept_event()
 		elif event.button_index == MOUSE_BUTTON_LEFT:
-			if event.pressed and _touch_index == -1:
+			if event.pressed and _touch_index == -1 and _is_inside(event.position):
 				_begin_track(-2, event.position.y)
 			elif not event.pressed and _touch_index == -2:
+				var was_dragging := _dragging
 				_end_track()
+				if was_dragging:
+					accept_event()
 	elif event is InputEventMouseMotion and _touch_index == -2:
 		_update_drag(event.position.y)
-		accept_event()
+		if _dragging:
+			accept_event()
 
 func _begin_track(index: int, y: float) -> void:
 	_touch_index = index

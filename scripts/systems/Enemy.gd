@@ -36,6 +36,12 @@ var facing_left: bool = false
 var current_animation_texture: Texture2D
 var world_map: Node2D
 var obstacle_avoid_side: float = 1.0
+var cached_obstacle_rects: Array = []
+var has_world_obstacles: bool = false
+var current_frame_index: int = -1
+var current_flip_h: bool = false
+var avoidance_timer: float = 0.0
+var cached_move_direction := Vector2.ZERO
 
 func _ready() -> void:
 	health_component.died.connect(_on_died)
@@ -50,12 +56,16 @@ func _physics_process(delta: float) -> void:
 		return
 	active_time += delta
 	attack_timer = maxf(0.0, attack_timer - delta)
+	if flash_timer > 0.0:
+		flash_timer -= delta
+		if flash_timer <= 0.0:
+			sprite.modulate = Color.WHITE
 	
 	var has_target: bool = is_instance_valid(target)
 	
 	if has_target:
 		var direction := (target.global_position - global_position).normalized()
-		var move_direction := _get_obstacle_aware_direction(direction)
+		var move_direction := _get_throttled_move_direction(direction, delta)
 		_update_facing(move_direction)
 		var distance := global_position.distance_to(target.global_position)
 		var was_in_attack_range := in_attack_range
@@ -106,19 +116,23 @@ func _physics_process(delta: float) -> void:
 	if has_target and active_time > 12.0 and global_position.distance_to(target.global_position) > 1550.0 and not enemy_data.boss:
 		_release_to_pool()
 
-func _process(delta: float) -> void:
-	if flash_timer > 0.0:
-		flash_timer -= delta
-		if flash_timer <= 0.0:
-			sprite.modulate = Color.WHITE
-
 func reset_for_spawn(data: Resource, player_target: Node2D, spawn_position: Vector2, map_node: Node2D = null) -> void:
 	enemy_data = data
 	target = player_target
 	world_map = map_node
+	if world_map != null and world_map.has_method("get_obstacle_block_rects"):
+		cached_obstacle_rects = world_map.call("get_obstacle_block_rects")
+	else:
+		cached_obstacle_rects = []
+	has_world_obstacles = not cached_obstacle_rects.is_empty()
+	avoidance_timer = randf() * 0.08
+	cached_move_direction = Vector2.ZERO
+	current_frame_index = -1
+	current_flip_h = false
 	global_position = spawn_position
 	is_alive = true
 	active_time = 0.0
+	flash_timer = 0.0
 	attack_timer = randf_range(0.0, enemy_data.attack_cooldown)
 	attack_windup = 0.0
 	attack_visual_time = 0.0
@@ -138,10 +152,21 @@ func reset_for_spawn(data: Resource, player_target: Node2D, spawn_position: Vect
 	_apply_data()
 	health_component.reset(enemy_data.max_health)
 
-func _get_obstacle_aware_direction(direct_direction: Vector2) -> Vector2:
-	if direct_direction.length_squared() <= 0.001 or world_map == null or not world_map.has_method("get_obstacle_block_rects"):
+func _get_throttled_move_direction(direct_direction: Vector2, delta: float) -> Vector2:
+	if not has_world_obstacles:
 		return direct_direction
-	var obstacle_rects: Array = world_map.call("get_obstacle_block_rects")
+	avoidance_timer -= delta
+	if avoidance_timer <= 0.0:
+		avoidance_timer = 0.08
+		cached_move_direction = _get_obstacle_aware_direction(direct_direction)
+	if cached_move_direction.length_squared() <= 0.001:
+		return direct_direction
+	return cached_move_direction
+
+func _get_obstacle_aware_direction(direct_direction: Vector2) -> Vector2:
+	if not has_world_obstacles or direct_direction.length_squared() <= 0.001:
+		return direct_direction
+	var obstacle_rects: Array = cached_obstacle_rects
 	if obstacle_rects.is_empty():
 		return direct_direction
 	var blocking_rect := _get_blocking_obstacle_rect(direct_direction, obstacle_rects)
@@ -328,7 +353,9 @@ func _update_visual_animation(delta: float) -> void:
 		return
 	if current_animation_texture != texture:
 		_set_animation_texture(texture)
-	sprite.flip_h = facing_left
+	if current_flip_h != facing_left:
+		current_flip_h = facing_left
+		sprite.flip_h = facing_left
 	if using_attack:
 		attack_animation_time += delta
 		var attack_frame := int(attack_animation_time * ATTACK_ANIM_FPS) % ANIM_FRAME_COUNT
@@ -346,9 +373,11 @@ func _set_animation_texture(texture: Texture2D) -> void:
 	sprite.texture = texture
 	sprite.region_enabled = true
 	sprite.flip_h = facing_left
+	current_flip_h = facing_left
 	var layout := _get_animation_frame_layout(texture)
 	var regions: Array = layout["regions"]
 	sprite.region_rect = regions[0]
+	current_frame_index = 0
 	_apply_sprite_scale(layout["scale_size"])
 
 func _set_animation_frame(frame: int) -> void:
@@ -356,7 +385,11 @@ func _set_animation_frame(frame: int) -> void:
 		return
 	var layout := _get_animation_frame_layout(current_animation_texture)
 	var regions: Array = layout["regions"]
-	sprite.region_rect = regions[clampi(frame, 0, regions.size() - 1)]
+	var clamped := clampi(frame, 0, regions.size() - 1)
+	if clamped == current_frame_index:
+		return
+	current_frame_index = clamped
+	sprite.region_rect = regions[clamped]
 
 func _get_animation_frame_layout(texture: Texture2D) -> Dictionary:
 	var cache_key := texture.resource_path

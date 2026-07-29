@@ -41,6 +41,7 @@ var body_frame: int = 0
 var ammo_in_magazine: int = 0
 var is_reloading: bool = false
 var reload_timer: float = 0.0
+var bullet_pool_cursor: int = 0
 
 func _ready() -> void:
 	if weapon_data == null:
@@ -173,8 +174,14 @@ func _update_muzzle_flash() -> void:
 	muzzle_flash.rotation = 0.0
 
 func _get_bullet_from_pool() -> Area2D:
-	for bullet in bullet_pool:
+	var count := bullet_pool.size()
+	if count == 0:
+		return null
+	for offset in count:
+		var index := (bullet_pool_cursor + offset) % count
+		var bullet := bullet_pool[index]
 		if is_instance_valid(bullet) and not bullet.get("active"):
+			bullet_pool_cursor = (index + 1) % count
 			return bullet
 	return null
 

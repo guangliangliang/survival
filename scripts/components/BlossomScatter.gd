@@ -116,19 +116,20 @@ func _apply_beam_damage() -> void:
 	var forward := Vector2.from_angle(sweep_angle)
 	var now := sweep_clock
 	var effects := get_tree().get_first_node_in_group("visual_effects")
-	for enemy in get_tree().get_nodes_in_group("enemy"):
-		if not is_instance_valid(enemy) or not (enemy is Node2D):
-			continue
-		if not enemy.has_method("receive_hit"):
+	var spawner := get_tree().get_first_node_in_group("enemy_spawner")
+	var enemies: Array = spawner.call("get_active_enemies") if spawner != null and spawner.has_method("get_active_enemies") else get_tree().get_nodes_in_group("enemy")
+	var length_sq := length * length
+	for enemy in enemies:
+		if not is_instance_valid(enemy) or not enemy.get("is_alive"):
 			continue
 		var offset: Vector2 = enemy.global_position - global_position
-		var distance := offset.length()
-		if distance > length or distance < 4.0:
+		var distance_sq := offset.length_squared()
+		if distance_sq > length_sq or distance_sq < 16.0:
 			continue
 		var angle_diff := absf(wrapf(offset.angle() - sweep_angle, -PI, PI))
 		if angle_diff > angle_tolerance:
 			continue
-		var enemy_id := enemy.get_instance_id()
+		var enemy_id: int = enemy.get_instance_id()
 		if next_hit_time.has(enemy_id) and now < next_hit_time[enemy_id]:
 			continue
 		next_hit_time[enemy_id] = now + hit_interval

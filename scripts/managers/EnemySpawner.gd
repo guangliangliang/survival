@@ -210,6 +210,9 @@ func _on_enemy_released(enemy: CharacterBody2D) -> void:
 func get_active_enemy_count() -> int:
 	return active_enemies.size()
 
+func get_active_enemies() -> Array[CharacterBody2D]:
+	return active_enemies
+
 func get_nearest_enemy(origin: Vector2, max_range: float) -> Node2D:
 	var nearest: Node2D
 	var min_distance_sq := max_range * max_range

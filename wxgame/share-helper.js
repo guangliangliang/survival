@@ -1,6 +1,6 @@
 GameGlobal.ShareHelper = {
   shareConfig: {
-    title: "",
+    title: "守住边境，击退来袭的动物和强盗！",
     imageUrl:
       "https://mmocgame.qpic.cn/wechatgame/3HEWh0Q0hvCPqLkuDS4TompEOJIdMLOJzVP7FhE4MY7sOPebbjBKP10FibpyMqxAc/0",
     imageUrlId: "3WUIs6HPQSe8zNVQc2Dyug==",

@@ -77,6 +77,17 @@ const UI := {
 
 const SFX_POOL_SIZE := 18
 const UI_POOL_SIZE := 6
+const MOBILE_SFX_THROTTLE := {
+	&"bullet_hit": 0.05,
+	&"enemy_death": 0.08,
+	&"enemy_melee_swing": 0.12,
+	&"enemy_rifle": 0.1,
+	&"porcupine_thorn": 0.1,
+	&"wizard_orb": 0.1,
+	&"enemy_projectile_land": 0.12,
+	&"flywheel_hit": 0.08,
+	&"exp_pickup": 0.05,
+}
 
 var music_player: AudioStreamPlayer
 var sfx_pool: Array[AudioStreamPlayer] = []
@@ -84,8 +95,11 @@ var ui_pool: Array[AudioStreamPlayer] = []
 var stream_cache: Dictionary = {}
 var missing_paths: Dictionary = {}
 var current_music_key: StringName = &""
+var mobile_performance_mode: bool = false
+var sfx_next_play_time: Dictionary = {}
 
 func _ready() -> void:
+	mobile_performance_mode = GameManager.is_mobile_performance_profile()
 	music_player = AudioStreamPlayer.new()
 	music_player.bus = &"Music"
 	add_child(music_player)
@@ -110,6 +124,8 @@ func play_music(stream: AudioStream) -> void:
 	music_player.play()
 
 func play_sfx_by_key(key: StringName, volume_db: float = 0.0) -> void:
+	if _is_sfx_throttled(key):
+		return
 	var paths: Array = SFX.get(key, [])
 	if paths.is_empty():
 		return
@@ -151,6 +167,16 @@ func _get_available_player(pool: Array[AudioStreamPlayer]) -> AudioStreamPlayer:
 		if not player.playing:
 			return player
 	return pool[0]
+
+func _is_sfx_throttled(key: StringName) -> bool:
+	if not mobile_performance_mode or not MOBILE_SFX_THROTTLE.has(key):
+		return false
+	var now := float(Time.get_ticks_msec()) * 0.001
+	var next_time := float(sfx_next_play_time.get(key, 0.0))
+	if now < next_time:
+		return true
+	sfx_next_play_time[key] = now + float(MOBILE_SFX_THROTTLE[key])
+	return false
 
 func _get_stream(path: String) -> AudioStream:
 	if stream_cache.has(path):

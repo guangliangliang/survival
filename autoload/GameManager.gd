@@ -30,6 +30,11 @@ var character_catalog: Array[Resource] = [
 	preload("res://resources/characters/vanguard.tres")
 ]
 
+func is_mobile_performance_profile() -> bool:
+	if OS.has_feature("editor"):
+		return OS.get_cmdline_user_args().has("--mobile-performance")
+	return OS.has_feature("web") or OS.has_feature("mobile") or OS.has_feature("android") or OS.has_feature("ios")
+
 func start_run(level_data: Resource = null) -> void:
 	if level_data != null:
 		selected_level = level_data

@@ -6,12 +6,15 @@ signal wave_ended()
 
 const WaveEvent := preload("res://scripts/data/WaveEvent.gd")
 const LevelData := preload("res://scripts/data/LevelData.gd")
+const DEFAULT_WAVE_SPAWN_INTERVAL := 0.08
 
 @export var enemy_scene: PackedScene
 @export var pool_size: int = 350
 @export var active_enemy_limit: int = 300
 @export var base_spawn_interval: float = 1.4
 @export var boss_spawn_time: float = 660.0
+@export var mobile_active_enemy_limit: int = 150
+@export var mobile_wave_spawn_interval: float = 0.12
 
 var player: Node2D
 var world_map: Node2D
@@ -28,6 +31,7 @@ var wave_in_progress: bool = false
 var wave_warning_triggered: Dictionary = {}
 var wave_spawn_timer: Timer = Timer.new()
 var enemies_left_to_spawn: int = 0
+var mobile_performance_mode: bool = false
 
 var enemy_catalog: Array[Resource] = [
 	preload("res://resources/enemies/wolf.tres"),
@@ -41,6 +45,7 @@ var enemy_catalog: Array[Resource] = [
 var boss_data: Resource = preload("res://resources/enemies/boss.tres")
 
 func _ready() -> void:
+	mobile_performance_mode = GameManager.is_mobile_performance_profile()
 	add_child(spawn_timer)
 	spawn_timer.one_shot = false
 	spawn_timer.timeout.connect(_on_spawn_timer_timeout)
@@ -48,7 +53,7 @@ func _ready() -> void:
 	
 	add_child(wave_spawn_timer)
 	wave_spawn_timer.one_shot = false
-	wave_spawn_timer.wait_time = 0.08
+	wave_spawn_timer.wait_time = _get_wave_spawn_interval()
 	wave_spawn_timer.timeout.connect(_on_wave_spawn_timer_timeout)
 
 func _reset_wave_state() -> void:
@@ -76,6 +81,9 @@ func configure(config: LevelData, player_node: Node2D, map_node: Node2D, contain
 		boss_spawn_time = level_data.boss_spawn_time
 		base_spawn_interval = level_data.spawn_interval
 		active_enemy_limit = mini(level_data.active_enemy_limit, pool_size - 1)
+	if mobile_performance_mode:
+		active_enemy_limit = mini(active_enemy_limit, mobile_active_enemy_limit)
+	wave_spawn_timer.wait_time = _get_wave_spawn_interval()
 	_build_pool()
 	_reset_wave_state()
 
@@ -121,7 +129,7 @@ func _start_wave(wave_data: WaveEvent) -> void:
 	enemies_left_to_spawn = wave_data.enemy_count
 	spawn_timer.stop()
 	wave_started.emit(wave_data)
-	wave_spawn_timer.start()
+	wave_spawn_timer.start(_get_wave_spawn_interval())
 
 func _on_wave_spawn_timer_timeout() -> void:
 	if not wave_in_progress or enemies_left_to_spawn <= 0:
@@ -224,3 +232,6 @@ func get_nearest_enemy(origin: Vector2, max_range: float) -> Node2D:
 			min_distance_sq = distance_sq
 			nearest = enemy
 	return nearest
+
+func _get_wave_spawn_interval() -> float:
+	return mobile_wave_spawn_interval if mobile_performance_mode else DEFAULT_WAVE_SPAWN_INTERVAL

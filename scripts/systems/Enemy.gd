@@ -4,8 +4,6 @@ signal released(enemy: Node)
 
 const EnemyDataResource = preload("res://scripts/data/EnemyData.gd")
 const ANIM_FRAME_COUNT := 4
-const ANIM_ALPHA_THRESHOLD := 0.03
-const ANIM_MIN_CONTENT_RUN_WIDTH := 12
 const WALK_ANIM_FPS := 8.0
 const ATTACK_ANIM_FPS := 9.5
 const ATTACK_VISUAL_DURATION := 0.42
@@ -13,6 +11,11 @@ const OBSTACLE_AVOIDANCE_LOOKAHEAD := 190.0
 const OBSTACLE_AVOIDANCE_PADDING := 62.0
 const OBSTACLE_AVOIDANCE_STRENGTH := 1.45
 const OBSTACLE_AVOIDANCE_SAMPLES := 6
+const OBSTACLE_AVOIDANCE_INTERVAL := 0.08
+const MOBILE_OBSTACLE_AVOIDANCE_SAMPLES := 3
+const MOBILE_OBSTACLE_AVOIDANCE_INTERVAL := 0.16
+const DESPAWN_DISTANCE_SQ := 2402500.0
+const MELEE_ATTACK_PADDING := 28.0
 static var animation_frame_layout_cache: Dictionary = {}
 
 @export var enemy_data: Resource
@@ -42,8 +45,15 @@ var current_frame_index: int = -1
 var current_flip_h: bool = false
 var avoidance_timer: float = 0.0
 var cached_move_direction := Vector2.ZERO
+var mobile_performance_mode: bool = false
+var obstacle_avoidance_interval: float = OBSTACLE_AVOIDANCE_INTERVAL
+var obstacle_avoidance_samples: int = OBSTACLE_AVOIDANCE_SAMPLES
 
 func _ready() -> void:
+	mobile_performance_mode = GameManager.is_mobile_performance_profile()
+	if mobile_performance_mode:
+		obstacle_avoidance_interval = MOBILE_OBSTACLE_AVOIDANCE_INTERVAL
+		obstacle_avoidance_samples = MOBILE_OBSTACLE_AVOIDANCE_SAMPLES
 	health_component.died.connect(_on_died)
 	health_component.health_changed.connect(_on_health_changed)
 	if enemy_data == null:
@@ -64,12 +74,14 @@ func _physics_process(delta: float) -> void:
 	var has_target: bool = is_instance_valid(target)
 	
 	if has_target:
-		var direction := (target.global_position - global_position).normalized()
+		var target_position := target.global_position
+		var to_target := target_position - global_position
+		var direction := to_target.normalized()
 		var move_direction := _get_throttled_move_direction(direction, delta)
 		_update_facing(move_direction)
-		var distance := global_position.distance_to(target.global_position)
+		var distance_sq := to_target.length_squared()
 		var was_in_attack_range := in_attack_range
-		in_attack_range = distance <= enemy_data.attack_range
+		in_attack_range = distance_sq <= enemy_data.attack_range * enemy_data.attack_range
 		if in_attack_range and not was_in_attack_range:
 			attack_timer = 0.0
 			attack_animation_time = 0.0
@@ -113,7 +125,7 @@ func _physics_process(delta: float) -> void:
 	
 	_update_visual_animation(delta)
 	
-	if has_target and active_time > 12.0 and global_position.distance_to(target.global_position) > 1550.0 and not enemy_data.boss:
+	if has_target and active_time > 12.0 and global_position.distance_squared_to(target.global_position) > DESPAWN_DISTANCE_SQ and not enemy_data.boss:
 		_release_to_pool()
 
 func reset_for_spawn(data: Resource, player_target: Node2D, spawn_position: Vector2, map_node: Node2D = null) -> void:
@@ -125,7 +137,7 @@ func reset_for_spawn(data: Resource, player_target: Node2D, spawn_position: Vect
 	else:
 		cached_obstacle_rects = []
 	has_world_obstacles = not cached_obstacle_rects.is_empty()
-	avoidance_timer = randf() * 0.08
+	avoidance_timer = randf() * obstacle_avoidance_interval
 	cached_move_direction = Vector2.ZERO
 	current_frame_index = -1
 	current_flip_h = false
@@ -157,7 +169,7 @@ func _get_throttled_move_direction(direct_direction: Vector2, delta: float) -> V
 		return direct_direction
 	avoidance_timer -= delta
 	if avoidance_timer <= 0.0:
-		avoidance_timer = 0.08
+		avoidance_timer = obstacle_avoidance_interval
 		cached_move_direction = _get_obstacle_aware_direction(direct_direction)
 	if cached_move_direction.length_squared() <= 0.001:
 		return direct_direction
@@ -200,8 +212,8 @@ func _get_blocking_obstacle_rect(direct_direction: Vector2, obstacle_rects: Arra
 func _path_samples_hit_rect(origin: Vector2, direction: Vector2, lookahead: float, rect: Rect2) -> bool:
 	if rect.has_point(origin):
 		return true
-	for index in OBSTACLE_AVOIDANCE_SAMPLES:
-		var ratio := float(index + 1) / float(OBSTACLE_AVOIDANCE_SAMPLES)
+	for index in obstacle_avoidance_samples:
+		var ratio := float(index + 1) / float(obstacle_avoidance_samples)
 		if rect.has_point(origin + direction * lookahead * ratio):
 			return true
 	return false
@@ -278,7 +290,8 @@ func _perform_attack() -> void:
 			projectile_pool.call("fire_radial", global_position, projectile_count, enemy_data.damage * 0.65, 300.0)
 	else:
 		AudioManager.play_sfx_by_key(&"enemy_melee_swing", -3.0)
-		if is_instance_valid(target) and global_position.distance_to(target.global_position) <= enemy_data.attack_range + 28.0:
+		var padded_attack_range: float = enemy_data.attack_range + MELEE_ATTACK_PADDING
+		if is_instance_valid(target) and global_position.distance_squared_to(target.global_position) <= padded_attack_range * padded_attack_range:
 			var health := target.get_node_or_null("HealthComponent")
 			if health:
 				health.take_damage(enemy_data.damage)
@@ -294,7 +307,7 @@ func receive_hit(amount: float, hit_direction: Vector2) -> void:
 	health_component.take_damage(amount)
 	var feedback := get_tree().get_first_node_in_group("combat_feedback")
 	if feedback != null:
-		feedback.call("show_damage", global_position, amount)
+		feedback.call("show_damage", global_position, amount, enemy_data.boss)
 
 func _on_health_changed(current_health: float, _max_health: float) -> void:
 	if current_health > 0.0 and is_alive:
@@ -402,52 +415,11 @@ func _get_animation_frame_layout(texture: Texture2D) -> Dictionary:
 	return layout
 
 func _build_animation_frame_layout(texture: Texture2D) -> Dictionary:
-	var regions: Array = []
-	var image := texture.get_image()
-	if image != null and image.get_width() > 0 and image.get_height() > 0:
-		var content_runs := _find_animation_content_runs(image)
-		if content_runs.size() == ANIM_FRAME_COUNT:
-			regions = _build_content_gap_regions(content_runs, image.get_width(), image.get_height())
-	if regions.is_empty():
-		regions = _build_equal_frame_regions(texture.get_width(), texture.get_height())
+	var regions := _build_equal_frame_regions(texture.get_width(), texture.get_height())
 	return {
 		"regions": regions,
 		"scale_size": _get_animation_layout_scale_size(regions, texture.get_height()),
 	}
-
-func _find_animation_content_runs(image: Image) -> Array:
-	var runs: Array = []
-	var run_start := -1
-	for x in image.get_width():
-		if _animation_column_has_content(image, x):
-			if run_start < 0:
-				run_start = x
-		elif run_start >= 0:
-			_append_animation_content_run(runs, run_start, x)
-			run_start = -1
-	if run_start >= 0:
-		_append_animation_content_run(runs, run_start, image.get_width())
-	return runs
-
-func _animation_column_has_content(image: Image, x: int) -> bool:
-	for y in image.get_height():
-		if image.get_pixel(x, y).a > ANIM_ALPHA_THRESHOLD:
-			return true
-	return false
-
-func _append_animation_content_run(runs: Array, start: int, end: int) -> void:
-	if end - start >= ANIM_MIN_CONTENT_RUN_WIDTH:
-		runs.append(Vector2i(start, end))
-
-func _build_content_gap_regions(content_runs: Array, texture_width: int, texture_height: int) -> Array:
-	var boundaries: Array = [0]
-	for index in range(ANIM_FRAME_COUNT - 1):
-		var left_run: Vector2i = content_runs[index]
-		var right_run: Vector2i = content_runs[index + 1]
-		var boundary := int(roundf(float(left_run.y + right_run.x) * 0.5))
-		boundaries.append(clampi(boundary, 1, texture_width - 1))
-	boundaries.append(texture_width)
-	return _build_regions_from_boundaries(boundaries, texture_height)
 
 func _build_equal_frame_regions(texture_width: int, texture_height: int) -> Array:
 	var boundaries: Array = []

@@ -1,9 +1,14 @@
 extends Node2D
 
 @export var pool_size: int = 48
+@export var mobile_damage_label_interval: float = 0.05
+
 var labels: Array[Label] = []
+var mobile_performance_mode: bool = false
+var next_damage_label_time: float = 0.0
 
 func _ready() -> void:
+	mobile_performance_mode = GameManager.is_mobile_performance_profile()
 	add_to_group("combat_feedback")
 	for index in pool_size:
 		var label := Label.new()
@@ -25,7 +30,9 @@ func _process(delta: float) -> void:
 		if remaining <= 0.0:
 			label.visible = false
 
-func show_damage(world_position: Vector2, amount: float) -> void:
+func show_damage(world_position: Vector2, amount: float, important: bool = false) -> void:
+	if mobile_performance_mode and not important and not _can_show_mobile_damage_label():
+		return
 	for label in labels:
 		if label.visible:
 			continue
@@ -35,3 +42,10 @@ func show_damage(world_position: Vector2, amount: float) -> void:
 		label.set_meta("remaining", 0.55)
 		label.visible = true
 		return
+
+func _can_show_mobile_damage_label() -> bool:
+	var now := float(Time.get_ticks_msec()) * 0.001
+	if now < next_damage_label_time:
+		return false
+	next_damage_label_time = now + mobile_damage_label_interval
+	return true

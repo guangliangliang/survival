@@ -38,7 +38,8 @@ const BUTTON_DISABLED_TEXT_COLOR := Color("998966")
 @onready var boss_bar: Control = $CanvasLayer/GameUI/BossBar
 @onready var boss_name_label: Label = $CanvasLayer/GameUI/BossBar/Panel/VBox/NameLabel
 @onready var boss_progress_bar: ProgressBar = $CanvasLayer/GameUI/BossBar/Panel/VBox/ProgressBar
-@onready var objective_label: Label = $CanvasLayer/GameUI/ObjectiveLabel
+@onready var objective_panel: PanelContainer = $CanvasLayer/GameUI/ObjectivePanel
+@onready var objective_label: Label = $CanvasLayer/GameUI/ObjectivePanel/VBox/ObjectiveLabel
 @onready var pause_button: Button = $CanvasLayer/GameUI/PauseButton
 @onready var game_over_screen: Control = $CanvasLayer/GameUI/GameOverScreen
 @onready var result_emblem: TextureRect = $CanvasLayer/GameUI/GameOverScreen/Panel/VBox/ResultEmblem
@@ -539,12 +540,16 @@ func _update_ui() -> void:
 	_update_objective_label()
 
 func _update_objective_label() -> void:
+	var objective_text: String
 	if GameManager.game_time < enemy_spawner.boss_spawn_time:
-		objective_label.text = "任务：坚持到%s出现" % level_data.boss_data.display_name
+		objective_text = "坚持到%s出现" % level_data.boss_data.display_name
 	elif not boss_is_defeated:
-		objective_label.text = "任务：击败%s" % level_data.boss_data.display_name
+		objective_text = "击败%s" % level_data.boss_data.display_name
 	else:
-		objective_label.text = "任务：坚持到撤离时间"
+		objective_text = "坚持到撤离时间"
+	if objective_label.text != objective_text:
+		objective_label.text = objective_text
+		objective_panel.reset_size()
 
 func _format_time(value: float) -> String:
 	var total := maxi(0, int(value))
@@ -613,6 +618,26 @@ func _run_upgrade_exhaustion_test() -> void:
 
 func _apply_overlay_style() -> void:
 	status_panel_bg.add_theme_stylebox_override("panel", _status_panel_box())
+	var objective_box := StyleBoxFlat.new()
+	objective_box.bg_color = Color(0.09, 0.08, 0.07, 0.68)
+	objective_box.border_color = Color(0.88, 0.68, 0.35, 0.62)
+	objective_box.border_width_left = 3
+	objective_box.border_width_top = 1
+	objective_box.border_width_right = 1
+	objective_box.border_width_bottom = 1
+	objective_box.corner_radius_top_left = 7
+	objective_box.corner_radius_top_right = 5
+	objective_box.corner_radius_bottom_right = 5
+	objective_box.corner_radius_bottom_left = 7
+	objective_box.content_margin_left = 12.0
+	objective_box.content_margin_right = 12.0
+	objective_box.content_margin_top = 8.0
+	objective_box.content_margin_bottom = 8.0
+	objective_box.shadow_color = Color(0, 0, 0, 0.34)
+	objective_box.shadow_size = 8
+	objective_box.shadow_offset = Vector2(0, 2)
+	objective_panel.add_theme_stylebox_override("panel", objective_box)
+	objective_panel.reset_size()
 	_style_exp_bar(exp_bar)
 	_style_health_bar(health_bar)
 	pause_button.text = ""

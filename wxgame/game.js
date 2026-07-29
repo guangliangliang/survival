@@ -39,7 +39,7 @@ function initShare() {
 
   wx.onShareAppMessage(() => {
     return {
-      title: "边境守夜人",
+      title: "",
       imageUrl: "https://mmocgame.qpic.cn/wechatgame/3HEWh0Q0hvCPqLkuDS4TompEOJIdMLOJzVP7FhE4MY7sOPebbjBKP10FibpyMqxAc/0",
       imageUrlId: "3WUIs6HPQSe8zNVQc2Dyug==",
       query: "",
@@ -48,7 +48,7 @@ function initShare() {
 
   wx.onShareTimeline(() => {
     return {
-      title: "边境守夜人",
+      title: "",
       imageUrl: "https://mmocgame.qpic.cn/wechatgame/3HEWh0Q0hvCPqLkuDS4TompEOJIdMLOJzVP7FhE4MY7sOPebbjBKP10FibpyMqxAc/0",
       imageUrlId: "3WUIs6HPQSe8zNVQc2Dyug==",
       query: "",
@@ -59,7 +59,7 @@ initShare();
 
 GameGlobal.shareGame = function () {
   wx.shareAppMessage({
-    title: "边境守夜人",
+    title: "",
     imageUrl: "https://mmocgame.qpic.cn/wechatgame/3HEWh0Q0hvCPqLkuDS4TompEOJIdMLOJzVP7FhE4MY7sOPebbjBKP10FibpyMqxAc/0",
     imageUrlId: "3WUIs6HPQSe8zNVQc2Dyug==",
     query: "",

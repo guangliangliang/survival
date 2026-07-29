@@ -99,7 +99,7 @@ color = Color(0.753, 0.224, 0.169, 1)
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.4, 0.4, 1)
 theme_override_font_sizes/font_size = 34
-text = "⚠️ 大波怪物来袭！"
+text = "！大波怪物来袭！"
 horizontal_alignment = 1
 
 [node name="GoldSeparator" type="ColorRect" parent="WaveWarningUI/Panel/VBox"]

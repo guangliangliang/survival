@@ -58,6 +58,12 @@ func _ready() -> void:
 	_update_aim_visual()
 
 func _process(delta: float) -> void:
+	if muzzle_flash_timer > 0.0:
+		muzzle_flash_timer -= delta
+		_update_muzzle_flash()
+		queue_redraw()
+	elif muzzle_flash.visible:
+		muzzle_flash.visible = false
 	if is_reloading:
 		reload_timer -= delta
 		if reload_timer <= 0.0:
@@ -77,12 +83,6 @@ func _process(delta: float) -> void:
 			should_fire = true
 		if should_fire:
 			fire()
-	if muzzle_flash_timer > 0.0:
-		muzzle_flash_timer -= delta
-		_update_muzzle_flash()
-		queue_redraw()
-	elif muzzle_flash.visible:
-		muzzle_flash.visible = false
 	target_refresh_timer = maxf(0.0, target_refresh_timer - delta)
 
 func _build_pool() -> void:
@@ -121,10 +121,11 @@ func fire() -> void:
 		bullet.call("activate", muzzle.global_position, direction, runtime_data.bullet_speed, runtime_data.damage, runtime_data.pierce)
 		ammo_in_magazine -= 1
 	AudioManager.play_sfx_by_key(&"player_rifle")
-	muzzle_flash_timer = 0.06
-	muzzle_flash.visible = true
-	_update_muzzle_flash()
-	queue_redraw()
+	if not is_reloading:
+		muzzle_flash_timer = 0.06
+		muzzle_flash.visible = true
+		_update_muzzle_flash()
+		queue_redraw()
 	cooldown = 1.0 / maxf(runtime_data.fire_rate, 0.1)
 	if ammo_in_magazine <= 0:
 		_start_reload()

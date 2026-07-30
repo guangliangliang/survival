@@ -15,9 +15,9 @@ const MOUSE_TOUCH_INDEX := -2
 @export var attack_offset := Vector2(110.0, 90.0)
 @export var auto_offset := Vector2(22.0, 155.0)
 @export var sword_rain_offset := Vector2(110.0, 250.0)
-@export var dash_offset := Vector2(202.0, 221.0)
+@export var dash_offset := Vector2(265.0, 49.0)
 @export var heal_offset := Vector2(260.0, 145.0)
-@export var scatter_offset := Vector2(265.0, 49.0)
+@export var scatter_offset := Vector2(202.0, 221.0)
 
 @export var sword_rain_aim_scale: float = 6.0
 

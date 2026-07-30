@@ -13,8 +13,12 @@ const OBSTACLE_AVOIDANCE_STRENGTH := 1.45
 const OBSTACLE_AVOIDANCE_SAMPLES := 6
 const OBSTACLE_AVOIDANCE_INTERVAL := 0.08
 const MOBILE_OBSTACLE_AVOIDANCE_SAMPLES := 3
-const MOBILE_OBSTACLE_AVOIDANCE_INTERVAL := 0.16
+const MOBILE_OBSTACLE_AVOIDANCE_INTERVAL := 0.24
+const OBSTACLE_AVOIDANCE_SKIP_DISTANCE_SQ := 250000.0
 const DESPAWN_DISTANCE_SQ := 2402500.0
+const MOBILE_DESPAWN_DISTANCE_SQ := 1210000.0
+const DESPAWN_MIN_ACTIVE_TIME := 12.0
+const MOBILE_DESPAWN_MIN_ACTIVE_TIME := 6.0
 const MELEE_ATTACK_PADDING := 28.0
 static var animation_frame_layout_cache: Dictionary = {}
 
@@ -48,12 +52,16 @@ var cached_move_direction := Vector2.ZERO
 var mobile_performance_mode: bool = false
 var obstacle_avoidance_interval: float = OBSTACLE_AVOIDANCE_INTERVAL
 var obstacle_avoidance_samples: int = OBSTACLE_AVOIDANCE_SAMPLES
+var despawn_distance_sq: float = DESPAWN_DISTANCE_SQ
+var despawn_min_active_time: float = DESPAWN_MIN_ACTIVE_TIME
 
 func _ready() -> void:
 	mobile_performance_mode = GameManager.is_mobile_performance_profile()
 	if mobile_performance_mode:
 		obstacle_avoidance_interval = MOBILE_OBSTACLE_AVOIDANCE_INTERVAL
 		obstacle_avoidance_samples = MOBILE_OBSTACLE_AVOIDANCE_SAMPLES
+		despawn_distance_sq = MOBILE_DESPAWN_DISTANCE_SQ
+		despawn_min_active_time = MOBILE_DESPAWN_MIN_ACTIVE_TIME
 	health_component.died.connect(_on_died)
 	health_component.health_changed.connect(_on_health_changed)
 	if enemy_data == null:
@@ -125,7 +133,7 @@ func _physics_process(delta: float) -> void:
 	
 	_update_visual_animation(delta)
 	
-	if has_target and active_time > 12.0 and global_position.distance_squared_to(target.global_position) > DESPAWN_DISTANCE_SQ and not enemy_data.boss:
+	if has_target and active_time > despawn_min_active_time and global_position.distance_squared_to(target.global_position) > despawn_distance_sq and not enemy_data.boss:
 		_release_to_pool()
 
 func reset_for_spawn(data: Resource, player_target: Node2D, spawn_position: Vector2, map_node: Node2D = null) -> void:
@@ -181,6 +189,8 @@ func _get_obstacle_aware_direction(direct_direction: Vector2) -> Vector2:
 	var obstacle_rects: Array = cached_obstacle_rects
 	if obstacle_rects.is_empty():
 		return direct_direction
+	if _nearest_obstacle_distance_sq(obstacle_rects) > OBSTACLE_AVOIDANCE_SKIP_DISTANCE_SQ:
+		return direct_direction
 	var blocking_rect := _get_blocking_obstacle_rect(direct_direction, obstacle_rects)
 	if blocking_rect.size == Vector2.ZERO:
 		return direct_direction
@@ -194,6 +204,14 @@ func _get_obstacle_aware_direction(direct_direction: Vector2) -> Vector2:
 	if push_away.length_squared() <= 0.001:
 		push_away = tangent
 	return (direct_direction + tangent * OBSTACLE_AVOIDANCE_STRENGTH + push_away * 0.45).normalized()
+
+func _nearest_obstacle_distance_sq(obstacle_rects: Array) -> float:
+	var nearest_sq := INF
+	for rect: Rect2 in obstacle_rects:
+		var distance_sq := global_position.distance_squared_to(rect.get_center())
+		if distance_sq < nearest_sq:
+			nearest_sq = distance_sq
+	return nearest_sq
 
 func _get_blocking_obstacle_rect(direct_direction: Vector2, obstacle_rects: Array) -> Rect2:
 	var best_rect := Rect2()
@@ -338,6 +356,9 @@ func _get_ranged_attack_sfx_key() -> StringName:
 			return &"wizard_orb"
 		_:
 			return &"enemy_rifle"
+
+func release_to_pool() -> void:
+	_release_to_pool()
 
 func _release_to_pool() -> void:
 	if not visible and not is_alive:

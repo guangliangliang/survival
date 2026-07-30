@@ -13,8 +13,9 @@ const DEFAULT_WAVE_SPAWN_INTERVAL := 0.08
 @export var active_enemy_limit: int = 300
 @export var base_spawn_interval: float = 1.4
 @export var boss_spawn_time: float = 660.0
-@export var mobile_active_enemy_limit: int = 150
-@export var mobile_wave_spawn_interval: float = 0.12
+@export var mobile_active_enemy_limit: int = 100
+@export var mobile_wave_spawn_interval: float = 0.16
+@export var mobile_wave_end_cleanup_ratio: float = 0.7
 
 var player: Node2D
 var world_map: Node2D
@@ -146,9 +147,36 @@ func _end_wave() -> void:
 	wave_in_progress = false
 	wave_spawn_timer.stop()
 	current_wave_index += 1
+	if mobile_performance_mode:
+		_cleanup_far_enemies()
 	wave_ended.emit()
 	if is_spawning:
 		spawn_timer.start(base_spawn_interval)
+
+func _cleanup_far_enemies() -> void:
+	if not is_instance_valid(player):
+		return
+	var target_count := int(active_enemy_limit * mobile_wave_end_cleanup_ratio)
+	if active_enemies.size() <= target_count:
+		return
+	var player_position := player.global_position
+	var removable: Array[CharacterBody2D] = []
+	for enemy in active_enemies:
+		if not is_instance_valid(enemy) or not enemy.get("is_alive"):
+			continue
+		var data: Resource = enemy.get("enemy_data")
+		if data != null and data.boss:
+			continue
+		removable.append(enemy)
+	removable.sort_custom(func(a: CharacterBody2D, b: CharacterBody2D) -> bool:
+		return a.global_position.distance_squared_to(player_position) > b.global_position.distance_squared_to(player_position))
+	var to_remove := active_enemies.size() - target_count
+	for enemy in removable:
+		if to_remove <= 0:
+			break
+		if enemy.has_method("release_to_pool"):
+			enemy.call("release_to_pool")
+		to_remove -= 1
 
 func start_spawning() -> void:
 	is_spawning = true

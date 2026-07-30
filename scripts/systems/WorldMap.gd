@@ -136,7 +136,7 @@ func get_world_bounds() -> Rect2:
 	return current_world_bounds
 
 func get_obstacle_block_rects() -> Array[Rect2]:
-	return obstacle_block_rects.duplicate()
+	return obstacle_block_rects
 
 func get_spawn_position(region: StringName, avoid_position: Vector2) -> Vector2:
 	var points: Array = spawn_regions.get(region, spawn_regions[&"any"])

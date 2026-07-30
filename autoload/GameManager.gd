@@ -10,7 +10,7 @@ signal boss_defeated
 var player = null
 var current_level: int = 1
 var current_exp: int = 0
-var exp_to_next_level: int = 10
+var exp_to_next_level: int = 20
 var game_time: float = 0.0
 var kill_count: int = 0
 var run_active: bool = false
@@ -40,7 +40,7 @@ func start_run(level_data: Resource = null) -> void:
 		selected_level = level_data
 	current_level = 1
 	current_exp = 0
-	exp_to_next_level = 10
+	exp_to_next_level = _calc_exp_to_next(1)
 	game_time = 0.0
 	kill_count = 0
 	run_active = true
@@ -83,6 +83,14 @@ func get_next_level() -> Resource:
 		return level_catalog[index + 1]
 	return null
 
+func _calc_exp_to_next(level: int) -> int:
+	if level <= 5:
+		return 20 + 15 * (level - 1)
+	elif level <= 10:
+		return int(80.0 * pow(1.20, level - 5))
+	else:
+		return int(200.0 * pow(1.10, level - 10))
+
 func add_exp(amount: int) -> void:
 	if not run_active:
 		return
@@ -90,7 +98,7 @@ func add_exp(amount: int) -> void:
 	while current_exp >= exp_to_next_level:
 		current_exp -= exp_to_next_level
 		current_level += 1
-		exp_to_next_level = int(10.0 * pow(1.28, current_level - 1))
+		exp_to_next_level = _calc_exp_to_next(current_level)
 		level_up.emit(current_level)
 	experience_changed.emit(current_exp, exp_to_next_level)
 

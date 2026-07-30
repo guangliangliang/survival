@@ -4,6 +4,7 @@ extends Node2D
 @export var pool_size: int = 160
 @export var projectile_visual_scale_multiplier: float = 1.0
 var pool: Array[Area2D] = []
+var _cursor: int = 0
 
 func _ready() -> void:
 	add_to_group("enemy_projectile_pool")
@@ -17,9 +18,15 @@ func _ready() -> void:
 		pool.append(projectile)
 
 func fire(spawn_position: Vector2, direction: Vector2, damage: float, speed: float = 330.0, texture: Texture2D = null) -> bool:
-	for projectile in pool:
+	var count := pool.size()
+	if count == 0:
+		return false
+	for offset in count:
+		var index := (_cursor + offset) % count
+		var projectile := pool[index]
 		if not projectile.get("active"):
 			projectile.call("activate", spawn_position, direction, damage, speed, texture)
+			_cursor = (index + 1) % count
 			return true
 	return false
 

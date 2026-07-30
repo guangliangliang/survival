@@ -12,6 +12,12 @@ var damage: float = 10.0
 var active: bool = false
 var life_timer: float = 0.0
 var default_texture: Texture2D
+var _game_controller: Node = null
+
+func _get_game_controller() -> Node:
+	if not is_instance_valid(_game_controller):
+		_game_controller = get_tree().get_first_node_in_group("game_controller")
+	return _game_controller
 
 func _ready() -> void:
 	default_texture = sprite.texture
@@ -58,7 +64,7 @@ func _on_body_entered(body: Node) -> void:
 	var health := body.get_node_or_null("HealthComponent")
 	if health != null:
 		health.take_damage(damage)
-	var controller := get_tree().get_first_node_in_group("game_controller")
+	var controller := _get_game_controller()
 	if controller != null and controller.has_method("shake_camera"):
 		controller.call("shake_camera", 5.0)
 	deactivate()

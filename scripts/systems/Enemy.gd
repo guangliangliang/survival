@@ -54,6 +54,39 @@ var obstacle_avoidance_interval: float = OBSTACLE_AVOIDANCE_INTERVAL
 var obstacle_avoidance_samples: int = OBSTACLE_AVOIDANCE_SAMPLES
 var despawn_distance_sq: float = DESPAWN_DISTANCE_SQ
 var despawn_min_active_time: float = DESPAWN_MIN_ACTIVE_TIME
+var despawn_check_timer: float = 0.0
+var _projectile_pool: Node = null
+var _combat_feedback: Node = null
+var _experience_pool: Node = null
+var _visual_effects: Node = null
+var _game_controller: Node = null
+
+const DESPAWN_CHECK_INTERVAL := 0.25
+
+func _get_projectile_pool() -> Node:
+	if not is_instance_valid(_projectile_pool):
+		_projectile_pool = get_tree().get_first_node_in_group("enemy_projectile_pool")
+	return _projectile_pool
+
+func _get_combat_feedback() -> Node:
+	if not is_instance_valid(_combat_feedback):
+		_combat_feedback = get_tree().get_first_node_in_group("combat_feedback")
+	return _combat_feedback
+
+func _get_experience_pool() -> Node:
+	if not is_instance_valid(_experience_pool):
+		_experience_pool = get_tree().get_first_node_in_group("experience_pool")
+	return _experience_pool
+
+func _get_visual_effects() -> Node:
+	if not is_instance_valid(_visual_effects):
+		_visual_effects = get_tree().get_first_node_in_group("visual_effects")
+	return _visual_effects
+
+func _get_game_controller() -> Node:
+	if not is_instance_valid(_game_controller):
+		_game_controller = get_tree().get_first_node_in_group("game_controller")
+	return _game_controller
 
 func _ready() -> void:
 	mobile_performance_mode = GameManager.is_mobile_performance_profile()
@@ -129,12 +162,16 @@ func _physics_process(delta: float) -> void:
 			move_and_slide()
 			_update_visual_animation(delta)
 			return
-		move_and_slide()
+		velocity = Vector2.ZERO
 	
 	_update_visual_animation(delta)
 	
-	if has_target and active_time > despawn_min_active_time and global_position.distance_squared_to(target.global_position) > despawn_distance_sq and not enemy_data.boss:
-		_release_to_pool()
+	if has_target and not enemy_data.boss and active_time > despawn_min_active_time:
+		despawn_check_timer -= delta
+		if despawn_check_timer <= 0.0:
+			despawn_check_timer = DESPAWN_CHECK_INTERVAL
+			if global_position.distance_squared_to(target.global_position) > despawn_distance_sq:
+				_release_to_pool()
 
 func reset_for_spawn(data: Resource, player_target: Node2D, spawn_position: Vector2, map_node: Node2D = null) -> void:
 	enemy_data = data
@@ -146,6 +183,7 @@ func reset_for_spawn(data: Resource, player_target: Node2D, spawn_position: Vect
 		cached_obstacle_rects = []
 	has_world_obstacles = not cached_obstacle_rects.is_empty()
 	avoidance_timer = randf() * obstacle_avoidance_interval
+	despawn_check_timer = randf() * DESPAWN_CHECK_INTERVAL
 	cached_move_direction = Vector2.ZERO
 	current_frame_index = -1
 	current_flip_h = false
@@ -302,7 +340,7 @@ func _perform_attack() -> void:
 	else:
 		direction = Vector2.RIGHT if not facing_left else Vector2.LEFT
 	
-	var projectile_pool := get_tree().get_first_node_in_group("enemy_projectile_pool")
+	var projectile_pool := _get_projectile_pool()
 	if enemy_data.ranged:
 		AudioManager.play_sfx_by_key(_get_ranged_attack_sfx_key())
 		if projectile_pool != null:
@@ -319,7 +357,7 @@ func _perform_attack() -> void:
 			var health := target.get_node_or_null("HealthComponent")
 			if health:
 				health.take_damage(enemy_data.damage)
-			var controller := get_tree().get_first_node_in_group("game_controller")
+			var controller := _get_game_controller()
 			if controller != null and controller.has_method("shake_camera"):
 				controller.call("shake_camera", 4.0 if not enemy_data.boss else 8.0)
 	sprite.modulate = Color.WHITE
@@ -329,7 +367,7 @@ func receive_hit(amount: float, hit_direction: Vector2) -> void:
 		return
 	knockback_velocity += hit_direction.normalized() * (45.0 if enemy_data.boss else 110.0)
 	health_component.take_damage(amount)
-	var feedback := get_tree().get_first_node_in_group("combat_feedback")
+	var feedback := _get_combat_feedback()
 	if feedback != null:
 		feedback.call("show_damage", global_position, amount, enemy_data.boss)
 
@@ -342,13 +380,13 @@ func _on_died() -> void:
 	if not is_alive:
 		return
 	is_alive = false
-	var exp_pool := get_tree().get_first_node_in_group("experience_pool")
+	var exp_pool := _get_experience_pool()
 	if exp_pool:
 		exp_pool.call("spawn_orb", global_position, enemy_data.exp_reward)
 	else:
 		GameManager.add_exp(enemy_data.exp_reward)
 	GameManager.add_kill(enemy_data.boss)
-	var effects := get_tree().get_first_node_in_group("visual_effects")
+	var effects := _get_visual_effects()
 	if effects != null:
 		effects.call("play_death_puff", global_position)
 	AudioManager.play_sfx_by_key(&"boss_death" if enemy_data.boss else &"enemy_death")

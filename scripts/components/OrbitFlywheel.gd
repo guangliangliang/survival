@@ -13,6 +13,12 @@ var orbit_angle: float = 0.0
 var hit_cooldowns: Dictionary = {}
 var flywheels: Array[Area2D] = []
 var upgrade_level: int = 0
+var _visual_effects: Node = null
+
+func _get_visual_effects() -> Node:
+	if not is_instance_valid(_visual_effects):
+		_visual_effects = get_tree().get_first_node_in_group("visual_effects")
+	return _visual_effects
 
 func _ready() -> void:
 	_rebuild_flywheels()
@@ -102,6 +108,6 @@ func _try_hit(node: Node, hit_position: Vector2) -> void:
 	if node.has_method("receive_hit"):
 		node.call("receive_hit", damage, direction)
 		AudioManager.play_sfx_by_key(&"flywheel_hit", -2.0)
-	var effects := get_tree().get_first_node_in_group("visual_effects")
+	var effects := _get_visual_effects()
 	if effects != null:
 		effects.call("play_impact", hit_position)

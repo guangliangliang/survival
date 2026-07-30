@@ -6,6 +6,7 @@ extends Node2D
 var labels: Array[Label] = []
 var mobile_performance_mode: bool = false
 var next_damage_label_time: float = 0.0
+var active_count: int = 0
 
 func _ready() -> void:
 	mobile_performance_mode = GameManager.is_mobile_performance_profile()
@@ -20,6 +21,8 @@ func _ready() -> void:
 		labels.append(label)
 
 func _process(delta: float) -> void:
+	if active_count <= 0:
+		return
 	for label in labels:
 		if not label.visible:
 			continue
@@ -29,6 +32,7 @@ func _process(delta: float) -> void:
 		label.modulate.a = clampf(remaining / 0.55, 0.0, 1.0)
 		if remaining <= 0.0:
 			label.visible = false
+			active_count -= 1
 
 func show_damage(world_position: Vector2, amount: float, important: bool = false) -> void:
 	if mobile_performance_mode and not important and not _can_show_mobile_damage_label():
@@ -41,6 +45,7 @@ func show_damage(world_position: Vector2, amount: float, important: bool = false
 		label.modulate = Color.WHITE
 		label.set_meta("remaining", 0.55)
 		label.visible = true
+		active_count += 1
 		return
 
 func _can_show_mobile_damage_label() -> bool:

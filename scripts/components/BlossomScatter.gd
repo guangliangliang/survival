@@ -15,6 +15,24 @@ var sweep_angle: float = 0.0
 var sweep_progress: float = 0.0
 var next_hit_time: Dictionary = {}
 var sweep_clock: float = 0.0
+var _visual_effects: Node = null
+var _spawner: Node = null
+var _game_controller: Node = null
+
+func _get_visual_effects() -> Node:
+	if not is_instance_valid(_visual_effects):
+		_visual_effects = get_tree().get_first_node_in_group("visual_effects")
+	return _visual_effects
+
+func _get_spawner() -> Node:
+	if not is_instance_valid(_spawner):
+		_spawner = get_tree().get_first_node_in_group("enemy_spawner")
+	return _spawner
+
+func _get_game_controller() -> Node:
+	if not is_instance_valid(_game_controller):
+		_game_controller = get_tree().get_first_node_in_group("game_controller")
+	return _game_controller
 
 func _ready() -> void:
 	InputAdapter.set_scatter_cooldown(cooldown_remaining, _get_cooldown())
@@ -93,7 +111,7 @@ func _try_cast() -> void:
 	cooldown_remaining = _get_cooldown()
 	InputAdapter.set_scatter_cooldown(cooldown_remaining, _get_cooldown())
 	AudioManager.play_sfx_by_key(&"laser_sweep", -2.0)
-	var controller := get_tree().get_first_node_in_group("game_controller")
+	var controller := _get_game_controller()
 	if controller != null and controller.has_method("shake_camera"):
 		controller.call("shake_camera", 3.0)
 	queue_redraw()
@@ -115,8 +133,8 @@ func _apply_beam_damage() -> void:
 	var angle_tolerance := atan2(_get_beam_width() * 0.5, maxf(length * 0.35, 1.0))
 	var forward := Vector2.from_angle(sweep_angle)
 	var now := sweep_clock
-	var effects := get_tree().get_first_node_in_group("visual_effects")
-	var spawner := get_tree().get_first_node_in_group("enemy_spawner")
+	var effects := _get_visual_effects()
+	var spawner := _get_spawner()
 	var enemies: Array = spawner.call("get_active_enemies") if spawner != null and spawner.has_method("get_active_enemies") else get_tree().get_nodes_in_group("enemy")
 	var length_sq := length * length
 	for enemy in enemies:

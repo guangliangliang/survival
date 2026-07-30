@@ -4,6 +4,7 @@ extends Node2D
 @export var pool_size: int = 180
 
 var pool: Array[Area2D] = []
+var _cursor: int = 0
 
 func _ready() -> void:
 	add_to_group("experience_pool")
@@ -24,8 +25,14 @@ func spawn_orb(spawn_position: Vector2, value: int) -> void:
 	orb.call("activate", spawn_position, value, GameManager.player, self)
 
 func _get_free_orb() -> Area2D:
-	for orb in pool:
+	var count := pool.size()
+	if count == 0:
+		return null
+	for offset in count:
+		var index := (_cursor + offset) % count
+		var orb := pool[index]
 		if not orb.get("active"):
+			_cursor = (index + 1) % count
 			return orb
 	return null
 

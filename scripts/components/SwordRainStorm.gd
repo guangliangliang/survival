@@ -13,6 +13,7 @@ var cooldown_remaining: float = 0.0
 var is_targeting: bool = false
 var target_position: Vector2 = Vector2.ZERO
 var sword_pool: Array[Area2D] = []
+var sword_pool_cursor: int = 0
 
 var is_raining: bool = false
 var rain_timer: float = 0.0
@@ -151,8 +152,14 @@ func _spawn_single_sword(center: Vector2) -> void:
 	sword.call("activate", spawn_pos + spawn_height, spawn_pos, _get_damage())
 
 func _get_sword_from_pool() -> Area2D:
-	for sword in sword_pool:
+	var count := sword_pool.size()
+	if count == 0:
+		return null
+	for offset in count:
+		var index := (sword_pool_cursor + offset) % count
+		var sword := sword_pool[index]
 		if is_instance_valid(sword) and not sword.get("active"):
+			sword_pool_cursor = (index + 1) % count
 			return sword
 	return null
 

@@ -9,6 +9,12 @@ var life_timer: float = 0.0
 var hit_ids: Dictionary = {}
 var fall_duration: float = 0.4
 var landed: bool = false
+var _visual_effects: Node = null
+
+func _get_visual_effects() -> Node:
+	if not is_instance_valid(_visual_effects):
+		_visual_effects = get_tree().get_first_node_in_group("visual_effects")
+	return _visual_effects
 
 func _ready() -> void:
 	body_entered.connect(_on_body_entered)
@@ -36,7 +42,7 @@ func _process(delta: float) -> void:
 		_deactivate()
 
 func _play_landing_effect() -> void:
-	var effects := get_tree().get_first_node_in_group("visual_effects")
+	var effects := _get_visual_effects()
 	if effects != null and effects.has_method("play_arrow_impact"):
 		effects.call("play_arrow_impact", target_position)
 
@@ -56,7 +62,7 @@ func _check_hit(node: Node) -> void:
 	if node.is_in_group("enemy") and not hit_ids.has(node.get_instance_id()):
 		if node.has_method("receive_hit"):
 			hit_ids[node.get_instance_id()] = true
-			var effects := get_tree().get_first_node_in_group("visual_effects")
+			var effects := _get_visual_effects()
 			if effects != null:
 				effects.call("play_impact", global_position)
 			var data = node.get("enemy_data")

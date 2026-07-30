@@ -19,6 +19,12 @@ var upgrade_level: int = 0
 var laser_target: Node2D
 var laser_clock: float = 0.0
 var laser_next_hit: Dictionary = {}
+var _spawner: Node = null
+
+func _get_spawner() -> Node:
+	if not is_instance_valid(_spawner):
+		_spawner = get_tree().get_first_node_in_group("enemy_spawner")
+	return _spawner
 
 func _ready() -> void:
 	_update_drone_visual()
@@ -154,7 +160,7 @@ func _find_nearest_enemy() -> Node2D:
 	if target_refresh_timer > 0.0 and is_instance_valid(cached_target) and cached_target.get("is_alive"):
 		if global_position.distance_squared_to(cached_target.global_position) <= fire_range * fire_range:
 			return cached_target
-	var spawner := get_tree().get_first_node_in_group("enemy_spawner")
+	var spawner := _get_spawner()
 	if spawner != null and spawner.has_method("get_nearest_enemy"):
 		cached_target = spawner.call("get_nearest_enemy", global_position, fire_range)
 	else:

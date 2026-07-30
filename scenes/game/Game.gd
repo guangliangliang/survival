@@ -94,6 +94,13 @@ var boss_is_defeated: bool = false
 var boss_music_started: bool = false
 var current_boss: CharacterBody2D = null
 var boss_health_component: Node = null
+var boss_total_layers: int = 1
+var boss_layer_per: float = 0.0
+const BOSS_LAYER_COLORS: Array[Color] = [
+	Color("d43a2b"),
+	Color("9b4fd0"),
+	Color("f1bd32"),
+]
 var smoke_test: bool = false
 var smoke_boss_marked: bool = false
 var stress_test: bool = false
@@ -165,7 +172,7 @@ func _process(delta: float) -> void:
 			AudioManager.play_sfx_by_key(&"boss_warning")
 			AudioManager.play_music_by_key(&"boss")
 		_update_boss_bar()
-		if boss_is_defeated and GameManager.game_time >= run_duration:
+		if boss_is_defeated:
 			GameManager.finish_run(&"victory")
 	_update_ui()
 	if is_instance_valid(player):
@@ -483,16 +490,28 @@ func _bind_boss(boss: CharacterBody2D) -> void:
 	boss_health_component = boss.get_node_or_null("HealthComponent")
 	if boss_health_component == null:
 		return
-	boss_name_label.text = boss.enemy_data.display_name
-	boss_progress_bar.max_value = boss_health_component.max_health
-	boss_progress_bar.value = boss_health_component.current_health
+	boss_total_layers = max(boss.enemy_data.boss_health_bars, 1)
+	boss_layer_per = boss_health_component.max_health / float(boss_total_layers)
 	if not boss_health_component.health_changed.is_connected(_on_boss_health_changed):
 		boss_health_component.health_changed.connect(_on_boss_health_changed)
 	boss_bar.visible = true
+	_on_boss_health_changed(boss_health_component.current_health, boss_health_component.max_health)
 
 func _on_boss_health_changed(current: float, max_hp: float) -> void:
-	boss_progress_bar.max_value = max_hp
-	boss_progress_bar.value = current
+	var per: float = max_hp / float(boss_total_layers)
+	var clamped: float = max(current, 0.0)
+	var layers_left: int = clamp(int(ceil(clamped / per)), 1, boss_total_layers)
+	var in_layer: float = clamped - per * float(layers_left - 1)
+	boss_progress_bar.max_value = per
+	boss_progress_bar.value = in_layer
+	_apply_boss_layer_color(layers_left)
+	if is_instance_valid(current_boss):
+		boss_name_label.text = "%s  ×%d" % [current_boss.enemy_data.display_name, layers_left]
+
+func _apply_boss_layer_color(layers_left: int) -> void:
+	var index: int = clamp(layers_left - 1, 0, BOSS_LAYER_COLORS.size() - 1)
+	var fill: Color = BOSS_LAYER_COLORS[index]
+	boss_progress_bar.add_theme_stylebox_override("fill", _bar_box(fill, fill.lightened(0.3), 2))
 
 func _hide_boss_bar() -> void:
 	if boss_health_component != null and is_instance_valid(boss_health_component):
@@ -517,6 +536,8 @@ func _on_game_ended(result: StringName) -> void:
 	next_button.visible = result == &"victory" and next_level != null
 	result_label.text = "任务完成" if result == &"victory" else "守卫倒下"
 	summary_label.text = "%s\n坚持时间  %s\n击败敌人  %d\n守卫等级  %d" % [level_data.title, _format_time(GameManager.game_time), GameManager.kill_count, GameManager.current_level]
+	if result == &"victory":
+		summary_label.text += "\n评价  %s" % _calculate_rank()
 	if timeline_test:
 		print("TIMELINE_TEST level=%s time=%.1f boss_spawned=%s result=%s" % [level_data.level_id, GameManager.game_time, enemy_spawner.boss_spawned, result])
 		get_tree().create_timer(0.2, true).timeout.connect(func(): get_tree().quit())
@@ -535,7 +556,7 @@ func _update_ui() -> void:
 	exp_bar.max_value = GameManager.exp_to_next_level
 	exp_bar.value = GameManager.current_exp
 	level_label.text = "等级 %d" % GameManager.current_level
-	time_label.text = "%s / %s" % [_format_time(GameManager.game_time), _format_time(run_duration)]
+	time_label.text = _format_time(GameManager.game_time)
 	kill_label.text = "击杀 %d" % GameManager.kill_count
 	_update_objective_label()
 
@@ -543,13 +564,26 @@ func _update_objective_label() -> void:
 	var objective_text: String
 	if GameManager.game_time < enemy_spawner.boss_spawn_time:
 		objective_text = "坚持到%s出现" % level_data.boss_data.display_name
-	elif not boss_is_defeated:
-		objective_text = "击败%s" % level_data.boss_data.display_name
 	else:
-		objective_text = "坚持到撤离时间"
+		objective_text = "击败%s" % level_data.boss_data.display_name
 	if objective_label.text != objective_text:
 		objective_label.text = objective_text
 		objective_panel.reset_size()
+
+func _calculate_rank() -> String:
+	if not is_instance_valid(player):
+		return "B"
+	var maximum: float = player.health_component.max_health
+	if maximum <= 0.0:
+		return "B"
+	var ratio: float = player.health_component.current_health / maximum
+	if ratio >= 1.0:
+		return "SS"
+	if ratio >= 0.8:
+		return "S"
+	if ratio >= 0.5:
+		return "A"
+	return "B"
 
 func _format_time(value: float) -> String:
 	var total := maxi(0, int(value))

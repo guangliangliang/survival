@@ -23,3 +23,4 @@ extends Resource
 @export var attack_cooldown: float = 1.0
 @export var elite: bool = false
 @export var boss: bool = false
+@export var boss_health_bars: int = 1

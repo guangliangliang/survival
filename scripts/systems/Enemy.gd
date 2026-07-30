@@ -266,7 +266,7 @@ func _try_attack() -> void:
 		_set_animation_frame(0)
 	sprite.modulate = Color.WHITE if enemy_data.attack_texture != null else Color(1.0, 0.72, 0.18)
 	var phase_multiplier := 1.0
-	if enemy_data.boss and health_component.current_health <= health_component.max_health * 0.5:
+	if _is_enraged():
 		phase_multiplier = 0.65
 	attack_timer = enemy_data.attack_cooldown * phase_multiplier
 
@@ -281,9 +281,15 @@ func trigger_attack() -> void:
 		_set_animation_frame(0)
 	sprite.modulate = Color.WHITE if enemy_data.attack_texture != null else Color(1.0, 0.72, 0.18)
 	var phase_multiplier := 1.0
-	if enemy_data.boss and health_component.current_health <= health_component.max_health * 0.5:
+	if _is_enraged():
 		phase_multiplier = 0.65
 	attack_timer = enemy_data.attack_cooldown * phase_multiplier
+
+func _is_enraged() -> bool:
+	if not enemy_data.boss:
+		return false
+	var layers: int = max(enemy_data.boss_health_bars, 1)
+	return health_component.current_health <= health_component.max_health / float(layers)
 
 func _perform_attack() -> void:
 	if not is_alive:
@@ -304,7 +310,7 @@ func _perform_attack() -> void:
 	elif enemy_data.boss and attack_count % 3 == 0:
 		AudioManager.play_sfx_by_key(&"enemy_projectile_pass")
 		if projectile_pool != null:
-			var projectile_count: int = 14 if health_component.current_health <= health_component.max_health * 0.5 else 10
+			var projectile_count: int = 14 if _is_enraged() else 10
 			projectile_pool.call("fire_radial", global_position, projectile_count, enemy_data.damage * 0.65, 300.0)
 	else:
 		AudioManager.play_sfx_by_key(&"enemy_melee_swing", -3.0)

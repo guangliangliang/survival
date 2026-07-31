@@ -74,8 +74,10 @@ make_current = true
 
 [node name="GameWorld" type="Node2D" parent="." groups=["game_world"]]
 process_mode = 1
+y_sort_enabled = true
 
 [node name="WorldMap" type="Node2D" parent="GameWorld"]
+z_index = -100
 script = ExtResource("2")
 
 [node name="ExperiencePool" type="Node2D" parent="GameWorld"]

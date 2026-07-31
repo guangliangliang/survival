@@ -7,6 +7,9 @@ signal wave_ended()
 const WaveEvent := preload("res://scripts/data/WaveEvent.gd")
 const LevelData := preload("res://scripts/data/LevelData.gd")
 const DEFAULT_WAVE_SPAWN_INTERVAL := 0.08
+const MOBILE_PRESSURE_NONE := 0
+const MOBILE_PRESSURE_HIGH := 1
+const MOBILE_PRESSURE_CRITICAL := 2
 
 @export var enemy_scene: PackedScene
 @export var pool_size: int = 350
@@ -14,8 +17,18 @@ const DEFAULT_WAVE_SPAWN_INTERVAL := 0.08
 @export var base_spawn_interval: float = 1.4
 @export var boss_spawn_time: float = 660.0
 @export var mobile_active_enemy_limit: int = 100
+@export var mobile_pressure_enemy_limit: int = 75
+@export var mobile_critical_enemy_limit: int = 60
 @export var mobile_wave_spawn_interval: float = 0.16
+@export var mobile_pressure_wave_spawn_interval: float = 0.24
+@export var mobile_critical_wave_spawn_interval: float = 0.32
 @export var mobile_wave_end_cleanup_ratio: float = 0.7
+@export var mobile_pressure_check_interval: float = 0.5
+@export var mobile_pressure_cleanup_interval: float = 0.75
+@export var mobile_pressure_recover_duration: float = 3.0
+@export var mobile_pressure_fps_threshold: float = 50.0
+@export var mobile_critical_fps_threshold: float = 42.0
+@export var mobile_recover_fps_threshold: float = 56.0
 
 var player: Node2D
 var world_map: Node2D
@@ -33,6 +46,11 @@ var wave_warning_triggered: Dictionary = {}
 var wave_spawn_timer: Timer = Timer.new()
 var enemies_left_to_spawn: int = 0
 var mobile_performance_mode: bool = false
+var mobile_normal_active_enemy_limit: int = 0
+var mobile_pressure_level: int = MOBILE_PRESSURE_NONE
+var mobile_pressure_check_timer: float = 0.0
+var mobile_pressure_cleanup_timer: float = 0.0
+var mobile_recover_timer: float = 0.0
 
 var enemy_catalog: Array[Resource] = [
 	preload("res://resources/enemies/wolf.tres"),
@@ -64,7 +82,10 @@ func _reset_wave_state() -> void:
 	enemies_left_to_spawn = 0
 	wave_spawn_timer.stop()
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
+	if mobile_performance_mode and is_spawning and GameManager.run_active:
+		_update_mobile_pressure(delta)
+
 	if is_spawning and not boss_spawned and GameManager.game_time >= boss_spawn_time:
 		boss_spawned = spawn_enemy(boss_data)
 	
@@ -84,6 +105,8 @@ func configure(config: LevelData, player_node: Node2D, map_node: Node2D, contain
 		active_enemy_limit = mini(level_data.active_enemy_limit, pool_size - 1)
 	if mobile_performance_mode:
 		active_enemy_limit = mini(active_enemy_limit, mobile_active_enemy_limit)
+	mobile_normal_active_enemy_limit = active_enemy_limit
+	_reset_mobile_pressure()
 	wave_spawn_timer.wait_time = _get_wave_spawn_interval()
 	_build_pool()
 	_reset_wave_state()
@@ -153,10 +176,12 @@ func _end_wave() -> void:
 	if is_spawning:
 		spawn_timer.start(base_spawn_interval)
 
-func _cleanup_far_enemies() -> void:
+func _cleanup_far_enemies(target_count: int = -1) -> void:
 	if not is_instance_valid(player):
 		return
-	var target_count := int(active_enemy_limit * mobile_wave_end_cleanup_ratio)
+	if target_count < 0:
+		target_count = int(active_enemy_limit * mobile_wave_end_cleanup_ratio)
+	target_count = maxi(0, target_count)
 	if active_enemies.size() <= target_count:
 		return
 	var player_position := player.global_position
@@ -201,6 +226,67 @@ func _on_spawn_timer_timeout() -> void:
 	var level_multiplier: float = level_data.difficulty_multiplier if level_data != null else 1.0
 	var difficulty := (1.0 + GameManager.game_time / 360.0) * level_multiplier
 	spawn_timer.wait_time = maxf(0.32, base_spawn_interval / difficulty)
+
+func _reset_mobile_pressure() -> void:
+	mobile_pressure_level = MOBILE_PRESSURE_NONE
+	mobile_pressure_check_timer = mobile_pressure_check_interval
+	mobile_pressure_cleanup_timer = mobile_pressure_cleanup_interval
+	mobile_recover_timer = 0.0
+	if mobile_performance_mode:
+		active_enemy_limit = _get_mobile_active_enemy_limit()
+
+func _update_mobile_pressure(delta: float) -> void:
+	mobile_pressure_check_timer -= delta
+	if mobile_pressure_check_timer <= 0.0:
+		mobile_pressure_check_timer = mobile_pressure_check_interval
+		_sample_mobile_pressure()
+	if mobile_pressure_level == MOBILE_PRESSURE_NONE:
+		return
+	if active_enemies.size() <= active_enemy_limit:
+		return
+	mobile_pressure_cleanup_timer -= delta
+	if mobile_pressure_cleanup_timer <= 0.0:
+		mobile_pressure_cleanup_timer = mobile_pressure_cleanup_interval
+		_cleanup_far_enemies(active_enemy_limit)
+
+func _sample_mobile_pressure() -> void:
+	var fps := float(Engine.get_frames_per_second())
+	if fps <= 0.0:
+		return
+	if fps < mobile_critical_fps_threshold:
+		mobile_recover_timer = 0.0
+		_set_mobile_pressure_level(MOBILE_PRESSURE_CRITICAL)
+	elif fps < mobile_pressure_fps_threshold:
+		mobile_recover_timer = 0.0
+		_set_mobile_pressure_level(MOBILE_PRESSURE_HIGH)
+	elif mobile_pressure_level != MOBILE_PRESSURE_NONE and fps >= mobile_recover_fps_threshold:
+		mobile_recover_timer += mobile_pressure_check_interval
+		if mobile_recover_timer >= mobile_pressure_recover_duration:
+			_set_mobile_pressure_level(MOBILE_PRESSURE_NONE)
+	else:
+		mobile_recover_timer = 0.0
+
+func _set_mobile_pressure_level(level: int) -> void:
+	if mobile_pressure_level == level:
+		return
+	mobile_pressure_level = level
+	active_enemy_limit = _get_mobile_active_enemy_limit()
+	wave_spawn_timer.wait_time = _get_wave_spawn_interval()
+	if not wave_spawn_timer.is_stopped():
+		wave_spawn_timer.start(_get_wave_spawn_interval())
+	if mobile_pressure_level != MOBILE_PRESSURE_NONE and active_enemies.size() > active_enemy_limit:
+		_cleanup_far_enemies(active_enemy_limit)
+
+func _get_mobile_active_enemy_limit() -> int:
+	var limit := mobile_normal_active_enemy_limit
+	match mobile_pressure_level:
+		MOBILE_PRESSURE_CRITICAL:
+			limit = mini(limit, mobile_critical_enemy_limit)
+		MOBILE_PRESSURE_HIGH:
+			limit = mini(limit, mobile_pressure_enemy_limit)
+		_:
+			limit = mini(limit, mobile_active_enemy_limit)
+	return maxi(1, limit)
 
 func _choose_enemy_data() -> Resource:
 	var valid: Array[Resource] = []
@@ -262,4 +348,12 @@ func get_nearest_enemy(origin: Vector2, max_range: float) -> Node2D:
 	return nearest
 
 func _get_wave_spawn_interval() -> float:
-	return mobile_wave_spawn_interval if mobile_performance_mode else DEFAULT_WAVE_SPAWN_INTERVAL
+	if not mobile_performance_mode:
+		return DEFAULT_WAVE_SPAWN_INTERVAL
+	match mobile_pressure_level:
+		MOBILE_PRESSURE_CRITICAL:
+			return mobile_critical_wave_spawn_interval
+		MOBILE_PRESSURE_HIGH:
+			return mobile_pressure_wave_spawn_interval
+		_:
+			return mobile_wave_spawn_interval

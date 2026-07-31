@@ -6,6 +6,7 @@ extends Node2D
 @export var base_sweep_duration: float = 0.9
 @export var base_cooldown: float = 9.0
 @export var hit_interval: float = 0.15
+@export var mobile_hit_sample_interval: float = 0.05
 
 var upgrade_level: int = 0
 var cooldown_remaining: float = 0.0
@@ -15,6 +16,8 @@ var sweep_angle: float = 0.0
 var sweep_progress: float = 0.0
 var next_hit_time: Dictionary = {}
 var sweep_clock: float = 0.0
+var mobile_performance_mode: bool = false
+var mobile_hit_sample_timer: float = 0.0
 var _visual_effects: Node = null
 var _spawner: Node = null
 var _game_controller: Node = null
@@ -35,6 +38,7 @@ func _get_game_controller() -> Node:
 	return _game_controller
 
 func _ready() -> void:
+	mobile_performance_mode = GameManager.is_mobile_performance_profile()
 	InputAdapter.set_scatter_cooldown(cooldown_remaining, _get_cooldown())
 
 func _process(delta: float) -> void:
@@ -107,6 +111,7 @@ func _try_cast() -> void:
 	sweep_progress = 0.0
 	sweep_clock = 0.0
 	sweep_angle = randf() * TAU
+	mobile_hit_sample_timer = 0.0
 	next_hit_time.clear()
 	cooldown_remaining = _get_cooldown()
 	InputAdapter.set_scatter_cooldown(cooldown_remaining, _get_cooldown())
@@ -122,7 +127,13 @@ func _update_sweep(delta: float) -> void:
 	var step := (total / _get_sweep_duration()) * delta
 	sweep_angle += step
 	sweep_progress += step
-	_apply_beam_damage()
+	if mobile_performance_mode:
+		mobile_hit_sample_timer -= delta
+		if mobile_hit_sample_timer <= 0.0:
+			mobile_hit_sample_timer = mobile_hit_sample_interval
+			_apply_beam_damage()
+	else:
+		_apply_beam_damage()
 	if sweep_progress >= total:
 		is_sweeping = false
 		next_hit_time.clear()

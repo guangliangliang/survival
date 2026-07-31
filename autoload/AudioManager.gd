@@ -87,6 +87,7 @@ const MOBILE_SFX_THROTTLE := {
 	&"enemy_projectile_land": 0.12,
 	&"flywheel_hit": 0.08,
 	&"exp_pickup": 0.05,
+	&"boss_hit": 0.08,
 }
 
 var music_player: AudioStreamPlayer

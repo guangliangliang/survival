@@ -20,6 +20,9 @@ const MOBILE_DESPAWN_DISTANCE_SQ := 1210000.0
 const DESPAWN_MIN_ACTIVE_TIME := 12.0
 const MOBILE_DESPAWN_MIN_ACTIVE_TIME := 6.0
 const MELEE_ATTACK_PADDING := 28.0
+const MOBILE_FAR_LOD_ENTER_DISTANCE_SQ := 722500.0
+const MOBILE_FAR_LOD_EXIT_DISTANCE_SQ := 518400.0
+const MOBILE_FAR_LOD_ANIMATION_INTERVAL := 0.18
 static var animation_frame_layout_cache: Dictionary = {}
 
 @export var enemy_data: Resource
@@ -55,6 +58,8 @@ var obstacle_avoidance_samples: int = OBSTACLE_AVOIDANCE_SAMPLES
 var despawn_distance_sq: float = DESPAWN_DISTANCE_SQ
 var despawn_min_active_time: float = DESPAWN_MIN_ACTIVE_TIME
 var despawn_check_timer: float = 0.0
+var far_lod_active: bool = false
+var far_lod_animation_timer: float = 0.0
 var _projectile_pool: Node = null
 var _combat_feedback: Node = null
 var _experience_pool: Node = null
@@ -118,11 +123,10 @@ func _physics_process(delta: float) -> void:
 		var target_position := target.global_position
 		var to_target := target_position - global_position
 		var direction := to_target.normalized()
-		var move_direction := _get_throttled_move_direction(direction, delta)
-		_update_facing(move_direction)
 		var distance_sq := to_target.length_squared()
 		var was_in_attack_range := in_attack_range
 		in_attack_range = distance_sq <= enemy_data.attack_range * enemy_data.attack_range
+		var far_lod := _update_mobile_far_lod(distance_sq)
 		if in_attack_range and not was_in_attack_range:
 			attack_timer = 0.0
 			attack_animation_time = 0.0
@@ -136,6 +140,18 @@ func _physics_process(delta: float) -> void:
 			if attack_windup <= 0.0:
 				_perform_attack()
 			return
+		if far_lod:
+			_update_facing(direction)
+			velocity = direction * enemy_data.move_speed
+			if knockback_velocity.length_squared() > 1.0:
+				velocity += knockback_velocity
+				knockback_velocity = knockback_velocity.move_toward(Vector2.ZERO, 700.0 * delta)
+			global_position += velocity * delta
+			_update_visual_animation(delta)
+			_update_despawn_check(delta)
+			return
+		var move_direction := _get_throttled_move_direction(direction, delta)
+		_update_facing(move_direction)
 		if knockback_velocity.length_squared() > 1.0:
 			velocity = move_direction * enemy_data.move_speed + knockback_velocity
 			knockback_velocity = knockback_velocity.move_toward(Vector2.ZERO, 700.0 * delta)
@@ -149,6 +165,7 @@ func _physics_process(delta: float) -> void:
 			velocity = Vector2.ZERO
 			_try_attack()
 	else:
+		_update_mobile_far_lod(0.0)
 		if attack_windup > 0.0:
 			attack_windup -= delta
 			velocity = Vector2.ZERO
@@ -165,13 +182,7 @@ func _physics_process(delta: float) -> void:
 		velocity = Vector2.ZERO
 	
 	_update_visual_animation(delta)
-	
-	if has_target and not enemy_data.boss and active_time > despawn_min_active_time:
-		despawn_check_timer -= delta
-		if despawn_check_timer <= 0.0:
-			despawn_check_timer = DESPAWN_CHECK_INTERVAL
-			if global_position.distance_squared_to(target.global_position) > despawn_distance_sq:
-				_release_to_pool()
+	_update_despawn_check(delta)
 
 func reset_for_spawn(data: Resource, player_target: Node2D, spawn_position: Vector2, map_node: Node2D = null) -> void:
 	enemy_data = data
@@ -187,6 +198,8 @@ func reset_for_spawn(data: Resource, player_target: Node2D, spawn_position: Vect
 	cached_move_direction = Vector2.ZERO
 	current_frame_index = -1
 	current_flip_h = false
+	far_lod_active = false
+	far_lod_animation_timer = randf() * MOBILE_FAR_LOD_ANIMATION_INTERVAL
 	global_position = spawn_position
 	is_alive = true
 	active_time = 0.0
@@ -209,6 +222,35 @@ func reset_for_spawn(data: Resource, player_target: Node2D, spawn_position: Vect
 	collision_mask = 1
 	_apply_data()
 	health_component.reset(enemy_data.max_health)
+
+func _update_mobile_far_lod(distance_sq: float) -> bool:
+	if not mobile_performance_mode or enemy_data.boss:
+		_set_mobile_far_lod(false)
+		return false
+	if far_lod_active:
+		if distance_sq < MOBILE_FAR_LOD_EXIT_DISTANCE_SQ:
+			_set_mobile_far_lod(false)
+	else:
+		if distance_sq > MOBILE_FAR_LOD_ENTER_DISTANCE_SQ:
+			_set_mobile_far_lod(true)
+	return far_lod_active
+
+func _set_mobile_far_lod(enabled: bool) -> void:
+	if far_lod_active == enabled:
+		return
+	far_lod_active = enabled
+	collision_mask = 0 if enabled else 1
+	if not enabled:
+		avoidance_timer = minf(avoidance_timer, obstacle_avoidance_interval)
+
+func _update_despawn_check(delta: float) -> void:
+	if not is_instance_valid(target) or enemy_data.boss or active_time <= despawn_min_active_time:
+		return
+	despawn_check_timer -= delta
+	if despawn_check_timer <= 0.0:
+		despawn_check_timer = DESPAWN_CHECK_INTERVAL
+		if global_position.distance_squared_to(target.global_position) > despawn_distance_sq:
+			_release_to_pool()
 
 func _get_throttled_move_direction(direct_direction: Vector2, delta: float) -> Vector2:
 	if not has_world_obstacles:
@@ -412,6 +454,7 @@ func _release_to_pool() -> void:
 	velocity = Vector2.ZERO
 	collision_layer = 0
 	collision_mask = 0
+	far_lod_active = false
 	set_physics_process(false)
 	attack_windup = 0.0
 	attack_visual_time = 0.0
@@ -425,6 +468,12 @@ func _update_facing(direction: Vector2) -> void:
 func _update_visual_animation(delta: float) -> void:
 	if not is_node_ready() or not _has_animated_texture():
 		return
+	if far_lod_active and attack_visual_time <= 0.0 and not in_attack_range:
+		far_lod_animation_timer -= delta
+		if far_lod_animation_timer > 0.0:
+			return
+		far_lod_animation_timer = MOBILE_FAR_LOD_ANIMATION_INTERVAL
+		delta = MOBILE_FAR_LOD_ANIMATION_INTERVAL
 	var using_attack := (in_attack_range or attack_visual_time > 0.0) and enemy_data.attack_texture != null
 	var texture: Texture2D = enemy_data.attack_texture if using_attack else enemy_data.walk_texture
 	if texture == null:

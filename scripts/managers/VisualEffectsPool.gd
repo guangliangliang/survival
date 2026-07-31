@@ -6,11 +6,15 @@ const ARROW_IMPACT_TEXTURE := preload("res://assets/images/effects/fx_arrow_impa
 const HEAL_GLOW_TEXTURE := preload("res://assets/images/effects/fx_heal_glow.png")
 
 @export var pool_size: int = 48
+@export var mobile_impact_interval: float = 0.04
 
 var effects: Array[Sprite2D] = []
 var active_count: int = 0
+var mobile_performance_mode: bool = false
+var next_mobile_impact_time: float = 0.0
 
 func _ready() -> void:
+	mobile_performance_mode = GameManager.is_mobile_performance_profile()
 	add_to_group("visual_effects")
 	for index in pool_size:
 		var sprite := Sprite2D.new()
@@ -44,12 +48,16 @@ func _process(delta: float) -> void:
 			active_count -= 1
 
 func play_impact(world_position: Vector2) -> void:
+	if not _can_play_mobile_impact():
+		return
 	_play_strip(IMPACT_TEXTURE, world_position, 4, Vector2i(32, 32), 0.18)
 
 func play_death_puff(world_position: Vector2) -> void:
 	_play_strip(DEATH_TEXTURE, world_position, 6, Vector2i(64, 64), 0.42)
 
 func play_arrow_impact(world_position: Vector2) -> void:
+	if not _can_play_mobile_impact():
+		return
 	_play_strip(ARROW_IMPACT_TEXTURE, world_position, 4, Vector2i(192, 512), 0.28, 0.4)
 
 func play_heal_glow(world_position: Vector2) -> void:
@@ -57,6 +65,15 @@ func play_heal_glow(world_position: Vector2) -> void:
 
 func play_heal_glow_follow(target: Node2D) -> void:
 	_play_strip(HEAL_GLOW_TEXTURE, target.global_position, 4, Vector2i(192, 512), 0.72, 0.44, target)
+
+func _can_play_mobile_impact() -> bool:
+	if not mobile_performance_mode:
+		return true
+	var now := float(Time.get_ticks_msec()) * 0.001
+	if now < next_mobile_impact_time:
+		return false
+	next_mobile_impact_time = now + mobile_impact_interval
+	return true
 
 func _play_strip(texture: Texture2D, world_position: Vector2, frames: int, frame_size: Vector2i, duration: float, scale: float = 1.0, follow_target: Node2D = null) -> void:
 	for sprite in effects:

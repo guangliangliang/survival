@@ -5,7 +5,9 @@ signal wave_started(wave_data: Resource)
 signal wave_ended()
 
 const WaveEvent := preload("res://scripts/data/WaveEvent.gd")
+const EnemyData := preload("res://scripts/data/EnemyData.gd")
 const LevelData := preload("res://scripts/data/LevelData.gd")
+const Enemy := preload("res://scripts/systems/Enemy.gd")
 const DEFAULT_WAVE_SPAWN_INTERVAL := 0.08
 const MOBILE_PRESSURE_NONE := 0
 const MOBILE_PRESSURE_HIGH := 1
@@ -34,8 +36,8 @@ var player: Node2D
 var world_map: Node2D
 var world_container: Node2D
 var spawn_timer := Timer.new()
-var inactive_pool: Array[CharacterBody2D] = []
-var active_enemies: Array[CharacterBody2D] = []
+var inactive_pool: Array = []
+var active_enemies: Array = []
 var is_spawning: bool = false
 var boss_spawned: bool = false
 var level_data: LevelData
@@ -117,8 +119,8 @@ func _build_pool() -> void:
 	for index in pool_size:
 		inactive_pool.append(_create_enemy())
 
-func _create_enemy() -> CharacterBody2D:
-	var enemy := enemy_scene.instantiate() as CharacterBody2D
+func _create_enemy() -> Enemy:
+	var enemy := enemy_scene.instantiate() as Enemy
 	world_container.add_child(enemy)
 	enemy.visible = false
 	enemy.set_physics_process(false)
@@ -310,21 +312,21 @@ func _choose_enemy_data() -> Resource:
 func spawn_enemy(data: Resource) -> bool:
 	if data == null or not is_instance_valid(player):
 		return false
-	var enemy: CharacterBody2D
+	var enemy: Enemy
 	if inactive_pool.is_empty():
 		if not data.boss:
 			return false
 		enemy = _create_enemy()
 	else:
-		enemy = inactive_pool.pop_back()
+		enemy = inactive_pool.pop_back() as Enemy
 	active_enemies.append(enemy)
 	var spawn_position := player.global_position + Vector2.from_angle(randf() * TAU) * 700.0
 	if world_map and world_map.has_method("get_spawn_position"):
 		spawn_position = world_map.call("get_spawn_position", data.spawn_region, player.global_position)
-	enemy.call("reset_for_spawn", data, player, spawn_position, world_map)
+	enemy.reset_for_spawn(data, player, spawn_position, world_map)
 	return true
 
-func _on_enemy_released(enemy: CharacterBody2D) -> void:
+func _on_enemy_released(enemy: Enemy) -> void:
 	active_enemies.erase(enemy)
 	if not inactive_pool.has(enemy):
 		inactive_pool.append(enemy)
@@ -332,7 +334,7 @@ func _on_enemy_released(enemy: CharacterBody2D) -> void:
 func get_active_enemy_count() -> int:
 	return active_enemies.size()
 
-func get_active_enemies() -> Array[CharacterBody2D]:
+func get_active_enemies() -> Array:
 	return active_enemies
 
 func get_nearest_enemy(origin: Vector2, max_range: float) -> Node2D:
@@ -346,6 +348,24 @@ func get_nearest_enemy(origin: Vector2, max_range: float) -> Node2D:
 			min_distance_sq = distance_sq
 			nearest = enemy
 	return nearest
+
+func clear_inactive_pool() -> void:
+	for old_enemy in inactive_pool:
+		if is_instance_valid(old_enemy):
+			old_enemy.queue_free()
+	inactive_pool.clear()
+
+func spawn_enemy_force(data: Resource) -> Enemy:
+	if data == null or not is_instance_valid(player):
+		return null
+	var enemy: Enemy = _create_enemy()
+	active_enemies.append(enemy)
+	var spawn_position := player.global_position + Vector2.from_angle(randf() * TAU) * randf_range(600.0, 1200.0)
+	# 性能测试模式下不使用world_map的生成位置，直接用分散的随机位置
+	if world_map and world_map.has_method("get_spawn_position") and not GameManager.stress_test:
+		spawn_position = world_map.call("get_spawn_position", data.spawn_region, player.global_position)
+	enemy.reset_for_spawn(data, player, spawn_position, world_map)
+	return enemy
 
 func _get_wave_spawn_interval() -> float:
 	if not mobile_performance_mode:

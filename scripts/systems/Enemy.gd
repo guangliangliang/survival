@@ -51,7 +51,7 @@ var has_world_obstacles: bool = false
 var current_frame_index: int = -1
 var current_flip_h: bool = false
 var avoidance_timer: float = 0.0
-var cached_move_direction := Vector2.ZERO
+var cached_move_direction: Vector2 = Vector2.ZERO
 var mobile_performance_mode: bool = false
 var obstacle_avoidance_interval: float = OBSTACLE_AVOIDANCE_INTERVAL
 var obstacle_avoidance_samples: int = OBSTACLE_AVOIDANCE_SAMPLES
@@ -60,6 +60,14 @@ var despawn_min_active_time: float = DESPAWN_MIN_ACTIVE_TIME
 var despawn_check_timer: float = 0.0
 var far_lod_active: bool = false
 var far_lod_animation_timer: float = 0.0
+# 分离算法相关（只用于性能测试）
+var use_separation: bool = false
+var separation_timer: float = 0.0
+var cached_separation_direction: Vector2 = Vector2.ZERO
+const SEPARATION_INTERVAL: float = 0.2
+const SEPARATION_SCAN_RADIUS_SQ: float = 80.0 * 80.0
+const SEPARATION_MAX_TARGETS: int = 5
+const SEPARATION_WEIGHT: float = 0.35
 var _projectile_pool: Node = null
 var _combat_feedback: Node = null
 var _experience_pool: Node = null
@@ -151,6 +159,12 @@ func _physics_process(delta: float) -> void:
 			_update_despawn_check(delta)
 			return
 		var move_direction := _get_throttled_move_direction(direction, delta)
+		if use_separation and not in_attack_range:
+			separation_timer -= delta
+			if separation_timer <= 0.0:
+				separation_timer = SEPARATION_INTERVAL
+				cached_separation_direction = _apply_separation(move_direction)
+			move_direction = cached_separation_direction
 		_update_facing(move_direction)
 		if knockback_velocity.length_squared() > 1.0:
 			velocity = move_direction * enemy_data.move_speed + knockback_velocity
@@ -196,6 +210,10 @@ func reset_for_spawn(data: Resource, player_target: Node2D, spawn_position: Vect
 	avoidance_timer = randf() * obstacle_avoidance_interval
 	despawn_check_timer = randf() * DESPAWN_CHECK_INTERVAL
 	cached_move_direction = Vector2.ZERO
+	# 重置分离算法变量
+	use_separation = false
+	separation_timer = randf() * SEPARATION_INTERVAL
+	cached_separation_direction = Vector2.ZERO
 	current_frame_index = -1
 	current_flip_h = false
 	far_lod_active = false
@@ -554,7 +572,7 @@ func _get_animation_layout_scale_size(regions: Array, texture_height: int) -> Ve
 	for region: Rect2 in regions:
 		widths.append(region.size.x)
 	widths.sort()
-	var nominal_width := 1.0
+	var nominal_width: float = 1.0
 	if not widths.is_empty():
 		var middle := int(widths.size() / 2)
 		if widths.size() % 2 == 0 and middle > 0:
@@ -575,3 +593,32 @@ func _has_visual_texture() -> bool:
 
 func _has_animated_texture() -> bool:
 	return enemy_data.walk_texture != null or enemy_data.attack_texture != null
+
+func _apply_separation(direct_direction: Vector2) -> Vector2:
+	var enemy_spawner = get_tree().get_first_node_in_group("enemy_spawner")
+	if not is_instance_valid(enemy_spawner):
+		return direct_direction
+	
+	var separation_direction: Vector2 = Vector2.ZERO
+	var nearby_count: int = 0
+	
+	for enemy in enemy_spawner.get_active_enemies():
+		if not is_instance_valid(enemy) or enemy == self:
+			continue
+		var delta_pos: Vector2 = global_position - enemy.global_position
+		var dist_sq: float = delta_pos.length_squared()
+		if dist_sq > SEPARATION_SCAN_RADIUS_SQ:
+			continue
+		if dist_sq < 1.0:
+			dist_sq = 1.0
+		var weight: float = 1.0 / dist_sq
+		separation_direction += delta_pos.normalized() * weight
+		nearby_count += 1
+		if nearby_count >= SEPARATION_MAX_TARGETS:
+			break
+	
+	if nearby_count == 0:
+		return direct_direction
+	
+	separation_direction = separation_direction.normalized()
+	return (direct_direction * (1.0 - SEPARATION_WEIGHT) + separation_direction * SEPARATION_WEIGHT).normalized()

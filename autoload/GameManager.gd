@@ -15,6 +15,9 @@ var game_time: float = 0.0
 var kill_count: int = 0
 var run_active: bool = false
 var result: StringName = &""
+var stress_test: bool = false
+var stress_test_active_enemy_limit: int = 0
+var stress_test_level: Resource
 var selected_level: Resource = preload("res://resources/levels/village_outskirts.tres")
 var selected_character: Resource = preload("res://resources/characters/sentinel.tres")
 var last_run_result: Resource
@@ -70,6 +73,19 @@ func select_level(level_data: Resource) -> void:
 func select_character(character_data: Resource) -> void:
 	if character_data != null:
 		selected_character = character_data
+
+func enter_stress_test(active_limit: int, level: Resource = null) -> void:
+	stress_test = true
+	stress_test_active_enemy_limit = active_limit
+	if level != null:
+		stress_test_level = level
+	else:
+		stress_test_level = selected_level
+
+func exit_stress_test() -> void:
+	stress_test = false
+	stress_test_active_enemy_limit = 0
+	stress_test_level = null
 
 func get_level_by_id(level_id: StringName) -> Resource:
 	for level_data in level_catalog:

@@ -73,6 +73,7 @@ var upgrade_status_cards: Array[PanelContainer] = []
 @onready var wave_countdown_label: Label = $CanvasLayer/GameUI/WaveWarningUI/Panel/VBox/CountdownLabel
 @onready var wave_top_scan: ColorRect = $CanvasLayer/GameUI/WaveWarningUI/Panel/VBox/TopScanBar
 @onready var wave_bottom_scan: ColorRect = $CanvasLayer/GameUI/WaveWarningUI/Panel/VBox/BottomScanBar
+@onready var stress_label: Label = $CanvasLayer/GameUI/TopHUD/StressLabel
 
 var current_wave_data: Resource = null
 var wave_countdown: float = 0.0
@@ -104,6 +105,11 @@ const BOSS_LAYER_COLORS: Array[Color] = [
 var smoke_test: bool = false
 var smoke_boss_marked: bool = false
 var stress_test: bool = false
+var stress_test_ui_mode: bool = false
+var stress_test_active_limit: int = 0
+var stress_test_fps_accum: float = 0.0
+var stress_test_fps_samples: int = 0
+var stress_test_last_fps: float = 0.0
 var stress_elapsed: float = 0.0
 var timeline_test: bool = false
 var boss_pool_test: bool = false
@@ -134,6 +140,10 @@ func _ready() -> void:
 	get_tree().paused = false
 	smoke_test = OS.get_cmdline_user_args().has("--smoke-test")
 	stress_test = OS.get_cmdline_user_args().has("--stress-test")
+	stress_test_ui_mode = GameManager.stress_test
+	if stress_test_ui_mode:
+		stress_test = true
+		stress_test_active_limit = GameManager.stress_test_active_enemy_limit
 	timeline_test = OS.get_cmdline_user_args().has("--timeline-test")
 	boss_pool_test = OS.get_cmdline_user_args().has("--boss-pool-test")
 	upgrade_exhaustion_test = OS.get_cmdline_user_args().has("--upgrade-exhaustion-test")
@@ -163,18 +173,19 @@ func _process(delta: float) -> void:
 		GameManager.update_game_time(clock_delta)
 		if smoke_test:
 			_run_smoke_flow()
-		if stress_test:
+		if stress_test and not stress_test_ui_mode:
 			_run_stress_flow(delta)
 		if timeline_test and GameManager.game_time >= enemy_spawner.boss_spawn_time + 5.0:
 			boss_is_defeated = true
-		if not boss_music_started and GameManager.game_time >= enemy_spawner.boss_spawn_time:
+		if not stress_test_ui_mode and not boss_music_started and GameManager.game_time >= enemy_spawner.boss_spawn_time:
 			boss_music_started = true
 			AudioManager.play_sfx_by_key(&"boss_warning")
 			AudioManager.play_music_by_key(&"boss")
 		_update_boss_bar()
-		if boss_is_defeated:
+		if not stress_test_ui_mode and boss_is_defeated:
 			GameManager.finish_run(&"victory")
 	_update_ui()
+
 	if is_instance_valid(player):
 		camera_shake_strength = move_toward(camera_shake_strength, 0.0, delta * 24.0)
 		camera.global_position = player.global_position + Vector2(randf_range(-camera_shake_strength, camera_shake_strength), randf_range(-camera_shake_strength, camera_shake_strength))
@@ -248,6 +259,8 @@ func _start_game() -> void:
 	if smoke_test:
 		enemy_spawner.boss_spawn_time = 2.0
 	enemy_spawner.start_spawning()
+	if stress_test_ui_mode:
+		_apply_ui_stress_test_setup()
 	if boss_pool_test:
 		_run_boss_pool_test()
 	if upgrade_exhaustion_test:
@@ -614,6 +627,7 @@ func _return_home() -> void:
 	AudioManager.play_ui_by_key(&"back")
 	get_tree().paused = false
 	InputAdapter.clear_virtual_inputs()
+	GameManager.exit_stress_test()
 	get_tree().change_scene_to_file("res://scenes/menu/MainMenu.tscn")
 
 func _run_smoke_flow() -> void:
@@ -624,6 +638,8 @@ func _run_smoke_flow() -> void:
 		boss_is_defeated = true
 
 func _run_stress_flow(delta: float) -> void:
+	if stress_test_ui_mode:
+		return
 	stress_elapsed += delta
 	if stress_elapsed < 8.0:
 		return
@@ -633,6 +649,41 @@ func _run_stress_flow(delta: float) -> void:
 	var enemy_bullets: int = $GameWorld/EnemyProjectilePool.get_active_count()
 	print("STRESS_TEST enemies=%d bullets=%d scatter=%d enemy_bullets=%d orbs=%d pool_limit=%d" % [enemy_spawner.get_active_enemy_count(), active_bullets, active_scatter_orbs, enemy_bullets, active_orbs, enemy_spawner.active_enemy_limit])
 	get_tree().quit()
+
+func _apply_ui_stress_test_setup() -> void:
+	# 设置性能测试：玩家无敌 + 一次性生成指定数量敌人，其他与正常游戏一致
+	var test_level := GameManager.stress_test_level
+	if test_level == null:
+		test_level = GameManager.selected_level
+	level_data = test_level
+	
+	# 玩家无敌
+	if is_instance_valid(player):
+		player.health_component.invincible = true
+	
+	# 设置敌人数量限制
+	var target_limit := mini(maxi(1, stress_test_active_limit), enemy_spawner.pool_size - 1)
+	enemy_spawner.active_enemy_limit = target_limit
+	
+	# 一次性生成指定数量的敌人 - 用更分散的位置
+	var enemy_catalog: Array = test_level.enemy_catalog
+	if enemy_catalog.size() == 0:
+		enemy_catalog = [preload("res://resources/enemies/bandit.tres"), preload("res://resources/enemies/gunner.tres")]
+	
+	for index in target_limit:
+		var data: Resource = enemy_catalog[index % enemy_catalog.size()]
+		# 直接使用EnemySpawner中的spawn_enemy_force，它会生成在玩家周围700距离的随机位置
+		enemy_spawner.spawn_enemy_force(data)
+
+func _update_stress_label(delta: float) -> void:
+	stress_test_fps_accum += delta
+	stress_test_fps_samples += 1
+	if stress_test_fps_accum < 0.5:
+		return
+	stress_test_last_fps = float(stress_test_fps_samples) / stress_test_fps_accum
+	stress_test_fps_accum = 0.0
+	stress_test_fps_samples = 0
+	stress_label.text = "性能测试  怪物 %d / %d  FPS %.0f" % [enemy_spawner.get_active_enemy_count(), enemy_spawner.active_enemy_limit, stress_test_last_fps]
 
 func _run_boss_pool_test() -> void:
 	var ordinary_enemy: Resource = level_data.enemy_catalog[0]

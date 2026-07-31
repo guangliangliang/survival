@@ -25,6 +25,9 @@ const CARD_BORDER := Color("7e6846")
 const AUDIO_VOLUME_MIN_DB := -32.0
 
 @onready var start_button: Button = $VBoxContainer/StartButton
+@onready var stress_test_level_option: OptionButton = $VBoxContainer/StressTestLevelOption
+@onready var stress_test_count_option: OptionButton = $VBoxContainer/StressTestCountOption
+@onready var stress_test_button: Button = $VBoxContainer/StressTestButton
 @onready var title_label: Label = $VBoxContainer/TitleLabel
 
 var codex_button: Button
@@ -54,7 +57,19 @@ var upgrade_catalog: Array[Resource] = [
 
 func _ready() -> void:
 	AudioManager.play_music_by_key(&"menu")
+	GameManager.exit_stress_test()
 	start_button.pressed.connect(_on_start_button_pressed)
+	stress_test_button.pressed.connect(_on_stress_test_button_pressed)
+	# 给性能测试加关卡选项
+	for i in range(GameManager.level_catalog.size()):
+		var level_data := GameManager.level_catalog[i]
+		stress_test_level_option.add_item(level_data.title, i)
+	stress_test_level_option.selected = 0
+	# 给性能测试加怪物数量档位
+	var count_presets := [50, 100, 200, 350]
+	for i in range(count_presets.size()):
+		stress_test_count_option.add_item("%d 只" % count_presets[i], i)
+	stress_test_count_option.selected = 2
 	_build_corner_actions()
 	_build_info_overlay()
 	_apply_style()
@@ -68,12 +83,29 @@ func _on_start_button_pressed() -> void:
 	AudioManager.play_ui_by_key(&"button_click")
 	get_tree().change_scene_to_file("res://scenes/menu/LevelSelect.tscn")
 
+func _on_stress_test_button_pressed() -> void:
+	AudioManager.play_ui_by_key(&"button_click")
+	var count_presets := [50, 100, 200, 350]
+	var user_limit: int = count_presets[stress_test_count_option.selected]
+	var is_mobile := GameManager.is_mobile_performance_profile()
+	# 移动端硬上限 100，桌面端用用户选的值
+	var limit: int = user_limit
+	if is_mobile:
+		limit = mini(user_limit, 100)
+	GameManager.enter_stress_test(limit)
+	var selected_level_index := stress_test_level_option.selected
+	var selected_level_data := GameManager.level_catalog[selected_level_index]
+	GameManager.stress_test_level = selected_level_data
+	get_tree().change_scene_to_file("res://scenes/game/Game.tscn")
+
 func _apply_style() -> void:
 	title_label.add_theme_color_override("font_shadow_color", Color(0.06, 0.035, 0.018, 0.95))
 	title_label.add_theme_constant_override("shadow_offset_x", 4)
 	title_label.add_theme_constant_override("shadow_offset_y", 4)
 	_set_centered_button_content(start_button, ICON_START, 36, 14, 32) # 增大图标和字体
 	_style_button(start_button, Color("8a4b27"), Color("d9b56b"))
+	_set_centered_button_content(stress_test_button, ICON_UPGRADE, 26, 10, 22)
+	_style_button(stress_test_button, Color("3b332d"), Color("8e8069"), 22)
 	_style_button(codex_button, Color("3b332d"), Color("8e8069"), 22) # 增大字体
 	_style_button(upgrades_button, Color("3b332d"), Color("8e8069"), 22)
 	_style_button(settings_button, Color("3b332d"), Color("8e8069"), 22)

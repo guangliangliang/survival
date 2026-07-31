@@ -26,6 +26,7 @@ func _ready() -> void:
 	if not active:
 		visible = false
 		monitoring = false
+	set_process(active)
 
 func _process(delta: float) -> void:
 	if not active:
@@ -64,6 +65,7 @@ func activate(spawn_position: Vector2, shot_direction: Vector2, shot_speed: floa
 	active = true
 	visible = true
 	sprite.modulate = Color(0.86, 0.92, 1.0, 0.95)
+	set_process(true)
 	set_deferred("monitoring", true)
 
 func _on_body_entered(body: Node) -> void:
@@ -92,6 +94,7 @@ func _check_hit(node: Node) -> void:
 func _deactivate() -> void:
 	active = false
 	visible = false
+	set_process(false)
 	set_deferred("monitoring", false)
 	life_timer = 0.0
 	traveled = 0.0

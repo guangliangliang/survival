@@ -23,6 +23,8 @@ const PANEL_FILL := Color(0.055, 0.07, 0.052, 0.94)
 const CARD_FILL := Color(0.04, 0.05, 0.043, 0.92)
 const CARD_BORDER := Color("7e6846")
 const AUDIO_VOLUME_MIN_DB := -32.0
+const DESKTOP_STRESS_COUNT_PRESETS := [50, 100, 200, 350]
+const MOBILE_STRESS_COUNT_PRESETS := [20, 35, 50, 60]
 
 @onready var start_button: Button = $VBoxContainer/StartButton
 @onready var stress_test_level_option: OptionButton = $VBoxContainer/StressTestLevelOption
@@ -37,6 +39,7 @@ var info_overlay: Control
 var overlay_title_label: Label
 var overlay_subtitle_label: Label
 var overlay_content: VBoxContainer
+var stress_count_presets: Array = []
 
 var upgrade_catalog: Array[Resource] = [
 	preload("res://resources/upgrades/damage.tres"),
@@ -66,10 +69,10 @@ func _ready() -> void:
 		stress_test_level_option.add_item(level_data.title, i)
 	stress_test_level_option.selected = 0
 	# 给性能测试加怪物数量档位
-	var count_presets := [50, 100, 200, 350]
-	for i in range(count_presets.size()):
-		stress_test_count_option.add_item("%d 只" % count_presets[i], i)
-	stress_test_count_option.selected = 2
+	stress_count_presets = MOBILE_STRESS_COUNT_PRESETS.duplicate() if GameManager.is_mobile_performance_profile() else DESKTOP_STRESS_COUNT_PRESETS.duplicate()
+	for i in range(stress_count_presets.size()):
+		stress_test_count_option.add_item("%d 只" % stress_count_presets[i], i)
+	stress_test_count_option.selected = mini(2, stress_count_presets.size() - 1)
 	_build_corner_actions()
 	_build_info_overlay()
 	_apply_style()
@@ -85,17 +88,15 @@ func _on_start_button_pressed() -> void:
 
 func _on_stress_test_button_pressed() -> void:
 	AudioManager.play_ui_by_key(&"button_click")
-	var count_presets := [50, 100, 200, 350]
-	var user_limit: int = count_presets[stress_test_count_option.selected]
+	var user_limit: int = int(stress_count_presets[stress_test_count_option.selected])
 	var is_mobile := GameManager.is_mobile_performance_profile()
-	# 移动端硬上限 100，桌面端用用户选的值
+	# Mobile uses its own capped stress presets; desktop keeps the larger values.
 	var limit: int = user_limit
 	if is_mobile:
-		limit = mini(user_limit, 100)
-	GameManager.enter_stress_test(limit)
+		limit = mini(user_limit, int(MOBILE_STRESS_COUNT_PRESETS.back()))
 	var selected_level_index := stress_test_level_option.selected
 	var selected_level_data := GameManager.level_catalog[selected_level_index]
-	GameManager.stress_test_level = selected_level_data
+	GameManager.enter_stress_test(limit, selected_level_data)
 	get_tree().change_scene_to_file("res://scenes/game/Game.tscn")
 
 func _apply_style() -> void:

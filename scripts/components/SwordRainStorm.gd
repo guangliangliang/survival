@@ -2,6 +2,7 @@ extends Node2D
 
 @export var sword_scene: PackedScene
 @export var sword_pool_size: int = 160
+@export var mobile_sword_pool_size: int = 96
 @export var base_sword_count: int = 40
 @export var base_damage: float = 20.0
 @export var base_range: float = 200.0
@@ -26,6 +27,8 @@ var is_virtual_targeting: bool = false
 @onready var _player: Node2D = get_parent().get_parent() as Node2D
 
 func _ready() -> void:
+	if GameManager.is_mobile_performance_profile():
+		sword_pool_size = mini(sword_pool_size, mobile_sword_pool_size)
 	_build_pool()
 	InputAdapter.set_sword_rain_cooldown(cooldown_remaining, _get_cooldown())
 

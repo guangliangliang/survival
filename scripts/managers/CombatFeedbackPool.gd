@@ -1,6 +1,7 @@
 extends Node2D
 
 @export var pool_size: int = 48
+@export var mobile_pool_size: int = 28
 @export var mobile_damage_label_interval: float = 0.05
 
 var labels: Array[Label] = []
@@ -10,6 +11,8 @@ var active_count: int = 0
 
 func _ready() -> void:
 	mobile_performance_mode = GameManager.is_mobile_performance_profile()
+	if mobile_performance_mode:
+		pool_size = mini(pool_size, mobile_pool_size)
 	add_to_group("combat_feedback")
 	for index in pool_size:
 		var label := Label.new()

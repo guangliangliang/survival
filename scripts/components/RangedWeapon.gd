@@ -21,6 +21,7 @@ const AIM_PIVOT_POINTS := [
 @export var weapon_data: Resource
 @export var bullet_scene: PackedScene
 @export var bullet_pool_size: int = 200
+@export var mobile_bullet_pool_size: int = 96
 @export var firing_enabled: bool = true
 
 @onready var aim_pivot: Node2D = $AimPivot
@@ -52,6 +53,8 @@ func _get_spawner() -> Node:
 func _ready() -> void:
 	if weapon_data == null:
 		weapon_data = WeaponDataResource.new()
+	if GameManager.is_mobile_performance_profile():
+		bullet_pool_size = mini(bullet_pool_size, mobile_bullet_pool_size)
 	runtime_data = weapon_data.duplicate(true)
 	ammo_in_magazine = maxi(1, runtime_data.magazine_size)
 	rotation = 0.0

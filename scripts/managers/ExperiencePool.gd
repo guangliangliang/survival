@@ -2,12 +2,15 @@ extends Node2D
 
 @export var orb_scene: PackedScene
 @export var pool_size: int = 180
+@export var mobile_pool_size: int = 96
 
 var pool: Array[Area2D] = []
 var _cursor: int = 0
 
 func _ready() -> void:
 	add_to_group("experience_pool")
+	if GameManager.is_mobile_performance_profile():
+		pool_size = mini(pool_size, mobile_pool_size)
 	if orb_scene == null:
 		return
 	for index in pool_size:

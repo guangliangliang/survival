@@ -19,6 +19,7 @@ const FRAME_BOTTOM_CROP := 84.0
 func _ready() -> void:
 	body_entered.connect(_on_body_entered)
 	_configure_visual()
+	set_process(active)
 
 func _process(delta: float) -> void:
 	if not active:
@@ -43,11 +44,13 @@ func activate(spawn_position: Vector2, exp_value: int, player: Node2D, owner: No
 	anim_time = randf() * 0.4
 	_update_visual()
 	visible = true
+	set_process(true)
 	set_deferred("monitoring", true)
 
 func deactivate() -> void:
 	active = false
 	visible = false
+	set_process(false)
 	set_deferred("monitoring", false)
 
 func _on_body_entered(body: Node) -> void:

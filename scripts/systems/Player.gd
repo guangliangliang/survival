@@ -29,6 +29,7 @@ const AMMO_DOT_SIZE := 4.0
 const AMMO_DOT_SPACING := 6.0
 const AMMO_MAX_SPAN := 58.0
 const AMMO_SEGMENT_THRESHOLD := 14
+const MOBILE_STATUS_REDRAW_INTERVAL := 0.1
 
 var is_alive: bool = true
 var world_bounds := Rect2(-1760.0, -1060.0, 3520.0, 2120.0)
@@ -40,8 +41,11 @@ var last_health: float = 0.0
 var dash_cooldown_remaining: float = 0.0
 var dash_time_remaining: float = 0.0
 var dash_velocity: Vector2 = Vector2.ZERO
+var mobile_performance_mode: bool = false
+var status_redraw_timer: float = 0.0
 
 func _ready() -> void:
+	mobile_performance_mode = GameManager.is_mobile_performance_profile()
 	GameManager.player = self
 	_apply_selected_character()
 	health_component.died.connect(_on_died)
@@ -75,7 +79,7 @@ func _physics_process(delta: float) -> void:
 		var move_vector := InputAdapter.get_move_vector()
 		velocity = move_vector * move_speed
 	move_and_slide()
-	queue_redraw()
+	_update_status_redraw(delta)
 	global_position = global_position.clamp(world_bounds.position, world_bounds.end)
 	InputAdapter.set_dash_cooldown(dash_cooldown_remaining, dash_cooldown)
 
@@ -105,6 +109,16 @@ func apply_upgrade(upgrade: Resource) -> void:
 
 func get_health_component() -> Node:
 	return health_component
+
+func _update_status_redraw(delta: float) -> void:
+	if not mobile_performance_mode:
+		queue_redraw()
+		return
+	status_redraw_timer -= delta
+	if status_redraw_timer > 0.0:
+		return
+	status_redraw_timer = MOBILE_STATUS_REDRAW_INTERVAL
+	queue_redraw()
 
 func _on_health_changed(current_health: float, _max_health: float) -> void:
 	var damaged := current_health < last_health

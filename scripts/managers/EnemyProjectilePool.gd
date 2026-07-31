@@ -2,12 +2,15 @@ extends Node2D
 
 @export var projectile_scene: PackedScene
 @export var pool_size: int = 160
+@export var mobile_pool_size: int = 96
 @export var projectile_visual_scale_multiplier: float = 1.0
 var pool: Array[Area2D] = []
 var _cursor: int = 0
 
 func _ready() -> void:
 	add_to_group("enemy_projectile_pool")
+	if GameManager.is_mobile_performance_profile():
+		pool_size = mini(pool_size, mobile_pool_size)
 	if projectile_scene == null:
 		return
 	for index in pool_size:

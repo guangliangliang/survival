@@ -22,6 +22,7 @@ func _get_game_controller() -> Node:
 func _ready() -> void:
 	default_texture = sprite.texture
 	body_entered.connect(_on_body_entered)
+	set_process(active)
 
 func _process(delta: float) -> void:
 	if not active:
@@ -43,11 +44,13 @@ func activate(spawn_position: Vector2, shot_direction: Vector2, shot_damage: flo
 	life_timer = 0.0
 	active = true
 	visible = true
+	set_process(true)
 	set_deferred("monitoring", true)
 
 func deactivate() -> void:
 	active = false
 	visible = false
+	set_process(false)
 	set_deferred("monitoring", false)
 
 func _apply_sprite_scale() -> void:

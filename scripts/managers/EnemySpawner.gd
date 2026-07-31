@@ -12,25 +12,30 @@ const DEFAULT_WAVE_SPAWN_INTERVAL := 0.08
 const MOBILE_PRESSURE_NONE := 0
 const MOBILE_PRESSURE_HIGH := 1
 const MOBILE_PRESSURE_CRITICAL := 2
+const MOBILE_PRESSURE_EMERGENCY := 3
 
 @export var enemy_scene: PackedScene
 @export var pool_size: int = 350
+@export var mobile_pool_size: int = 120
 @export var active_enemy_limit: int = 300
 @export var base_spawn_interval: float = 1.4
 @export var boss_spawn_time: float = 660.0
-@export var mobile_active_enemy_limit: int = 100
-@export var mobile_pressure_enemy_limit: int = 75
-@export var mobile_critical_enemy_limit: int = 60
-@export var mobile_wave_spawn_interval: float = 0.16
-@export var mobile_pressure_wave_spawn_interval: float = 0.24
-@export var mobile_critical_wave_spawn_interval: float = 0.32
+@export var mobile_active_enemy_limit: int = 70
+@export var mobile_pressure_enemy_limit: int = 50
+@export var mobile_critical_enemy_limit: int = 35
+@export var mobile_emergency_enemy_limit: int = 24
+@export var mobile_wave_spawn_interval: float = 0.18
+@export var mobile_pressure_wave_spawn_interval: float = 0.28
+@export var mobile_critical_wave_spawn_interval: float = 0.42
+@export var mobile_emergency_wave_spawn_interval: float = 0.6
 @export var mobile_wave_end_cleanup_ratio: float = 0.7
 @export var mobile_pressure_check_interval: float = 0.5
 @export var mobile_pressure_cleanup_interval: float = 0.75
 @export var mobile_pressure_recover_duration: float = 3.0
-@export var mobile_pressure_fps_threshold: float = 50.0
-@export var mobile_critical_fps_threshold: float = 42.0
-@export var mobile_recover_fps_threshold: float = 56.0
+@export var mobile_pressure_fps_threshold: float = 46.0
+@export var mobile_critical_fps_threshold: float = 34.0
+@export var mobile_emergency_fps_threshold: float = 24.0
+@export var mobile_recover_fps_threshold: float = 54.0
 
 var player: Node2D
 var world_map: Node2D
@@ -67,6 +72,8 @@ var boss_data: Resource = preload("res://resources/enemies/boss.tres")
 
 func _ready() -> void:
 	mobile_performance_mode = GameManager.is_mobile_performance_profile()
+	if mobile_performance_mode:
+		pool_size = mini(pool_size, mobile_pool_size)
 	add_child(spawn_timer)
 	spawn_timer.one_shot = false
 	spawn_timer.timeout.connect(_on_spawn_timer_timeout)
@@ -255,7 +262,10 @@ func _sample_mobile_pressure() -> void:
 	var fps := float(Engine.get_frames_per_second())
 	if fps <= 0.0:
 		return
-	if fps < mobile_critical_fps_threshold:
+	if fps < mobile_emergency_fps_threshold:
+		mobile_recover_timer = 0.0
+		_set_mobile_pressure_level(MOBILE_PRESSURE_EMERGENCY)
+	elif fps < mobile_critical_fps_threshold:
 		mobile_recover_timer = 0.0
 		_set_mobile_pressure_level(MOBILE_PRESSURE_CRITICAL)
 	elif fps < mobile_pressure_fps_threshold:
@@ -282,6 +292,8 @@ func _set_mobile_pressure_level(level: int) -> void:
 func _get_mobile_active_enemy_limit() -> int:
 	var limit := mobile_normal_active_enemy_limit
 	match mobile_pressure_level:
+		MOBILE_PRESSURE_EMERGENCY:
+			limit = mini(limit, mobile_emergency_enemy_limit)
 		MOBILE_PRESSURE_CRITICAL:
 			limit = mini(limit, mobile_critical_enemy_limit)
 		MOBILE_PRESSURE_HIGH:
@@ -361,8 +373,7 @@ func spawn_enemy_force(data: Resource) -> Enemy:
 	var enemy: Enemy = _create_enemy()
 	active_enemies.append(enemy)
 	var spawn_position := player.global_position + Vector2.from_angle(randf() * TAU) * randf_range(600.0, 1200.0)
-	# 性能测试模式下不使用world_map的生成位置，直接用分散的随机位置
-	if world_map and world_map.has_method("get_spawn_position") and not GameManager.stress_test:
+	if world_map and world_map.has_method("get_spawn_position"):
 		spawn_position = world_map.call("get_spawn_position", data.spawn_region, player.global_position)
 	enemy.reset_for_spawn(data, player, spawn_position, world_map)
 	return enemy
@@ -371,6 +382,8 @@ func _get_wave_spawn_interval() -> float:
 	if not mobile_performance_mode:
 		return DEFAULT_WAVE_SPAWN_INTERVAL
 	match mobile_pressure_level:
+		MOBILE_PRESSURE_EMERGENCY:
+			return mobile_emergency_wave_spawn_interval
 		MOBILE_PRESSURE_CRITICAL:
 			return mobile_critical_wave_spawn_interval
 		MOBILE_PRESSURE_HIGH:

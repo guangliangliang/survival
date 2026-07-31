@@ -6,6 +6,7 @@ const ARROW_IMPACT_TEXTURE := preload("res://assets/images/effects/fx_arrow_impa
 const HEAL_GLOW_TEXTURE := preload("res://assets/images/effects/fx_heal_glow.png")
 
 @export var pool_size: int = 48
+@export var mobile_pool_size: int = 32
 @export var mobile_impact_interval: float = 0.04
 
 var effects: Array[Sprite2D] = []
@@ -15,6 +16,8 @@ var next_mobile_impact_time: float = 0.0
 
 func _ready() -> void:
 	mobile_performance_mode = GameManager.is_mobile_performance_profile()
+	if mobile_performance_mode:
+		pool_size = mini(pool_size, mobile_pool_size)
 	add_to_group("visual_effects")
 	for index in pool_size:
 		var sprite := Sprite2D.new()

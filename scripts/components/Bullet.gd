@@ -18,6 +18,7 @@ func _get_visual_effects() -> Node:
 func _ready() -> void:
 	body_entered.connect(_on_body_entered)
 	area_entered.connect(_on_area_entered)
+	set_process(active)
 
 func _process(delta: float) -> void:
 	if not active:
@@ -64,11 +65,13 @@ func activate(spawn_position: Vector2, shot_direction: Vector2, shot_speed: floa
 	life_timer = 0.0
 	active = true
 	visible = true
+	set_process(true)
 	set_deferred("monitoring", true)
 
 func _deactivate() -> void:
 	active = false
 	visible = false
+	set_process(false)
 	set_deferred("monitoring", false)
 	life_timer = 0.0
 	hit_ids.clear()

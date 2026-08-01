@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="BossSkillData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/BossSkillData.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/images/projectiles/projectile_musket_shot.png" id="2"]
+
+[resource]
+script = ExtResource("1")
+skill_id = &"bandit_shrapnel_volley"
+display_name = "Shrapnel Volley"
+skill_type = &"fan_projectiles"
+min_phase = 2
+cooldown = 6.2
+windup = 0.55
+recovery = 0.36
+range_min = 120.0
+range_max = 610.0
+damage_multiplier = 0.7
+telegraph_radius = 360.0
+projectile_count = 9
+projectile_arc_degrees = 92.0
+projectile_speed = 400.0
+sfx_key = &"enemy_rifle"
+projectile_texture = ExtResource("2")

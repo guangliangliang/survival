@@ -29,6 +29,7 @@ static var animation_frame_layout_cache: Dictionary = {}
 @onready var health_component = $HealthComponent
 @onready var sprite: Sprite2D = $Sprite2D
 @onready var collision_shape = $CollisionShape2D
+@onready var boss_skill_controller: Node = get_node_or_null("BossSkillController")
 
 var target: Node2D
 var is_alive: bool = false
@@ -37,6 +38,7 @@ var flash_timer: float = 0.0
 var active_time: float = 0.0
 var attack_windup: float = 0.0
 var attack_visual_time: float = 0.0
+var boss_skill_walk_visual_time: float = 0.0
 var attack_count: int = 0
 var knockback_velocity := Vector2.ZERO
 var animation_time: float = 0.0
@@ -148,6 +150,10 @@ func _physics_process(delta: float) -> void:
 			if attack_windup <= 0.0:
 				_perform_attack()
 			return
+		if _process_boss_skill(delta, target, direction, distance_sq):
+			_update_visual_animation(delta)
+			_update_despawn_check(delta)
+			return
 		if far_lod:
 			_update_facing(direction)
 			velocity = direction * enemy_data.move_speed
@@ -180,6 +186,11 @@ func _physics_process(delta: float) -> void:
 			_try_attack()
 	else:
 		_update_mobile_far_lod(0.0)
+		if _is_boss_skill_busy():
+			var fallback_direction := Vector2.LEFT if facing_left else Vector2.RIGHT
+			if _process_boss_skill(delta, null, fallback_direction, 0.0):
+				_update_visual_animation(delta)
+				return
 		if attack_windup > 0.0:
 			attack_windup -= delta
 			velocity = Vector2.ZERO
@@ -225,6 +236,7 @@ func reset_for_spawn(data: Resource, player_target: Node2D, spawn_position: Vect
 	attack_timer = randf_range(0.0, enemy_data.attack_cooldown)
 	attack_windup = 0.0
 	attack_visual_time = 0.0
+	boss_skill_walk_visual_time = 0.0
 	attack_count = 0
 	knockback_velocity = Vector2.ZERO
 	animation_time = 0.0
@@ -240,6 +252,8 @@ func reset_for_spawn(data: Resource, player_target: Node2D, spawn_position: Vect
 	collision_mask = 1
 	_apply_data()
 	health_component.reset(enemy_data.max_health)
+	if boss_skill_controller != null and boss_skill_controller.has_method("configure"):
+		boss_skill_controller.call("configure", self)
 
 func _update_mobile_far_lod(distance_sq: float) -> bool:
 	if not mobile_performance_mode or enemy_data.boss:
@@ -383,6 +397,32 @@ func trigger_attack() -> void:
 		phase_multiplier = 0.65
 	attack_timer = enemy_data.attack_cooldown * phase_multiplier
 
+func trigger_boss_skill() -> bool:
+	if not is_alive or boss_skill_controller == null or not boss_skill_controller.has_method("force_skill"):
+		return false
+	return bool(boss_skill_controller.call("force_skill", target))
+
+func get_boss_skill_debug_text() -> String:
+	if boss_skill_controller == null or not boss_skill_controller.has_method("get_debug_text"):
+		return "Skills: none"
+	return String(boss_skill_controller.call("get_debug_text"))
+
+func start_boss_skill_visual(use_attack: bool, duration: float) -> void:
+	if use_attack and enemy_data.attack_texture != null:
+		attack_visual_time = maxf(attack_visual_time, duration)
+		boss_skill_walk_visual_time = 0.0
+		attack_animation_time = 0.0
+		_set_animation_texture(enemy_data.attack_texture)
+		_set_animation_frame(0)
+	elif enemy_data.walk_texture != null:
+		attack_visual_time = 0.0
+		boss_skill_walk_visual_time = maxf(boss_skill_walk_visual_time, duration)
+		_set_animation_texture(enemy_data.walk_texture)
+	sprite.modulate = Color.WHITE
+
+func set_boss_skill_facing(direction: Vector2) -> void:
+	_update_facing(direction)
+
 func _is_enraged() -> bool:
 	if not enemy_data.boss:
 		return false
@@ -405,11 +445,6 @@ func _perform_attack() -> void:
 		AudioManager.play_sfx_by_key(_get_ranged_attack_sfx_key())
 		if projectile_pool != null:
 			projectile_pool.call("fire", global_position, direction, enemy_data.damage, 360.0, enemy_data.projectile_texture)
-	elif enemy_data.boss and attack_count % 3 == 0:
-		AudioManager.play_sfx_by_key(&"enemy_projectile_pass")
-		if projectile_pool != null:
-			var projectile_count: int = 14 if _is_enraged() else 10
-			projectile_pool.call("fire_radial", global_position, projectile_count, enemy_data.damage * 0.65, 300.0)
 	else:
 		AudioManager.play_sfx_by_key(&"enemy_melee_swing", -3.0)
 		var padded_attack_range: float = enemy_data.attack_range + MELEE_ATTACK_PADDING
@@ -476,7 +511,10 @@ func _release_to_pool() -> void:
 	set_physics_process(false)
 	attack_windup = 0.0
 	attack_visual_time = 0.0
+	boss_skill_walk_visual_time = 0.0
 	in_attack_range = false
+	if boss_skill_controller != null and boss_skill_controller.has_method("cancel"):
+		boss_skill_controller.call("cancel")
 	released.emit(self)
 
 func _update_facing(direction: Vector2) -> void:
@@ -486,13 +524,14 @@ func _update_facing(direction: Vector2) -> void:
 func _update_visual_animation(delta: float) -> void:
 	if not is_node_ready() or not _has_animated_texture():
 		return
+	boss_skill_walk_visual_time = maxf(0.0, boss_skill_walk_visual_time - delta)
 	if far_lod_active and attack_visual_time <= 0.0 and not in_attack_range:
 		far_lod_animation_timer -= delta
 		if far_lod_animation_timer > 0.0:
 			return
 		far_lod_animation_timer = MOBILE_FAR_LOD_ANIMATION_INTERVAL
 		delta = MOBILE_FAR_LOD_ANIMATION_INTERVAL
-	var using_attack := (in_attack_range or attack_visual_time > 0.0) and enemy_data.attack_texture != null
+	var using_attack := boss_skill_walk_visual_time <= 0.0 and (in_attack_range or attack_visual_time > 0.0) and enemy_data.attack_texture != null
 	var texture: Texture2D = enemy_data.attack_texture if using_attack else enemy_data.walk_texture
 	if texture == null:
 		return
@@ -593,6 +632,14 @@ func _has_visual_texture() -> bool:
 
 func _has_animated_texture() -> bool:
 	return enemy_data.walk_texture != null or enemy_data.attack_texture != null
+
+func _process_boss_skill(delta: float, skill_target: Node2D, direction: Vector2, distance_sq: float) -> bool:
+	if boss_skill_controller == null or not enemy_data.boss or not boss_skill_controller.has_method("process_skill"):
+		return false
+	return bool(boss_skill_controller.call("process_skill", delta, skill_target, direction, distance_sq))
+
+func _is_boss_skill_busy() -> bool:
+	return boss_skill_controller != null and boss_skill_controller.has_method("is_busy") and bool(boss_skill_controller.call("is_busy"))
 
 func _apply_separation(direct_direction: Vector2) -> Vector2:
 	var enemy_spawner = get_tree().get_first_node_in_group("enemy_spawner")

@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="BossSkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/BossSkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+skill_id = &"alpha_pounce_charge"
+display_name = "Pounce Charge"
+skill_type = &"charge"
+min_phase = 1
+cooldown = 5.4
+windup = 0.48
+recovery = 0.28
+range_min = 150.0
+range_max = 560.0
+damage_multiplier = 1.2
+telegraph_radius = 44.0
+charge_speed = 660.0
+charge_duration = 0.42
+sfx_key = &"dash_cast"

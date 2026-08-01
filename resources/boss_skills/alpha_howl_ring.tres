@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="BossSkillData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/BossSkillData.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/images/projectiles/bullet_enemy.png" id="2"]
+
+[resource]
+script = ExtResource("1")
+skill_id = &"alpha_howl_ring"
+display_name = "Howl Ring"
+skill_type = &"radial_projectiles"
+min_phase = 2
+cooldown = 7.4
+windup = 0.62
+recovery = 0.36
+range_min = 0.0
+range_max = 880.0
+damage_multiplier = 0.68
+telegraph_radius = 210.0
+projectile_count = 12
+projectile_arc_degrees = 360.0
+projectile_speed = 310.0
+sfx_key = &"enemy_projectile_pass"
+projectile_texture = ExtResource("2")

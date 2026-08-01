@@ -24,3 +24,4 @@ extends Resource
 @export var elite: bool = false
 @export var boss: bool = false
 @export var boss_health_bars: int = 1
+@export var boss_skills: Array[Resource] = []

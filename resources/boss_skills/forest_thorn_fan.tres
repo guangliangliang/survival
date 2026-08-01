@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="BossSkillData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/BossSkillData.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/images/projectiles/projectile_porcupine_thorn.png" id="2"]
+
+[resource]
+script = ExtResource("1")
+skill_id = &"forest_thorn_fan"
+display_name = "Thorn Fan"
+skill_type = &"fan_projectiles"
+min_phase = 2
+cooldown = 6.6
+windup = 0.58
+recovery = 0.34
+range_min = 120.0
+range_max = 560.0
+damage_multiplier = 0.75
+telegraph_radius = 330.0
+projectile_count = 7
+projectile_arc_degrees = 76.0
+projectile_speed = 360.0
+sfx_key = &"porcupine_thorn"
+projectile_texture = ExtResource("2")

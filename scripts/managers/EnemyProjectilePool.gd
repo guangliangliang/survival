@@ -33,9 +33,25 @@ func fire(spawn_position: Vector2, direction: Vector2, damage: float, speed: flo
 			return true
 	return false
 
-func fire_radial(spawn_position: Vector2, count: int, damage: float, speed: float = 280.0) -> void:
+func fire_radial(spawn_position: Vector2, count: int, damage: float, speed: float = 280.0, texture: Texture2D = null) -> void:
+	count = maxi(1, count)
 	for index in count:
-		fire(spawn_position, Vector2.from_angle(TAU * float(index) / float(count)), damage, speed)
+		fire(spawn_position, Vector2.from_angle(TAU * float(index) / float(count)), damage, speed, texture)
+
+func fire_arc(spawn_position: Vector2, direction: Vector2, count: int, arc_degrees: float, damage: float, speed: float = 280.0, texture: Texture2D = null) -> void:
+	count = maxi(1, count)
+	var shot_direction := direction.normalized()
+	if shot_direction.length_squared() <= 0.001:
+		shot_direction = Vector2.RIGHT
+	if count == 1:
+		fire(spawn_position, shot_direction, damage, speed, texture)
+		return
+	var arc := deg_to_rad(clampf(absf(arc_degrees), 0.0, 360.0))
+	var center_angle := shot_direction.angle()
+	var start_angle := center_angle - arc * 0.5
+	for index in count:
+		var ratio := float(index) / float(count - 1)
+		fire(spawn_position, Vector2.from_angle(start_angle + arc * ratio), damage, speed, texture)
 
 func get_active_count() -> int:
 	var count := 0

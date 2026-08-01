@@ -394,6 +394,20 @@ func spawn_enemy(data: Resource) -> bool:
 	enemy.reset_for_spawn(data, player, spawn_position, world_map)
 	return true
 
+func spawn_enemy_at(data: Resource, spawn_position: Vector2) -> Enemy:
+	if data == null or data.boss or not is_instance_valid(player):
+		return null
+	if active_enemies.size() >= active_enemy_limit or inactive_pool.is_empty():
+		return null
+	var enemy := inactive_pool.pop_back() as Enemy
+	active_enemies.append(enemy)
+	var final_position := spawn_position
+	if world_map and world_map.has_method("get_world_bounds"):
+		var bounds: Rect2 = world_map.call("get_world_bounds")
+		final_position = final_position.clamp(bounds.position + Vector2(40, 40), bounds.end - Vector2(40, 40))
+	enemy.reset_for_spawn(data, player, final_position, world_map)
+	return enemy
+
 func _on_enemy_released(enemy: Enemy) -> void:
 	active_enemies.erase(enemy)
 	if performance_test_mode and enemy != null and enemy.enemy_data != null and enemy.enemy_data.boss:

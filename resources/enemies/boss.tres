@@ -1,8 +1,11 @@
-[gd_resource type="Resource" script_class="EnemyData" load_steps=5 format=3]
+[gd_resource type="Resource" script_class="EnemyData" load_steps=8 format=3]
 [ext_resource type="Script" path="res://scripts/data/EnemyData.gd" id="1"]
 [ext_resource type="Texture2D" path="res://assets/images/enemies/enemy_bandit_chief_single.png" id="2"]
 [ext_resource type="Texture2D" path="res://assets/images/enemies/enemy_bandit_chief_walk_right_4.png" id="3"]
 [ext_resource type="Texture2D" path="res://assets/images/enemies/enemy_bandit_chief_attack_right_4.png" id="4"]
+[ext_resource type="Resource" path="res://resources/boss_skills/bandit_cleaver_slam.tres" id="5"]
+[ext_resource type="Resource" path="res://resources/boss_skills/bandit_shrapnel_volley.tres" id="6"]
+[ext_resource type="Resource" path="res://resources/boss_skills/bandit_reinforcements.tres" id="7"]
 [resource]
 script = ExtResource("1")
 enemy_id = &"bandit_chief"
@@ -26,3 +29,4 @@ attack_cooldown = 0.9
 elite = true
 boss = true
 boss_health_bars = 3
+boss_skills = Array[Resource]([ExtResource("5"), ExtResource("6"), ExtResource("7")])

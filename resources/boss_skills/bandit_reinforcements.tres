@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="BossSkillData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/BossSkillData.gd" id="1"]
+[ext_resource type="Resource" path="res://resources/enemies/gunner.tres" id="2"]
+
+[resource]
+script = ExtResource("1")
+skill_id = &"bandit_reinforcements"
+display_name = "Reinforcements"
+skill_type = &"summon"
+min_phase = 3
+cooldown = 10.5
+windup = 0.75
+recovery = 0.42
+range_min = 0.0
+range_max = 1200.0
+telegraph_radius = 230.0
+summon_enemy_data = ExtResource("2")
+summon_count = 2
+sfx_key = &"boss_warning"

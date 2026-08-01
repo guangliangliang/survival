@@ -102,6 +102,8 @@ const BOSS_LAYER_COLORS: Array[Color] = [
 	Color("9b4fd0"),
 	Color("f1bd32"),
 ]
+const BOSS_BAR_EMPTY_FILL := Color(0.106, 0.09, 0.078, 1.0)
+const BOSS_BAR_EMPTY_BORDER := Color(0.373, 0.322, 0.251, 1.0)
 var smoke_test: bool = false
 var smoke_boss_marked: bool = false
 var timeline_test: bool = false
@@ -522,9 +524,17 @@ func _on_boss_health_changed(current: float, max_hp: float) -> void:
 		boss_name_label.text = "%s  ×%d" % [current_boss.enemy_data.display_name, layers_left]
 
 func _apply_boss_layer_color(layers_left: int) -> void:
-	var index: int = clamp(layers_left - 1, 0, BOSS_LAYER_COLORS.size() - 1)
-	var fill: Color = BOSS_LAYER_COLORS[index]
+	var fill: Color = _get_boss_layer_color(layers_left)
 	boss_progress_bar.add_theme_stylebox_override("fill", _bar_box(fill, fill.lightened(0.3), 2))
+	if layers_left > 1:
+		var next_fill: Color = _get_boss_layer_color(layers_left - 1)
+		boss_progress_bar.add_theme_stylebox_override("background", _bar_box(next_fill, next_fill.lightened(0.2), 2))
+	else:
+		boss_progress_bar.add_theme_stylebox_override("background", _bar_box(BOSS_BAR_EMPTY_FILL, BOSS_BAR_EMPTY_BORDER, 2))
+
+func _get_boss_layer_color(layers_left: int) -> Color:
+	var index: int = clampi(layers_left - 1, 0, BOSS_LAYER_COLORS.size() - 1)
+	return BOSS_LAYER_COLORS[index]
 
 func _hide_boss_bar() -> void:
 	if boss_health_component != null and is_instance_valid(boss_health_component):

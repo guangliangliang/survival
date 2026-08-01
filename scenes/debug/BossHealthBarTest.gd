@@ -7,6 +7,13 @@ const BOSS_DATA: Array[Resource] = [
 	preload("res://resources/enemies/forest_beast.tres"),
 	preload("res://resources/enemies/boss.tres"),
 ]
+const BOSS_LAYER_COLORS: Array[Color] = [
+	Color("d43a2b"),
+	Color("9b4fd0"),
+	Color("f1bd32"),
+]
+const BOSS_BAR_EMPTY_FILL := Color(0.106, 0.09, 0.078, 1.0)
+const BOSS_BAR_EMPTY_BORDER := Color(0.373, 0.322, 0.251, 1.0)
 
 @onready var game_world: Node2D = $GameWorld
 @onready var boss_bar: Control = $CanvasLayer/GameUI/BossBar
@@ -24,6 +31,8 @@ const BOSS_DATA: Array[Resource] = [
 
 var current_boss: CharacterBody2D = null
 var boss_health_component: Node = null
+var boss_total_layers: int = 1
+var boss_layer_per: float = 0.0
 var current_boss_index: int = 0
 var boss_buttons: Array[Button] = []
 
@@ -113,16 +122,44 @@ func _bind_boss(boss: CharacterBody2D) -> void:
 	boss_health_component = boss.get_node_or_null("HealthComponent")
 	if boss_health_component == null:
 		return
-	boss_name_label.text = boss.enemy_data.display_name
-	boss_progress_bar.max_value = boss_health_component.max_health
-	boss_progress_bar.value = boss_health_component.current_health
+	boss_total_layers = max(boss.enemy_data.boss_health_bars, 1)
+	boss_layer_per = boss_health_component.max_health / float(boss_total_layers)
 	if not boss_health_component.health_changed.is_connected(_on_boss_health_changed):
 		boss_health_component.health_changed.connect(_on_boss_health_changed)
 	boss_bar.visible = true
+	_on_boss_health_changed(boss_health_component.current_health, boss_health_component.max_health)
 
 func _on_boss_health_changed(current: float, max_hp: float) -> void:
-	boss_progress_bar.max_value = max_hp
-	boss_progress_bar.value = current
+	var per: float = max_hp / float(boss_total_layers)
+	var clamped: float = max(current, 0.0)
+	var layers_left: int = clamp(int(ceil(clamped / per)), 1, boss_total_layers)
+	var in_layer: float = clamped - per * float(layers_left - 1)
+	boss_progress_bar.max_value = per
+	boss_progress_bar.value = in_layer
+	_apply_boss_layer_color(layers_left)
+	if is_instance_valid(current_boss):
+		boss_name_label.text = "%s  ×%d" % [current_boss.enemy_data.display_name, layers_left]
+
+func _apply_boss_layer_color(layers_left: int) -> void:
+	var fill: Color = _get_boss_layer_color(layers_left)
+	boss_progress_bar.add_theme_stylebox_override("fill", _bar_box(fill, fill.lightened(0.3), 2))
+	if layers_left > 1:
+		var next_fill: Color = _get_boss_layer_color(layers_left - 1)
+		boss_progress_bar.add_theme_stylebox_override("background", _bar_box(next_fill, next_fill.lightened(0.2), 2))
+	else:
+		boss_progress_bar.add_theme_stylebox_override("background", _bar_box(BOSS_BAR_EMPTY_FILL, BOSS_BAR_EMPTY_BORDER, 2))
+
+func _get_boss_layer_color(layers_left: int) -> Color:
+	var index: int = clampi(layers_left - 1, 0, BOSS_LAYER_COLORS.size() - 1)
+	return BOSS_LAYER_COLORS[index]
+
+func _bar_box(fill: Color, border: Color, radius: int) -> StyleBoxFlat:
+	var box := StyleBoxFlat.new()
+	box.bg_color = fill
+	box.border_color = border
+	box.set_border_width_all(1)
+	box.set_corner_radius_all(radius)
+	return box
 
 func _hide_boss_bar() -> void:
 	if boss_health_component != null and is_instance_valid(boss_health_component):

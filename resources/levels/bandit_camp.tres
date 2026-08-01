@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="LevelData" load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://scripts/data/LevelData.gd" id="1"]
-[ext_resource type="Resource" path="res://resources/enemies/bandit.tres" id="2"]
+[ext_resource type="Resource" path="res://resources/enemies/bandit_red_earth.tres" id="2"]
 [ext_resource type="Resource" path="res://resources/enemies/gunner.tres" id="3"]
 [ext_resource type="Resource" path="res://resources/enemies/elite.tres" id="4"]
 [ext_resource type="Resource" path="res://resources/enemies/boar.tres" id="5"]

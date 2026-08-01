@@ -111,6 +111,7 @@ var spawn_regions := {
 	&"forest": [Vector2(-1400, -650), Vector2(-1150, 520), Vector2(-650, -850)],
 	&"farm": [Vector2(850, -650), Vector2(1350, -350), Vector2(1050, 600)],
 	&"camp": [Vector2(-1350, 750), Vector2(-850, 850), Vector2(-1550, 350)],
+	&"camp_frontline": [Vector2(-820, 350), Vector2(-880, -280), Vector2(820, 350), Vector2(880, -280)],
 	&"any": [Vector2(-1400, 0), Vector2(1400, 0), Vector2(0, -900), Vector2(0, 900)]
 }
 var map_variant: StringName = &"frontier_desert"

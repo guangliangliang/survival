@@ -6,7 +6,7 @@
 script = ExtResource("1")
 upgrade_id = &"move_speed"
 title = "轻装巡逻"
-description = "移动速度提高 12%"
+description = "移动速度提高 8%"
 stat_key = &"move_speed_multiplier"
-amount = 0.12
+amount = 0.08
 max_level = 5

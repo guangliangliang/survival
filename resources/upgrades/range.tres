@@ -6,7 +6,7 @@
 script = ExtResource("1")
 upgrade_id = &"range"
 title = "远射训练"
-description = "射程提高 20%"
+description = "射程提高 10%"
 stat_key = &"range_multiplier"
-amount = 0.2
+amount = 0.10
 max_level = 5

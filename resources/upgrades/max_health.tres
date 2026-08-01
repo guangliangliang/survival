@@ -6,7 +6,7 @@
 script = ExtResource("1")
 upgrade_id = &"max_health"
 title = "守卫体魄"
-description = "最大生命提高 20，并恢复 20"
+description = "最大生命提高 22，并恢复 22"
 stat_key = &"max_health"
-amount = 20.0
+amount = 22.0
 max_level = 5

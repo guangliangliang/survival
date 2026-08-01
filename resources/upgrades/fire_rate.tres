@@ -6,7 +6,7 @@
 script = ExtResource("1")
 upgrade_id = &"fire_rate"
 title = "快速射击"
-description = "射速提高 18%"
+description = "射速提高 12%"
 stat_key = &"fire_rate_multiplier"
-amount = 0.18
+amount = 0.12
 max_level = 5

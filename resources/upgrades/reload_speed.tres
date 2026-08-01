@@ -6,7 +6,7 @@
 script = ExtResource("1")
 upgrade_id = &"reload_speed"
 title = "快速装填"
-description = "换弹速度提高 25%"
+description = "换弹速度提高 15%"
 stat_key = &"reload_speed_multiplier"
-amount = 0.25
+amount = 0.15
 max_level = 5

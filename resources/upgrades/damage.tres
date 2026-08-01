@@ -6,7 +6,7 @@
 script = ExtResource("1")
 upgrade_id = &"damage"
 title = "强化弹药"
-description = "伤害提高 25%"
+description = "伤害提高 16%"
 stat_key = &"damage_multiplier"
-amount = 0.25
+amount = 0.16
 max_level = 5

@@ -9,4 +9,4 @@ title = "解锁飞轮"
 description = "每级增加 1 个环绕飞轮，并提升 10% 飞轮伤害"
 stat_key = &"flywheel_count"
 amount = 1.0
-max_level = 8
+max_level = 5

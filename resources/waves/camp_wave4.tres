@@ -5,6 +5,6 @@
 [resource]
 script = ExtResource("1")
 trigger_time = 480.0
-enemy_count = 190
+enemy_count = 160
 warning_time = 5.0
 display_name = "最终冲击"

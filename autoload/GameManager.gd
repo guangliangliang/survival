@@ -118,7 +118,7 @@ func get_performance_test_count_presets() -> Array[int]:
 	return PERFORMANCE_TEST_CLIENT_COUNTS.duplicate()
 
 func get_default_performance_test_count() -> int:
-	return 100 if is_mobile_performance_profile() else 400
+	return 40 if is_mobile_performance_profile() else 200
 
 func get_performance_test_enemy_catalog() -> Array[Resource]:
 	var enemies: Array[Resource] = []

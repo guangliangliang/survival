@@ -102,8 +102,8 @@ pool_size = 64
 process_mode = 1
 script = ExtResource("3")
 enemy_scene = ExtResource("6")
-pool_size = 200
-active_enemy_limit = 180
+pool_size = 232
+active_enemy_limit = 200
 base_spawn_interval = 1.4
 boss_spawn_time = 660.0
 

@@ -9,6 +9,8 @@ const EnemyData := preload("res://scripts/data/EnemyData.gd")
 const LevelData := preload("res://scripts/data/LevelData.gd")
 const Enemy := preload("res://scripts/systems/Enemy.gd")
 const DEFAULT_WAVE_SPAWN_INTERVAL := 0.08
+const PERFORMANCE_TEST_CLIENT_SPAWN_BATCH := 48
+const PERFORMANCE_TEST_MOBILE_SPAWN_BATCH := 12
 const MOBILE_PRESSURE_NONE := 0
 const MOBILE_PRESSURE_HIGH := 1
 const MOBILE_PRESSURE_CRITICAL := 2
@@ -58,6 +60,9 @@ var mobile_pressure_level: int = MOBILE_PRESSURE_NONE
 var mobile_pressure_check_timer: float = 0.0
 var mobile_pressure_cleanup_timer: float = 0.0
 var mobile_recover_timer: float = 0.0
+var performance_test_mode: bool = false
+var performance_test_target_count: int = 0
+var performance_enemy_cursor: int = 0
 
 var enemy_catalog: Array[Resource] = [
 	preload("res://resources/enemies/wolf.tres"),
@@ -92,6 +97,10 @@ func _reset_wave_state() -> void:
 	wave_spawn_timer.stop()
 
 func _process(delta: float) -> void:
+	if performance_test_mode and is_spawning and GameManager.run_active:
+		_update_performance_test_spawns()
+		return
+
 	if mobile_performance_mode and is_spawning and GameManager.run_active:
 		_update_mobile_pressure(delta)
 
@@ -106,13 +115,24 @@ func configure(config: LevelData, player_node: Node2D, map_node: Node2D, contain
 	player = player_node
 	world_map = map_node
 	world_container = container
+	performance_test_mode = GameManager.is_performance_test_active()
+	performance_test_target_count = 0
+	performance_enemy_cursor = 0
 	if level_data != null:
 		enemy_catalog = level_data.enemy_catalog.duplicate()
 		boss_data = level_data.boss_data
 		boss_spawn_time = level_data.boss_spawn_time
 		base_spawn_interval = level_data.spawn_interval
 		active_enemy_limit = mini(level_data.active_enemy_limit, pool_size - 1)
-	if mobile_performance_mode:
+	if performance_test_mode:
+		performance_test_target_count = GameManager.performance_test_target_count
+		var mixed_catalog := GameManager.get_performance_test_enemy_catalog()
+		if not mixed_catalog.is_empty():
+			enemy_catalog = mixed_catalog
+		boss_spawn_time = 0.0
+		pool_size = maxi(pool_size, performance_test_target_count + 32)
+		active_enemy_limit = performance_test_target_count + 1
+	elif mobile_performance_mode:
 		active_enemy_limit = mini(active_enemy_limit, mobile_active_enemy_limit)
 	mobile_normal_active_enemy_limit = active_enemy_limit
 	_reset_mobile_pressure()
@@ -216,11 +236,47 @@ func start_spawning() -> void:
 	is_spawning = true
 	boss_spawned = false
 	_reset_wave_state()
+	if performance_test_mode:
+		spawn_timer.stop()
+		wave_spawn_timer.stop()
+		_update_performance_test_spawns()
+		return
 	spawn_timer.start(base_spawn_interval)
 
 func stop_spawning() -> void:
 	is_spawning = false
 	spawn_timer.stop()
+	wave_spawn_timer.stop()
+
+func _update_performance_test_spawns() -> void:
+	if performance_test_target_count <= 0 or enemy_catalog.is_empty():
+		return
+	_ensure_performance_test_boss()
+	var missing := performance_test_target_count - get_active_regular_enemy_count()
+	if missing <= 0:
+		return
+	var batch_size := mini(missing, _get_performance_test_spawn_batch_size())
+	for index in batch_size:
+		var data := _choose_performance_test_enemy_data()
+		if data == null:
+			return
+		if not spawn_enemy(data):
+			return
+
+func _ensure_performance_test_boss() -> void:
+	if boss_data == null or has_active_boss():
+		return
+	boss_spawned = spawn_enemy(boss_data) or boss_spawned
+
+func _choose_performance_test_enemy_data() -> Resource:
+	if enemy_catalog.is_empty():
+		return null
+	var data: Resource = enemy_catalog[performance_enemy_cursor % enemy_catalog.size()]
+	performance_enemy_cursor += 1
+	return data
+
+func _get_performance_test_spawn_batch_size() -> int:
+	return PERFORMANCE_TEST_MOBILE_SPAWN_BATCH if mobile_performance_mode else PERFORMANCE_TEST_CLIENT_SPAWN_BATCH
 
 func _on_spawn_timer_timeout() -> void:
 	if not is_spawning or not GameManager.run_active:
@@ -241,7 +297,7 @@ func _reset_mobile_pressure() -> void:
 	mobile_pressure_check_timer = mobile_pressure_check_interval
 	mobile_pressure_cleanup_timer = mobile_pressure_cleanup_interval
 	mobile_recover_timer = 0.0
-	if mobile_performance_mode:
+	if mobile_performance_mode and not performance_test_mode:
 		active_enemy_limit = _get_mobile_active_enemy_limit()
 
 func _update_mobile_pressure(delta: float) -> void:
@@ -340,11 +396,33 @@ func spawn_enemy(data: Resource) -> bool:
 
 func _on_enemy_released(enemy: Enemy) -> void:
 	active_enemies.erase(enemy)
+	if performance_test_mode and enemy != null and enemy.enemy_data != null and enemy.enemy_data.boss:
+		boss_spawned = false
 	if not inactive_pool.has(enemy):
 		inactive_pool.append(enemy)
 
 func get_active_enemy_count() -> int:
 	return active_enemies.size()
+
+func get_active_regular_enemy_count() -> int:
+	var count := 0
+	for enemy in active_enemies:
+		if not is_instance_valid(enemy) or not enemy.get("is_alive"):
+			continue
+		var data: Resource = enemy.get("enemy_data")
+		if data != null and data.boss:
+			continue
+		count += 1
+	return count
+
+func has_active_boss() -> bool:
+	for enemy in active_enemies:
+		if not is_instance_valid(enemy) or not enemy.get("is_alive"):
+			continue
+		var data: Resource = enemy.get("enemy_data")
+		if data != null and data.boss:
+			return true
+	return false
 
 func get_active_enemies() -> Array:
 	return active_enemies

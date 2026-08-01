@@ -111,6 +111,9 @@ var level_data: Resource
 var camera_shake_strength: float = 0.0
 var upgrade_icon_cache: Dictionary = {}
 var mobile_performance_mode: bool = false
+var performance_test: bool = false
+var performance_status_panel: PanelContainer
+var performance_status_label: Label
 var ui_update_timer: float = 0.0
 var health_fill_bucket: int = -1
 
@@ -135,6 +138,7 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	get_tree().paused = false
 	mobile_performance_mode = GameManager.is_mobile_performance_profile()
+	performance_test = GameManager.is_performance_test_active()
 	smoke_test = OS.get_cmdline_user_args().has("--smoke-test")
 	timeline_test = OS.get_cmdline_user_args().has("--timeline-test")
 	boss_pool_test = OS.get_cmdline_user_args().has("--boss-pool-test")
@@ -157,6 +161,8 @@ func _ready() -> void:
 	
 	_connect_signals()
 	_apply_overlay_style()
+	if performance_test:
+		_build_performance_status_panel()
 	_start_game()
 
 func _process(delta: float) -> void:
@@ -172,7 +178,7 @@ func _process(delta: float) -> void:
 			AudioManager.play_sfx_by_key(&"boss_warning")
 			AudioManager.play_music_by_key(&"boss")
 		_update_boss_bar()
-		if boss_is_defeated:
+		if boss_is_defeated and not performance_test:
 			GameManager.finish_run(&"victory")
 	_update_ui_throttled(delta)
 
@@ -243,6 +249,10 @@ func _start_game() -> void:
 	player = preload("res://scenes/game/Player.tscn").instantiate()
 	player.global_position = Vector2.ZERO
 	game_world.add_child(player)
+	if performance_test:
+		player.health_component.invincible = true
+		if not GameManager.performance_test_keep_weapons:
+			player.ranged_weapon.firing_enabled = false
 	world_map.configure(level_data)
 	var world_bounds: Rect2 = world_map.get_world_bounds()
 	player.set_world_bounds(world_bounds)
@@ -269,6 +279,8 @@ func _toggle_manual_pause() -> void:
 	get_tree().paused = manual_pause
 
 func _on_level_up(_level: int) -> void:
+	if performance_test:
+		return
 	AudioManager.play_sfx_by_key(&"level_up")
 	upgrade_pending += 1
 	if not upgrade_screen.visible:
@@ -461,6 +473,9 @@ func _build_star_text(next_level: int, max_level: int) -> String:
 	return text
 
 func _on_boss_defeated() -> void:
+	if performance_test:
+		_hide_boss_bar()
+		return
 	boss_is_defeated = true
 	_hide_boss_bar()
 
@@ -583,16 +598,69 @@ func _update_ui() -> void:
 	if kill_label.text != kill_text:
 		kill_label.text = kill_text
 	_update_objective_label()
+	_update_performance_status_label()
 
 func _update_objective_label() -> void:
 	var objective_text: String
-	if GameManager.game_time < enemy_spawner.boss_spawn_time:
+	if performance_test:
+		var boss_name: String = level_data.boss_data.display_name if level_data != null and level_data.boss_data != null else "Boss"
+		objective_text = "性能测试：%d 普通怪 + %s" % [GameManager.performance_test_target_count, boss_name]
+	elif GameManager.game_time < enemy_spawner.boss_spawn_time:
 		objective_text = "坚持到%s出现" % level_data.boss_data.display_name
 	else:
 		objective_text = "击败%s" % level_data.boss_data.display_name
 	if objective_label.text != objective_text:
 		objective_label.text = objective_text
 		objective_panel.reset_size()
+
+func _build_performance_status_panel() -> void:
+	var game_ui := get_node_or_null("CanvasLayer/GameUI") as Control
+	if game_ui == null:
+		return
+	performance_status_panel = PanelContainer.new()
+	performance_status_panel.name = "PerformanceTestStatus"
+	performance_status_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	performance_status_panel.anchor_left = 0.0
+	performance_status_panel.anchor_top = 0.0
+	performance_status_panel.anchor_right = 0.0
+	performance_status_panel.anchor_bottom = 0.0
+	performance_status_panel.offset_left = 18.0
+	performance_status_panel.offset_top = 204.0
+	performance_status_panel.offset_right = 330.0
+	performance_status_panel.offset_bottom = 326.0
+	performance_status_panel.add_theme_stylebox_override("panel", _performance_status_box())
+	game_ui.add_child(performance_status_panel)
+
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 12)
+	margin.add_theme_constant_override("margin_top", 10)
+	margin.add_theme_constant_override("margin_right", 12)
+	margin.add_theme_constant_override("margin_bottom", 10)
+	performance_status_panel.add_child(margin)
+
+	performance_status_label = Label.new()
+	performance_status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	performance_status_label.add_theme_color_override("font_color", Color("f8edc8"))
+	performance_status_label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.76))
+	performance_status_label.add_theme_constant_override("outline_size", 3)
+	performance_status_label.add_theme_font_size_override("font_size", 15)
+	margin.add_child(performance_status_label)
+
+func _update_performance_status_label() -> void:
+	if not performance_test or performance_status_label == null or enemy_spawner == null:
+		return
+	var regular_count := enemy_spawner.get_active_regular_enemy_count()
+	var active_count := enemy_spawner.get_active_enemy_count()
+	var boss_status: String = "在场" if enemy_spawner.has_active_boss() else "补入中"
+	var map_title: String = level_data.title if level_data != null else "未知地图"
+	performance_status_label.text = "性能测试\n地图 %s\n普通怪 %d / %d\n总活跃 %d  FPS %d\nBoss %s" % [
+		map_title,
+		regular_count,
+		GameManager.performance_test_target_count,
+		active_count,
+		int(Engine.get_frames_per_second()),
+		boss_status
+	]
 
 func _calculate_rank() -> String:
 	if not is_instance_valid(player):
@@ -632,12 +700,14 @@ func _return_to_level_select() -> void:
 	AudioManager.play_ui_by_key(&"back")
 	get_tree().paused = false
 	InputAdapter.clear_virtual_inputs()
+	GameManager.clear_performance_test()
 	get_tree().change_scene_to_file("res://scenes/menu/LevelSelect.tscn")
 
 func _return_home() -> void:
 	AudioManager.play_ui_by_key(&"back")
 	get_tree().paused = false
 	InputAdapter.clear_virtual_inputs()
+	GameManager.clear_performance_test()
 	get_tree().change_scene_to_file("res://scenes/menu/MainMenu.tscn")
 
 func _run_smoke_flow() -> void:
@@ -769,6 +839,18 @@ func _status_panel_box() -> StyleBoxFlat:
 	box.content_margin_right = 12.0
 	box.content_margin_top = 8.0
 	box.content_margin_bottom = 8.0
+	return box
+
+func _performance_status_box() -> StyleBoxFlat:
+	var box := StyleBoxFlat.new()
+	box.bg_color = Color(0.07, 0.08, 0.065, 0.72)
+	box.border_color = Color(0.95, 0.78, 0.42, 0.62)
+	box.set_border_width_all(2)
+	box.set_corner_radius_all(6)
+	box.set_content_margin_all(0)
+	box.shadow_color = Color(0, 0, 0, 0.38)
+	box.shadow_size = 8
+	box.shadow_offset = Vector2(0, 2)
 	return box
 
 func _style_game_button(button: Button) -> void:

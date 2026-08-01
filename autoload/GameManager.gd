@@ -7,6 +7,9 @@ signal level_up(level: int)
 signal experience_changed(current: int, required: int)
 signal boss_defeated
 
+const PERFORMANCE_TEST_CLIENT_COUNTS: Array[int] = [200, 400, 600, 800]
+const PERFORMANCE_TEST_MOBILE_COUNTS: Array[int] = [40, 70, 100, 120]
+
 var player = null
 var current_level: int = 1
 var current_exp: int = 0
@@ -18,6 +21,11 @@ var result: StringName = &""
 var selected_level: Resource = preload("res://resources/levels/village_outskirts.tres")
 var selected_character: Resource = preload("res://resources/characters/sentinel.tres")
 var last_run_result: Resource
+var performance_test_enabled: bool = false
+var performance_test_level: Resource = null
+var performance_test_target_count: int = 0
+var performance_test_keep_weapons: bool = true
+var performance_test_enemy_mix: StringName = &"all"
 
 var level_catalog: Array[Resource] = [
 	preload("res://resources/levels/village_outskirts.tres"),
@@ -75,12 +83,58 @@ func finish_run(end_result: StringName) -> Resource:
 	end_game(end_result)
 	return last_run_result
 
-func select_level(level_data: Resource) -> void:
+func select_level(level_data: Resource, clear_test_state: bool = true) -> void:
 	selected_level = level_data
+	if clear_test_state:
+		clear_performance_test()
 
 func select_character(character_data: Resource) -> void:
 	if character_data != null:
 		selected_character = character_data
+
+func start_performance_test(level_data: Resource, target_count: int) -> void:
+	if level_data == null and not level_catalog.is_empty():
+		level_data = level_catalog[0]
+	performance_test_enabled = true
+	performance_test_level = level_data
+	performance_test_target_count = maxi(1, target_count)
+	performance_test_keep_weapons = true
+	performance_test_enemy_mix = &"all"
+	selected_level = level_data
+
+func clear_performance_test() -> void:
+	performance_test_enabled = false
+	performance_test_level = null
+	performance_test_target_count = 0
+	performance_test_keep_weapons = true
+	performance_test_enemy_mix = &"all"
+
+func is_performance_test_active() -> bool:
+	return performance_test_enabled
+
+func get_performance_test_count_presets() -> Array[int]:
+	if is_mobile_performance_profile():
+		return PERFORMANCE_TEST_MOBILE_COUNTS.duplicate()
+	return PERFORMANCE_TEST_CLIENT_COUNTS.duplicate()
+
+func get_default_performance_test_count() -> int:
+	return 100 if is_mobile_performance_profile() else 400
+
+func get_performance_test_enemy_catalog() -> Array[Resource]:
+	var enemies: Array[Resource] = []
+	var seen := {}
+	for level_data in level_catalog:
+		if level_data == null:
+			continue
+		for enemy_data in level_data.enemy_catalog:
+			if enemy_data == null or enemy_data.boss:
+				continue
+			var key := String(enemy_data.enemy_id)
+			if seen.has(key):
+				continue
+			seen[key] = true
+			enemies.append(enemy_data)
+	return enemies
 
 func get_level_by_id(level_id: StringName) -> Resource:
 	for level_data in level_catalog:

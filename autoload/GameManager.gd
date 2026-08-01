@@ -15,9 +15,6 @@ var game_time: float = 0.0
 var kill_count: int = 0
 var run_active: bool = false
 var result: StringName = &""
-var stress_test: bool = false
-var stress_test_active_enemy_limit: int = 0
-var stress_test_level: Resource
 var selected_level: Resource = preload("res://resources/levels/village_outskirts.tres")
 var selected_character: Resource = preload("res://resources/characters/sentinel.tres")
 var last_run_result: Resource
@@ -34,9 +31,20 @@ var character_catalog: Array[Resource] = [
 ]
 
 func is_mobile_performance_profile() -> bool:
+	if OS.get_cmdline_user_args().has("--mobile-performance"):
+		return true
 	if OS.has_feature("editor"):
-		return OS.get_cmdline_user_args().has("--mobile-performance")
-	return OS.has_feature("web") or OS.has_feature("mobile") or OS.has_feature("android") or OS.has_feature("ios")
+		return false
+	if OS.has_feature("web") or OS.has_feature("mobile") or OS.has_feature("android") or OS.has_feature("ios") or OS.has_feature("Mobile"):
+		return true
+	return _is_wechat_minigame_runtime()
+
+func _is_wechat_minigame_runtime() -> bool:
+	if not Engine.has_singleton("JavaScriptBridge"):
+		return false
+	var bridge: Object = Engine.get_singleton("JavaScriptBridge")
+	var is_wechat: bool = bool(bridge.call("eval", "typeof wx !== 'undefined' || typeof GameGlobal !== 'undefined'", true))
+	return bool(is_wechat)
 
 func start_run(level_data: Resource = null) -> void:
 	if level_data != null:
@@ -73,19 +81,6 @@ func select_level(level_data: Resource) -> void:
 func select_character(character_data: Resource) -> void:
 	if character_data != null:
 		selected_character = character_data
-
-func enter_stress_test(active_limit: int, level: Resource = null) -> void:
-	stress_test = true
-	stress_test_active_enemy_limit = active_limit
-	if level != null:
-		stress_test_level = level
-	else:
-		stress_test_level = selected_level
-
-func exit_stress_test() -> void:
-	stress_test = false
-	stress_test_active_enemy_limit = 0
-	stress_test_level = null
 
 func get_level_by_id(level_id: StringName) -> Resource:
 	for level_data in level_catalog:

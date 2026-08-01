@@ -22,11 +22,6 @@ const UPGRADE_ICON_MAX_SIZE := Vector2i(92, 92)
 const BUTTON_TEXT_COLOR := Color("f2dfb0")
 const BUTTON_DISABLED_TEXT_COLOR := Color("998966")
 const MOBILE_UI_UPDATE_INTERVAL := 0.18
-const MOBILE_STRESS_INITIAL_SPAWN := 18
-const MOBILE_STRESS_SPAWN_BATCH := 3
-const MOBILE_STRESS_SPAWN_INTERVAL := 0.18
-const DESKTOP_STRESS_SPAWN_BATCH := 10
-const DESKTOP_STRESS_SPAWN_INTERVAL := 0.04
 
 @export var run_duration: float = 720.0
 
@@ -79,7 +74,6 @@ var upgrade_status_cards: Array[PanelContainer] = []
 @onready var wave_countdown_label: Label = $CanvasLayer/GameUI/WaveWarningUI/Panel/VBox/CountdownLabel
 @onready var wave_top_scan: ColorRect = $CanvasLayer/GameUI/WaveWarningUI/Panel/VBox/TopScanBar
 @onready var wave_bottom_scan: ColorRect = $CanvasLayer/GameUI/WaveWarningUI/Panel/VBox/BottomScanBar
-@onready var stress_label: Label = $CanvasLayer/GameUI/TopHUD/StressLabel
 
 var current_wave_data: Resource = null
 var wave_countdown: float = 0.0
@@ -110,17 +104,6 @@ const BOSS_LAYER_COLORS: Array[Color] = [
 ]
 var smoke_test: bool = false
 var smoke_boss_marked: bool = false
-var stress_test: bool = false
-var stress_test_ui_mode: bool = false
-var stress_test_active_limit: int = 0
-var stress_test_fps_accum: float = 0.0
-var stress_test_fps_samples: int = 0
-var stress_test_last_fps: float = 0.0
-var stress_elapsed: float = 0.0
-var stress_spawn_target_limit: int = 0
-var stress_spawn_catalog: Array = []
-var stress_spawn_cursor: int = 0
-var stress_spawn_timer: float = 0.0
 var timeline_test: bool = false
 var boss_pool_test: bool = false
 var upgrade_exhaustion_test: bool = false
@@ -153,11 +136,6 @@ func _ready() -> void:
 	get_tree().paused = false
 	mobile_performance_mode = GameManager.is_mobile_performance_profile()
 	smoke_test = OS.get_cmdline_user_args().has("--smoke-test")
-	stress_test = OS.get_cmdline_user_args().has("--stress-test")
-	stress_test_ui_mode = GameManager.stress_test
-	if stress_test_ui_mode:
-		stress_test = true
-		stress_test_active_limit = GameManager.stress_test_active_enemy_limit
 	timeline_test = OS.get_cmdline_user_args().has("--timeline-test")
 	boss_pool_test = OS.get_cmdline_user_args().has("--boss-pool-test")
 	upgrade_exhaustion_test = OS.get_cmdline_user_args().has("--upgrade-exhaustion-test")
@@ -166,10 +144,7 @@ func _ready() -> void:
 			var requested_level := GameManager.get_level_by_id(StringName(argument.trim_prefix("--level=")))
 			if requested_level != null:
 				GameManager.select_level(requested_level)
-	if stress_test_ui_mode and GameManager.stress_test_level != null:
-		level_data = GameManager.stress_test_level
-	else:
-		level_data = GameManager.selected_level
+	level_data = GameManager.selected_level
 	if level_data != null:
 		run_duration = level_data.duration
 	if smoke_test:
@@ -190,19 +165,14 @@ func _process(delta: float) -> void:
 		GameManager.update_game_time(clock_delta)
 		if smoke_test:
 			_run_smoke_flow()
-		if stress_test and not stress_test_ui_mode:
-			_run_stress_flow(delta)
-		if stress_test_ui_mode:
-			_update_ui_stress_population(delta)
-			_update_stress_label(delta)
 		if timeline_test and GameManager.game_time >= enemy_spawner.boss_spawn_time + 5.0:
 			boss_is_defeated = true
-		if not stress_test_ui_mode and not boss_music_started and GameManager.game_time >= enemy_spawner.boss_spawn_time:
+		if not boss_music_started and GameManager.game_time >= enemy_spawner.boss_spawn_time:
 			boss_music_started = true
 			AudioManager.play_sfx_by_key(&"boss_warning")
 			AudioManager.play_music_by_key(&"boss")
 		_update_boss_bar()
-		if not stress_test_ui_mode and boss_is_defeated:
+		if boss_is_defeated:
 			GameManager.finish_run(&"victory")
 	_update_ui_throttled(delta)
 
@@ -250,13 +220,8 @@ func _start_game() -> void:
 	pause_screen.visible = false
 	upgrade_screen.visible = false
 	wave_warning_ui.visible = false
-	stress_label.visible = stress_test_ui_mode
 	ui_update_timer = 0.0
 	health_fill_bucket = -1
-	stress_spawn_target_limit = 0
-	stress_spawn_catalog.clear()
-	stress_spawn_cursor = 0
-	stress_spawn_timer = 0.0
 	_kill_wave_tweens()
 	wave_countdown_last_int = -1
 	manual_pause = false
@@ -283,20 +248,13 @@ func _start_game() -> void:
 	player.set_world_bounds(world_bounds)
 	_apply_camera_limits(world_bounds)
 	enemy_spawner.configure(level_data, player, world_map, game_world)
-	if stress_test_ui_mode:
-		_apply_ui_stress_test_setup()
+	enemy_spawner.start_spawning()
 	if smoke_test:
 		enemy_spawner.boss_spawn_time = 2.0
-	enemy_spawner.start_spawning()
 	if boss_pool_test:
 		_run_boss_pool_test()
 	if upgrade_exhaustion_test:
 		_run_upgrade_exhaustion_test()
-	if stress_test and not stress_test_ui_mode:
-		GameManager.game_time = 600.0
-		var stress_enemy: Resource = preload("res://resources/enemies/bandit.tres")
-		for index in enemy_spawner.active_enemy_limit:
-			enemy_spawner.spawn_enemy(stress_enemy)
 	AudioManager.play_music_by_key(&"battle")
 
 func _toggle_manual_pause() -> void:
@@ -680,7 +638,6 @@ func _return_home() -> void:
 	AudioManager.play_ui_by_key(&"back")
 	get_tree().paused = false
 	InputAdapter.clear_virtual_inputs()
-	GameManager.exit_stress_test()
 	get_tree().change_scene_to_file("res://scenes/menu/MainMenu.tscn")
 
 func _run_smoke_flow() -> void:
@@ -689,82 +646,6 @@ func _run_smoke_flow() -> void:
 	if GameManager.game_time >= 3.0 and not smoke_boss_marked:
 		smoke_boss_marked = true
 		boss_is_defeated = true
-
-func _run_stress_flow(delta: float) -> void:
-	if stress_test_ui_mode:
-		return
-	stress_elapsed += delta
-	if stress_elapsed < 8.0:
-		return
-	var active_bullets: int = player.ranged_weapon.get_active_bullet_count()
-	var active_scatter_orbs: int = player.blossom_scatter.get_active_orb_count()
-	var active_orbs: int = $GameWorld/ExperiencePool.get_active_orb_count()
-	var enemy_bullets: int = $GameWorld/EnemyProjectilePool.get_active_count()
-	print("STRESS_TEST enemies=%d bullets=%d scatter=%d enemy_bullets=%d orbs=%d pool_limit=%d" % [enemy_spawner.get_active_enemy_count(), active_bullets, active_scatter_orbs, enemy_bullets, active_orbs, enemy_spawner.active_enemy_limit])
-	get_tree().quit()
-
-func _apply_ui_stress_test_setup() -> void:
-	var test_level := GameManager.stress_test_level
-	if test_level == null:
-		test_level = GameManager.selected_level
-	level_data = test_level
-	
-	if is_instance_valid(player):
-		player.health_component.invincible = true
-	
-	var target_limit := mini(maxi(1, stress_test_active_limit), enemy_spawner.pool_size - 1)
-	if mobile_performance_mode:
-		target_limit = mini(target_limit, enemy_spawner.mobile_active_enemy_limit)
-	enemy_spawner.active_enemy_limit = target_limit
-	enemy_spawner.mobile_normal_active_enemy_limit = target_limit
-	
-	var enemy_catalog: Array = test_level.enemy_catalog
-	if enemy_catalog.size() == 0:
-		enemy_catalog = [preload("res://resources/enemies/bandit.tres"), preload("res://resources/enemies/gunner.tres")]
-	
-	stress_spawn_target_limit = target_limit
-	stress_spawn_catalog = enemy_catalog.duplicate()
-	stress_spawn_cursor = 0
-	stress_spawn_timer = 0.0
-	var initial_spawn := target_limit
-	if mobile_performance_mode:
-		initial_spawn = mini(target_limit, MOBILE_STRESS_INITIAL_SPAWN)
-	_spawn_stress_enemies(initial_spawn)
-
-func _update_ui_stress_population(delta: float) -> void:
-	if stress_spawn_target_limit <= 0 or stress_spawn_catalog.is_empty():
-		return
-	var allowed_target := mini(stress_spawn_target_limit, enemy_spawner.active_enemy_limit)
-	var active_count := enemy_spawner.get_active_enemy_count()
-	if active_count >= allowed_target:
-		return
-	stress_spawn_timer -= delta
-	if stress_spawn_timer > 0.0:
-		return
-	stress_spawn_timer = MOBILE_STRESS_SPAWN_INTERVAL if mobile_performance_mode else DESKTOP_STRESS_SPAWN_INTERVAL
-	var batch_size := MOBILE_STRESS_SPAWN_BATCH if mobile_performance_mode else DESKTOP_STRESS_SPAWN_BATCH
-	_spawn_stress_enemies(mini(batch_size, allowed_target - active_count))
-
-func _spawn_stress_enemies(count: int) -> void:
-	if count <= 0 or stress_spawn_catalog.is_empty():
-		return
-	for index in count:
-		if enemy_spawner.get_active_enemy_count() >= mini(stress_spawn_target_limit, enemy_spawner.active_enemy_limit):
-			return
-		var data: Resource = stress_spawn_catalog[stress_spawn_cursor % stress_spawn_catalog.size()]
-		stress_spawn_cursor += 1
-		if not enemy_spawner.spawn_enemy(data):
-			return
-
-func _update_stress_label(delta: float) -> void:
-	stress_test_fps_accum += delta
-	stress_test_fps_samples += 1
-	if stress_test_fps_accum < 0.5:
-		return
-	stress_test_last_fps = float(stress_test_fps_samples) / stress_test_fps_accum
-	stress_test_fps_accum = 0.0
-	stress_test_fps_samples = 0
-	stress_label.text = "性能测试  怪物 %d / %d  FPS %.0f" % [enemy_spawner.get_active_enemy_count(), enemy_spawner.active_enemy_limit, stress_test_last_fps]
 
 func _run_boss_pool_test() -> void:
 	var ordinary_enemy: Resource = level_data.enemy_catalog[0]

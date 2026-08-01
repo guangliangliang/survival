@@ -23,13 +23,8 @@ const PANEL_FILL := Color(0.055, 0.07, 0.052, 0.94)
 const CARD_FILL := Color(0.04, 0.05, 0.043, 0.92)
 const CARD_BORDER := Color("7e6846")
 const AUDIO_VOLUME_MIN_DB := -32.0
-const DESKTOP_STRESS_COUNT_PRESETS := [50, 100, 200, 350]
-const MOBILE_STRESS_COUNT_PRESETS := [20, 35, 50, 60]
 
 @onready var start_button: Button = $VBoxContainer/StartButton
-@onready var stress_test_level_option: OptionButton = $VBoxContainer/StressTestLevelOption
-@onready var stress_test_count_option: OptionButton = $VBoxContainer/StressTestCountOption
-@onready var stress_test_button: Button = $VBoxContainer/StressTestButton
 @onready var title_label: Label = $VBoxContainer/TitleLabel
 
 var codex_button: Button
@@ -39,7 +34,6 @@ var info_overlay: Control
 var overlay_title_label: Label
 var overlay_subtitle_label: Label
 var overlay_content: VBoxContainer
-var stress_count_presets: Array = []
 
 var upgrade_catalog: Array[Resource] = [
 	preload("res://resources/upgrades/damage.tres"),
@@ -60,19 +54,7 @@ var upgrade_catalog: Array[Resource] = [
 
 func _ready() -> void:
 	AudioManager.play_music_by_key(&"menu")
-	GameManager.exit_stress_test()
 	start_button.pressed.connect(_on_start_button_pressed)
-	stress_test_button.pressed.connect(_on_stress_test_button_pressed)
-	# 给性能测试加关卡选项
-	for i in range(GameManager.level_catalog.size()):
-		var level_data := GameManager.level_catalog[i]
-		stress_test_level_option.add_item(level_data.title, i)
-	stress_test_level_option.selected = 0
-	# 给性能测试加怪物数量档位
-	stress_count_presets = MOBILE_STRESS_COUNT_PRESETS.duplicate() if GameManager.is_mobile_performance_profile() else DESKTOP_STRESS_COUNT_PRESETS.duplicate()
-	for i in range(stress_count_presets.size()):
-		stress_test_count_option.add_item("%d 只" % stress_count_presets[i], i)
-	stress_test_count_option.selected = mini(2, stress_count_presets.size() - 1)
 	_build_corner_actions()
 	_build_info_overlay()
 	_apply_style()
@@ -86,28 +68,13 @@ func _on_start_button_pressed() -> void:
 	AudioManager.play_ui_by_key(&"button_click")
 	get_tree().change_scene_to_file("res://scenes/menu/LevelSelect.tscn")
 
-func _on_stress_test_button_pressed() -> void:
-	AudioManager.play_ui_by_key(&"button_click")
-	var user_limit: int = int(stress_count_presets[stress_test_count_option.selected])
-	var is_mobile := GameManager.is_mobile_performance_profile()
-	# Mobile uses its own capped stress presets; desktop keeps the larger values.
-	var limit: int = user_limit
-	if is_mobile:
-		limit = mini(user_limit, int(MOBILE_STRESS_COUNT_PRESETS.back()))
-	var selected_level_index := stress_test_level_option.selected
-	var selected_level_data := GameManager.level_catalog[selected_level_index]
-	GameManager.enter_stress_test(limit, selected_level_data)
-	get_tree().change_scene_to_file("res://scenes/game/Game.tscn")
-
 func _apply_style() -> void:
 	title_label.add_theme_color_override("font_shadow_color", Color(0.06, 0.035, 0.018, 0.95))
 	title_label.add_theme_constant_override("shadow_offset_x", 4)
 	title_label.add_theme_constant_override("shadow_offset_y", 4)
-	_set_centered_button_content(start_button, ICON_START, 36, 14, 32) # 增大图标和字体
+	_set_centered_button_content(start_button, ICON_START, 36, 14, 32)
 	_style_button(start_button, Color("8a4b27"), Color("d9b56b"))
-	_set_centered_button_content(stress_test_button, ICON_UPGRADE, 26, 10, 22)
-	_style_button(stress_test_button, Color("3b332d"), Color("8e8069"), 22)
-	_style_button(codex_button, Color("3b332d"), Color("8e8069"), 22) # 增大字体
+	_style_button(codex_button, Color("3b332d"), Color("8e8069"), 22)
 	_style_button(upgrades_button, Color("3b332d"), Color("8e8069"), 22)
 	_style_button(settings_button, Color("3b332d"), Color("8e8069"), 22)
 

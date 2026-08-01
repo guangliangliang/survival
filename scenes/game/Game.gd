@@ -22,6 +22,7 @@ const UPGRADE_ICON_MAX_SIZE := Vector2i(92, 92)
 const BUTTON_TEXT_COLOR := Color("f2dfb0")
 const BUTTON_DISABLED_TEXT_COLOR := Color("998966")
 const MOBILE_UI_UPDATE_INTERVAL := 0.18
+const REVIVE_NOTICE_DURATION := 2.4
 
 @export var run_duration: float = 720.0
 
@@ -109,6 +110,7 @@ var smoke_boss_marked: bool = false
 var timeline_test: bool = false
 var boss_pool_test: bool = false
 var upgrade_exhaustion_test: bool = false
+var revive_test: bool = false
 var level_data: Resource
 var camera_shake_strength: float = 0.0
 var upgrade_icon_cache: Dictionary = {}
@@ -118,6 +120,9 @@ var performance_status_panel: PanelContainer
 var performance_status_label: Label
 var ui_update_timer: float = 0.0
 var health_fill_bucket: int = -1
+var revive_notice_time: float = 0.0
+var revive_button: Button
+var revive_prompt_active: bool = false
 
 var upgrade_catalog: Array[Resource] = [
 	preload("res://resources/upgrades/damage.tres"),
@@ -145,6 +150,7 @@ func _ready() -> void:
 	timeline_test = OS.get_cmdline_user_args().has("--timeline-test")
 	boss_pool_test = OS.get_cmdline_user_args().has("--boss-pool-test")
 	upgrade_exhaustion_test = OS.get_cmdline_user_args().has("--upgrade-exhaustion-test")
+	revive_test = OS.get_cmdline_user_args().has("--revive-test")
 	for argument in OS.get_cmdline_user_args():
 		if argument.begins_with("--level="):
 			var requested_level := GameManager.get_level_by_id(StringName(argument.trim_prefix("--level=")))
@@ -161,6 +167,7 @@ func _ready() -> void:
 	wave_countdown_timer.wait_time = 0.1
 	wave_countdown_timer.timeout.connect(_on_wave_countdown_timer_timeout)
 	
+	_ensure_revive_button()
 	_connect_signals()
 	_apply_overlay_style()
 	if performance_test:
@@ -168,6 +175,7 @@ func _ready() -> void:
 	_start_game()
 
 func _process(delta: float) -> void:
+	revive_notice_time = maxf(0.0, revive_notice_time - delta)
 	if GameManager.run_active and not get_tree().paused:
 		var clock_delta := delta * 120.0 if timeline_test else delta
 		GameManager.update_game_time(clock_delta)
@@ -202,6 +210,20 @@ func _unhandled_input(event: InputEvent) -> void:
 		_toggle_manual_pause()
 		get_viewport().set_input_as_handled()
 
+func _ensure_revive_button() -> void:
+	if revive_button != null:
+		return
+	var box := game_over_screen.get_node_or_null("Panel/VBox") as VBoxContainer
+	if box == null:
+		return
+	revive_button = Button.new()
+	revive_button.name = "ReviveButton"
+	revive_button.custom_minimum_size = Vector2(0, 54)
+	revive_button.text = "免费复活"
+	revive_button.visible = false
+	box.add_child(revive_button)
+	box.move_child(revive_button, restart_button.get_index())
+
 func _connect_signals() -> void:
 	pause_button.pressed.connect(_toggle_manual_pause)
 	resume_button.pressed.connect(_toggle_manual_pause)
@@ -213,8 +235,12 @@ func _connect_signals() -> void:
 	pause_level_select_button.pressed.connect(_return_to_level_select)
 	pause_home_button.pressed.connect(_return_home)
 	GameManager.level_up.connect(_on_level_up)
+	GameManager.player_died.connect(_on_player_died)
 	GameManager.game_ended.connect(_on_game_ended)
+	GameManager.player_revived.connect(_on_player_revived)
 	GameManager.boss_defeated.connect(_on_boss_defeated)
+	if revive_button != null:
+		revive_button.pressed.connect(_revive_from_game_over)
 	upgrade_refresh_button.pressed.connect(_refresh_upgrade_choices)
 	for index in upgrade_buttons.size():
 		upgrade_buttons[index].pressed.connect(_choose_upgrade.bind(index))
@@ -230,6 +256,10 @@ func _start_game() -> void:
 	wave_warning_ui.visible = false
 	ui_update_timer = 0.0
 	health_fill_bucket = -1
+	revive_notice_time = 0.0
+	revive_prompt_active = false
+	if revive_button != null:
+		revive_button.visible = false
 	_kill_wave_tweens()
 	wave_countdown_last_int = -1
 	manual_pause = false
@@ -268,6 +298,8 @@ func _start_game() -> void:
 	if upgrade_exhaustion_test:
 		_run_upgrade_exhaustion_test()
 	AudioManager.play_music_by_key(&"battle")
+	if revive_test:
+		_run_revive_test()
 
 func _toggle_manual_pause() -> void:
 	if not GameManager.run_active or upgrade_screen.visible:
@@ -545,7 +577,48 @@ func _hide_boss_bar() -> void:
 	if boss_bar != null:
 		boss_bar.visible = false
 
+func _on_player_died() -> void:
+	if not GameManager.run_active or GameManager.free_revives_remaining <= 0:
+		return
+	_show_revive_prompt()
+
+func _show_revive_prompt() -> void:
+	revive_prompt_active = true
+	InputAdapter.clear_virtual_inputs()
+	get_tree().paused = true
+	pause_screen.visible = false
+	upgrade_screen.visible = false
+	game_over_screen.visible = true
+	result_emblem.texture = DEFEAT_EMBLEM
+	result_label.text = "守卫倒下"
+	next_button.visible = false
+	if revive_button != null:
+		revive_button.visible = true
+	summary_label.text = "%s\n坚持时间  %s\n击败敌人  %d\n守卫等级  %d\n免费复活剩余  %d" % [level_data.title, _format_time(GameManager.game_time), GameManager.kill_count, GameManager.current_level, GameManager.free_revives_remaining]
+
+func _revive_from_game_over() -> void:
+	if not revive_prompt_active or not is_instance_valid(player):
+		AudioManager.play_ui_by_key(&"invalid")
+		return
+	if not GameManager.try_consume_free_revive():
+		revive_prompt_active = false
+		if revive_button != null:
+			revive_button.visible = false
+		GameManager.end_game(&"defeat")
+		return
+	revive_prompt_active = false
+	game_over_screen.visible = false
+	if revive_button != null:
+		revive_button.visible = false
+	InputAdapter.clear_virtual_inputs()
+	get_tree().paused = false
+	player.revive()
+	GameManager.player_revived.emit(GameManager.free_revives_remaining)
+
 func _on_game_ended(result: StringName) -> void:
+	revive_prompt_active = false
+	if revive_button != null:
+		revive_button.visible = false
 	enemy_spawner.stop_spawning()
 	InputAdapter.clear_virtual_inputs()
 	AudioManager.stop_music()
@@ -612,7 +685,9 @@ func _update_ui() -> void:
 
 func _update_objective_label() -> void:
 	var objective_text: String
-	if performance_test:
+	if revive_notice_time > 0.0:
+		objective_text = "免费复活已触发，短暂无敌"
+	elif performance_test:
 		var boss_name: String = level_data.boss_data.display_name if level_data != null and level_data.boss_data != null else "Boss"
 		objective_text = "性能测试：%d 普通怪 + %s" % [GameManager.performance_test_target_count, boss_name]
 	elif GameManager.game_time < enemy_spawner.boss_spawn_time:
@@ -622,6 +697,10 @@ func _update_objective_label() -> void:
 	if objective_label.text != objective_text:
 		objective_label.text = objective_text
 		objective_panel.reset_size()
+
+func _on_player_revived(_revives_remaining: int) -> void:
+	revive_notice_time = REVIVE_NOTICE_DURATION
+	_update_ui()
 
 func _build_performance_status_panel() -> void:
 	var game_ui := get_node_or_null("CanvasLayer/GameUI") as Control
@@ -743,6 +822,28 @@ func _run_upgrade_exhaustion_test() -> void:
 	print("UPGRADE_EXHAUSTION_TEST pending=%d screen_visible=%s paused=%s" % [upgrade_pending, upgrade_screen.visible, get_tree().paused])
 	get_tree().create_timer(0.1, true).timeout.connect(func(): get_tree().quit())
 
+func _run_revive_test() -> void:
+	enemy_spawner.stop_spawning()
+	if not is_instance_valid(player):
+		print("REVIVE_TEST result=FAIL reason=no_player")
+		get_tree().quit(1)
+		return
+	var health = player.health_component
+	var lethal_damage: float = health.max_health + 9999.0
+	health.take_damage(lethal_damage)
+	var prompt_shown: bool = GameManager.run_active and not player.is_alive and game_over_screen.visible and revive_button != null and revive_button.visible and GameManager.free_revives_remaining == 1
+	_revive_from_game_over()
+	var first_revived: bool = GameManager.run_active and player.is_alive and health.current_health > 0.0 and GameManager.free_revives_remaining == 0 and not game_over_screen.visible
+	var first_health: float = health.current_health
+	player.revive_invincible_active = false
+	player.revive_invincible_time = 0.0
+	health.invincible = false
+	health.take_damage(lethal_damage)
+	var second_defeated: bool = not GameManager.run_active and not player.is_alive and GameManager.result == &"defeat" and game_over_screen.visible
+	var passed: bool = prompt_shown and first_revived and second_defeated
+	print("REVIVE_TEST prompt_shown=%s first_health=%.1f revives_remaining=%d result=%s status=%s" % [prompt_shown, first_health, GameManager.free_revives_remaining, GameManager.result, "PASS" if passed else "FAIL"])
+	get_tree().create_timer(0.1, true).timeout.connect(func(): get_tree().quit(0 if passed else 1))
+
 func _apply_overlay_style() -> void:
 	status_panel_bg.add_theme_stylebox_override("panel", _status_panel_box())
 	var objective_box := StyleBoxFlat.new()
@@ -777,7 +878,7 @@ func _apply_overlay_style() -> void:
 		var panel := get_node_or_null(panel_path) as PanelContainer
 		if panel != null:
 			panel.add_theme_stylebox_override("panel", _panel_box())
-	for button in [pause_button, restart_button, next_button, level_select_button, home_button, resume_button, pause_restart_button, pause_level_select_button, pause_home_button, upgrade_refresh_button]:
+	for button in [pause_button, restart_button, next_button, level_select_button, home_button, revive_button, resume_button, pause_restart_button, pause_level_select_button, pause_home_button, upgrade_refresh_button]:
 		_style_game_button(button)
 	for button in upgrade_buttons:
 		_style_upgrade_button(button)
@@ -864,6 +965,8 @@ func _performance_status_box() -> StyleBoxFlat:
 	return box
 
 func _style_game_button(button: Button) -> void:
+	if button == null:
+		return
 	button.add_theme_stylebox_override("normal", _button_box(Color("4b3428"), Color("a98955")))
 	button.add_theme_stylebox_override("hover", _button_box(Color("6a432d"), Color("d0ad68")))
 	button.add_theme_stylebox_override("pressed", _button_box(Color("31251f"), Color("7e6846")))

@@ -3,12 +3,14 @@ extends Node
 signal game_started
 signal game_ended(result: StringName)
 signal player_died
+signal player_revived(revives_remaining: int)
 signal level_up(level: int)
 signal experience_changed(current: int, required: int)
 signal boss_defeated
 
 const PERFORMANCE_TEST_CLIENT_COUNTS: Array[int] = [200, 400, 600, 800]
 const PERFORMANCE_TEST_MOBILE_COUNTS: Array[int] = [40, 70, 100, 120]
+const FREE_REVIVES_PER_RUN := 1
 
 var player = null
 var current_level: int = 1
@@ -18,6 +20,7 @@ var game_time: float = 0.0
 var kill_count: int = 0
 var run_active: bool = false
 var result: StringName = &""
+var free_revives_remaining: int = 0
 var selected_level: Resource = preload("res://resources/levels/village_outskirts.tres")
 var selected_character: Resource = preload("res://resources/characters/sentinel.tres")
 var last_run_result: Resource
@@ -64,6 +67,7 @@ func start_run(level_data: Resource = null) -> void:
 	kill_count = 0
 	run_active = true
 	result = &""
+	free_revives_remaining = FREE_REVIVES_PER_RUN
 	last_run_result = null
 	game_started.emit()
 	experience_changed.emit(current_exp, exp_to_next_level)
@@ -82,6 +86,12 @@ func end_game(end_result: StringName = &"defeat") -> void:
 func finish_run(end_result: StringName) -> Resource:
 	end_game(end_result)
 	return last_run_result
+
+func try_consume_free_revive() -> bool:
+	if not run_active or free_revives_remaining <= 0:
+		return false
+	free_revives_remaining -= 1
+	return true
 
 func select_level(level_data: Resource, clear_test_state: bool = true) -> void:
 	selected_level = level_data

@@ -33,5 +33,11 @@ func reset(new_max_health: float = -1.0) -> void:
 	current_health = max_health
 	health_changed.emit(current_health, max_health)
 
+func revive(health_ratio: float = 0.5) -> void:
+	if max_health <= 0.0:
+		return
+	current_health = clampf(max_health * health_ratio, 1.0, max_health)
+	health_changed.emit(current_health, max_health)
+
 func die() -> void:
 	died.emit()

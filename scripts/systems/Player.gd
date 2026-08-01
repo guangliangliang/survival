@@ -30,6 +30,8 @@ const AMMO_DOT_SPACING := 6.0
 const AMMO_MAX_SPAN := 58.0
 const AMMO_SEGMENT_THRESHOLD := 14
 const MOBILE_STATUS_REDRAW_INTERVAL := 0.1
+const FREE_REVIVE_HEALTH_RATIO := 0.5
+const FREE_REVIVE_INVINCIBLE_DURATION := 2.0
 
 var is_alive: bool = true
 var world_bounds := Rect2(-1760.0, -1060.0, 3520.0, 2120.0)
@@ -43,6 +45,9 @@ var dash_time_remaining: float = 0.0
 var dash_velocity: Vector2 = Vector2.ZERO
 var mobile_performance_mode: bool = false
 var status_redraw_timer: float = 0.0
+var revive_invincible_time: float = 0.0
+var revive_invincible_active: bool = false
+var revive_previous_invincible: bool = false
 
 func _ready() -> void:
 	mobile_performance_mode = GameManager.is_mobile_performance_profile()
@@ -85,6 +90,7 @@ func _physics_process(delta: float) -> void:
 
 func _process(delta: float) -> void:
 	_update_walk_animation(delta)
+	_update_revive_invincibility(delta)
 	if flash_time > 0.0:
 		flash_time -= delta
 		if flash_time <= 0.0:
@@ -110,6 +116,18 @@ func apply_upgrade(upgrade: Resource) -> void:
 func get_health_component() -> Node:
 	return health_component
 
+func revive(health_ratio: float = FREE_REVIVE_HEALTH_RATIO, invincibility_duration: float = FREE_REVIVE_INVINCIBLE_DURATION) -> void:
+	is_alive = true
+	velocity = Vector2.ZERO
+	dash_time_remaining = 0.0
+	dash_velocity = Vector2.ZERO
+	health_component.revive(health_ratio)
+	last_health = health_component.current_health
+	flash_time = 0.0
+	_start_revive_invincibility(invincibility_duration)
+	AudioManager.play_sfx_by_key(&"heal_cast", -2.0)
+	queue_redraw()
+
 func _update_status_redraw(delta: float) -> void:
 	if not mobile_performance_mode:
 		queue_redraw()
@@ -134,9 +152,33 @@ func _on_died() -> void:
 		return
 	is_alive = false
 	GameManager.player_died.emit()
-	GameManager.end_game(&"defeat")
+	if GameManager.free_revives_remaining <= 0:
+		GameManager.end_game(&"defeat")
 	queue_redraw()
 	died.emit()
+
+func _start_revive_invincibility(duration: float) -> void:
+	if duration <= 0.0:
+		body_sprite.modulate = original_modulate
+		return
+	if not revive_invincible_active:
+		revive_previous_invincible = health_component.invincible
+	revive_invincible_active = true
+	revive_invincible_time = duration
+	health_component.invincible = true
+	body_sprite.modulate = Color(1.0, 0.94, 0.48)
+
+func _update_revive_invincibility(delta: float) -> void:
+	if not revive_invincible_active:
+		return
+	revive_invincible_time = maxf(0.0, revive_invincible_time - delta)
+	var pulse := 0.72 + 0.28 * absf(sin(revive_invincible_time * 14.0))
+	body_sprite.modulate = Color(1.0, 0.94, 0.48, pulse)
+	if revive_invincible_time > 0.0:
+		return
+	revive_invincible_active = false
+	health_component.invincible = revive_previous_invincible
+	body_sprite.modulate = original_modulate
 
 func _draw() -> void:
 	if not is_alive or health_component.max_health <= 0.0:

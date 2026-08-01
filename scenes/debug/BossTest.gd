@@ -34,9 +34,9 @@ func _ready() -> void:
 	_setup_ui()
 	_create_skill_target()
 	_spawn_boss(0)
-	title_label.text = "Boss Test"
+	title_label.text = "Boss 测试"
 	_update_info_label()
-	attack_button.text = "Normal Attack (Space)"
+	attack_button.text = "普通攻击（空格）"
 	attack_button.pressed.connect(_on_attack_button_pressed)
 	_style_attack_button()
 
@@ -72,14 +72,14 @@ func _setup_ui() -> void:
 	ui_vbox.add_child(action_hbox)
 
 	skill_button = Button.new()
-	skill_button.text = "Force Skill"
+	skill_button.text = "强制释放技能"
 	skill_button.custom_minimum_size = Vector2(150, 46)
 	skill_button.pressed.connect(_on_skill_button_pressed)
 	action_hbox.add_child(skill_button)
 
 	for phase in range(1, 4):
 		var phase_btn := Button.new()
-		phase_btn.text = "Phase %d" % phase
+		phase_btn.text = "阶段 %d" % phase
 		phase_btn.custom_minimum_size = Vector2(96, 46)
 		phase_btn.pressed.connect(_on_phase_button_pressed.bind(phase))
 		action_hbox.add_child(phase_btn)
@@ -123,7 +123,7 @@ func _spawn_boss(index: int) -> void:
 	current_boss.name = "%s_TestBoss" % data.enemy_id
 	game_world.add_child(current_boss)
 	current_boss.reset_for_spawn(data, skill_target, Vector2.ZERO)
-	title_label.text = "Boss Test - %s" % data.display_name
+	title_label.text = "Boss 测试 - %s" % data.display_name
 
 func _handle_input(delta: float) -> void:
 	if not is_instance_valid(current_boss):
@@ -180,11 +180,11 @@ func _update_camera(delta: float) -> void:
 	)
 
 func _update_info_label() -> void:
-	info_label.text = "WASD move boss | Space normal attack | Force Skill casts an unlocked skill | Phase buttons set HP | W+S reset | ESC menu"
+	info_label.text = "WASD 移动 Boss | 空格普通攻击 | 强制释放技能会施放已解锁技能 | 阶段按钮设置血量 | W+S 重置 | ESC 返回菜单"
 
 func _update_status_label() -> void:
 	if not is_instance_valid(current_boss):
-		status_label.text = "Boss: none"
+		status_label.text = "Boss：无"
 		return
 	var data: Resource = current_boss.get("enemy_data") as Resource
 	var health_comp: Node = current_boss.get_node_or_null("HealthComponent")
@@ -197,10 +197,10 @@ func _update_status_label() -> void:
 	var layers_left := clampi(int(ceil(maxf(hp, 1.0) / per_layer)), 1, layers)
 	var phase := layers - layers_left + 1
 	var attack_count: int = current_boss.get("attack_count")
-	var skill_text := "Skills: none"
+	var skill_text := "技能：无"
 	if current_boss.has_method("get_boss_skill_debug_text"):
 		skill_text = current_boss.call("get_boss_skill_debug_text")
-	status_label.text = "HP %.0f / %.0f | Phase %d | Attacks %d\n%s\nSummons %d | Target x %.0f" % [
+	status_label.text = "生命值 %.0f / %.0f | 阶段 %d | 攻击次数 %d\n%s\n召唤物 %d | 目标 x %.0f" % [
 		hp, max_hp, phase, attack_count, skill_text, _get_live_summon_count(), skill_target.global_position.x
 	]
 

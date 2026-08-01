@@ -32,6 +32,8 @@ const AMMO_SEGMENT_THRESHOLD := 14
 const MOBILE_STATUS_REDRAW_INTERVAL := 0.1
 const FREE_REVIVE_HEALTH_RATIO := 0.5
 const FREE_REVIVE_INVINCIBLE_DURATION := 2.0
+const DASH_COLLISION_SEARCH_STEPS := 8
+const DASH_COLLISION_PADDING := 3.0
 
 var is_alive: bool = true
 var world_bounds := Rect2(-1760.0, -1060.0, 3520.0, 2120.0)
@@ -75,15 +77,17 @@ func _physics_process(delta: float) -> void:
 		velocity = Vector2.ZERO
 		return
 	dash_cooldown_remaining = maxf(0.0, dash_cooldown_remaining - delta)
-	if InputAdapter.consume_dash_requested():
-		_try_start_dash()
-	if dash_time_remaining > 0.0:
+	var dashed_this_frame := InputAdapter.consume_dash_requested() and _try_start_dash()
+	if dashed_this_frame:
+		velocity = Vector2.ZERO
+	elif dash_time_remaining > 0.0:
 		dash_time_remaining = maxf(0.0, dash_time_remaining - delta)
 		velocity = dash_velocity
 	else:
 		var move_vector := InputAdapter.get_move_vector()
 		velocity = move_vector * move_speed
-	move_and_slide()
+	if not dashed_this_frame:
+		move_and_slide()
 	_update_status_redraw(delta)
 	global_position = global_position.clamp(world_bounds.position, world_bounds.end)
 	InputAdapter.set_dash_cooldown(dash_cooldown_remaining, dash_cooldown)
@@ -230,15 +234,38 @@ func _draw_ammo() -> void:
 		else:
 			draw_rect(dot, Color(0.2, 0.18, 0.14, 0.7))
 
-func _try_start_dash() -> void:
+func _try_start_dash() -> bool:
 	if dash_cooldown_remaining > 0.0 or dash_time_remaining > 0.0:
-		return
+		return false
 	var dash_direction := _get_dash_direction()
-	dash_velocity = dash_direction * (dash_distance / maxf(dash_duration, 0.01))
-	dash_time_remaining = dash_duration
+	var dash_target := _get_safe_dash_target(dash_direction)
+	global_position = dash_target
+	dash_velocity = Vector2.ZERO
+	dash_time_remaining = 0.0
 	dash_cooldown_remaining = dash_cooldown
 	InputAdapter.set_dash_cooldown(dash_cooldown_remaining, dash_cooldown)
 	AudioManager.play_sfx_by_key(&"dash_cast", -3.0)
+	return true
+
+func _get_safe_dash_target(direction: Vector2) -> Vector2:
+	var intended_target := (global_position + direction * dash_distance).clamp(world_bounds.position, world_bounds.end)
+	var full_motion := intended_target - global_position
+	var full_distance := full_motion.length()
+	if full_distance <= 0.001:
+		return global_position
+	var normalized_direction := full_motion / full_distance
+	if not test_move(global_transform, full_motion):
+		return intended_target
+	var low := 0.0
+	var high := full_distance
+	for _step in DASH_COLLISION_SEARCH_STEPS:
+		var middle := (low + high) * 0.5
+		if test_move(global_transform, normalized_direction * middle):
+			high = middle
+		else:
+			low = middle
+	var safe_distance := maxf(0.0, low - DASH_COLLISION_PADDING)
+	return global_position + normalized_direction * safe_distance
 
 func _get_dash_direction() -> Vector2:
 	var move_vector := InputAdapter.get_move_vector()

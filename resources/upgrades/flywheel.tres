@@ -6,7 +6,7 @@
 script = ExtResource("1")
 upgrade_id = &"flywheel"
 title = "解锁飞轮"
-description = "增加 1 个环绕飞轮，或提升飞轮伤害"
+description = "每级增加 1 个环绕飞轮，并提升 10% 飞轮伤害"
 stat_key = &"flywheel_count"
 amount = 1.0
-max_level = 5
+max_level = 8

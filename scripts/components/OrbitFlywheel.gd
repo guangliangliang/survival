@@ -42,12 +42,11 @@ func apply_upgrade(stat_key: StringName, amount: float) -> void:
 		&"range_multiplier":
 			orbit_radius *= 1.0 + amount
 		&"flywheel_count":
-			upgrade_level += int(amount)
-			if upgrade_level <= 3:
-				flywheel_count += int(amount)
-				_rebuild_flywheels()
-			else:
-				damage *= 1.25
+			var add_count: int = int(amount)
+			upgrade_level += add_count
+			flywheel_count += add_count
+			damage *= 1.10
+			_rebuild_flywheels()
 
 func _rebuild_flywheels() -> void:
 	for flywheel in flywheels:

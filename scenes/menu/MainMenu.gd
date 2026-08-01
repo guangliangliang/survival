@@ -5,7 +5,6 @@ const ICON_BACK := preload("res://assets/images/ui/icons/back.svg")
 const ICON_CODEX := preload("res://assets/images/ui/icons/level.svg")
 const ICON_UPGRADE := preload("res://assets/images/ui/icons/skill.svg")
 const ICON_SETTINGS := preload("res://assets/images/ui/icons/settings.svg")
-const ICON_PERFORMANCE := preload("res://assets/images/ui/icons/time.svg")
 const ICON_DAMAGE := preload("res://assets/images/ui/icons/damage.svg")
 const ICON_FIRE_RATE := preload("res://assets/images/ui/icons/fire_rate.svg")
 const ICON_RANGE := preload("res://assets/images/ui/icons/range.svg")
@@ -27,9 +26,7 @@ const AUDIO_VOLUME_MIN_DB := -32.0
 
 @onready var start_button: Button = $VBoxContainer/StartButton
 @onready var title_label: Label = $VBoxContainer/TitleLabel
-@onready var menu_box: VBoxContainer = $VBoxContainer
 
-var performance_button: Button
 var codex_button: Button
 var upgrades_button: Button
 var settings_button: Button
@@ -37,10 +34,6 @@ var info_overlay: Control
 var overlay_title_label: Label
 var overlay_subtitle_label: Label
 var overlay_content: VBoxContainer
-var performance_map_select: OptionButton
-var performance_count_select: OptionButton
-var performance_level_options: Array[Resource] = []
-var performance_count_options: Array[int] = []
 
 var upgrade_catalog: Array[Resource] = [
 	preload("res://resources/upgrades/damage.tres"),
@@ -62,7 +55,6 @@ var upgrade_catalog: Array[Resource] = [
 func _ready() -> void:
 	AudioManager.play_music_by_key(&"menu")
 	start_button.pressed.connect(_on_start_button_pressed)
-	_build_performance_button()
 	_build_corner_actions()
 	_build_info_overlay()
 	_apply_style()
@@ -82,22 +74,10 @@ func _apply_style() -> void:
 	title_label.add_theme_constant_override("shadow_offset_x", 4)
 	title_label.add_theme_constant_override("shadow_offset_y", 4)
 	_set_centered_button_content(start_button, ICON_START, 36, 14, 32)
-	_set_centered_button_content(performance_button, ICON_PERFORMANCE, 30, 12, 25)
 	_style_button(start_button, Color("8a4b27"), Color("d9b56b"))
-	_style_button(performance_button, Color("4f5a34"), Color("c7b36b"), 25)
 	_style_button(codex_button, Color("3b332d"), Color("8e8069"), 22)
 	_style_button(upgrades_button, Color("3b332d"), Color("8e8069"), 22)
 	_style_button(settings_button, Color("3b332d"), Color("8e8069"), 22)
-
-func _build_performance_button() -> void:
-	menu_box.offset_top = -160.0
-	menu_box.offset_bottom = 160.0
-	performance_button = Button.new()
-	performance_button.name = "PerformanceTestButton"
-	performance_button.custom_minimum_size = Vector2(300, 56)
-	performance_button.text = "性能测试"
-	performance_button.pressed.connect(_show_performance_test)
-	menu_box.add_child(performance_button)
 
 func _build_corner_actions() -> void:
 	var actions := HBoxContainer.new()
@@ -241,11 +221,6 @@ func _show_settings() -> void:
 		&"SFX"
 	))
 
-func _show_performance_test() -> void:
-	AudioManager.play_sfx_by_key(&"upgrade_panel_open", -5.0)
-	_open_info_overlay("性能测试", "选择地图和怪物数量，进入极限刷怪场景")
-	overlay_content.add_child(_create_performance_test_card())
-
 func _open_info_overlay(title_text: String, subtitle_text: String) -> void:
 	overlay_title_label.text = title_text
 	overlay_subtitle_label.text = subtitle_text
@@ -317,92 +292,6 @@ func _create_audio_control_card(title_text: String, description: String, bus_nam
 	toggle.toggled.connect(_on_audio_toggle_toggled.bind(bus_name, slider, value_label))
 	slider.value_changed.connect(_on_audio_slider_changed.bind(bus_name, value_label))
 	return card
-
-func _create_performance_test_card() -> Control:
-	var card := PanelContainer.new()
-	card.custom_minimum_size = Vector2(0, 300)
-	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	card.add_theme_stylebox_override("panel", _panel_box(CARD_FILL, Color("c7b36b"), 16, 2))
-
-	var box := VBoxContainer.new()
-	box.add_theme_constant_override("separation", 16)
-	card.add_child(box)
-
-	var map_row := _create_performance_option_row("地图")
-	performance_map_select = map_row["option"] as OptionButton
-	box.add_child(map_row["row"] as Control)
-	_populate_performance_maps()
-
-	var count_row := _create_performance_option_row("普通怪数量")
-	performance_count_select = count_row["option"] as OptionButton
-	box.add_child(count_row["row"] as Control)
-	_populate_performance_counts()
-
-	var detail := _create_label("Boss 会额外同时在场，主角无敌并保留攻击。", 16, TEXT_MUTED)
-	detail.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	box.add_child(detail)
-
-	var start_test := Button.new()
-	start_test.custom_minimum_size = Vector2(0, 58)
-	start_test.text = "开始测试"
-	_set_centered_button_content(start_test, ICON_START, 30, 12, 24)
-	_style_button(start_test, Color("6f3d25"), Color("d9b56b"), 24)
-	start_test.pressed.connect(_start_performance_test_from_overlay)
-	box.add_child(start_test)
-	return card
-
-func _create_performance_option_row(label_text: String) -> Dictionary:
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 14)
-	var label := _create_label(label_text, 22, Color("fff0c6"))
-	label.custom_minimum_size = Vector2(150, 0)
-	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	row.add_child(label)
-
-	var option := OptionButton.new()
-	option.custom_minimum_size = Vector2(0, 54)
-	option.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	option.add_theme_font_size_override("font_size", 21)
-	option.add_theme_color_override("font_color", BUTTON_TEXT_COLOR)
-	_style_button(option, Color("3b332d"), Color("8e8069"), 21)
-	row.add_child(option)
-	return {"row": row, "option": option}
-
-func _populate_performance_maps() -> void:
-	performance_level_options.clear()
-	performance_map_select.clear()
-	var selected_index := 0
-	for index in GameManager.level_catalog.size():
-		var level_data: Resource = GameManager.level_catalog[index]
-		performance_level_options.append(level_data)
-		performance_map_select.add_item(level_data.title, index)
-		if GameManager.selected_level != null and level_data.level_id == GameManager.selected_level.level_id:
-			selected_index = index
-	performance_map_select.select(selected_index)
-
-func _populate_performance_counts() -> void:
-	performance_count_options = GameManager.get_performance_test_count_presets()
-	performance_count_select.clear()
-	var default_count := GameManager.performance_test_target_count if GameManager.performance_test_target_count > 0 else GameManager.get_default_performance_test_count()
-	var selected_index := 0
-	for index in performance_count_options.size():
-		var count := performance_count_options[index]
-		performance_count_select.add_item("%d 只" % count, index)
-		if count == default_count:
-			selected_index = index
-	performance_count_select.select(selected_index)
-
-func _start_performance_test_from_overlay() -> void:
-	if performance_level_options.is_empty() or performance_count_options.is_empty():
-		AudioManager.play_ui_by_key(&"invalid")
-		return
-	var level_index := clampi(performance_map_select.selected, 0, performance_level_options.size() - 1)
-	var count_index := clampi(performance_count_select.selected, 0, performance_count_options.size() - 1)
-	var level_data: Resource = performance_level_options[level_index]
-	var target_count := performance_count_options[count_index]
-	AudioManager.play_ui_by_key(&"button_click")
-	GameManager.start_performance_test(level_data, target_count)
-	get_tree().change_scene_to_file("res://scenes/game/Game.tscn")
 
 func _on_audio_toggle_toggled(enabled: bool, bus_name: StringName, slider: HSlider, value_label: Label) -> void:
 	_set_audio_bus_enabled(bus_name, enabled)

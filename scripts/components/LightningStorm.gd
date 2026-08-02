@@ -1,9 +1,9 @@
 extends Node2D
 
-@export var base_strike_count: int = 12
-@export var base_damage: float = 32.0
+@export var base_strike_count: int = 14
+@export var base_damage: float = 44.0
 @export var base_range: float = 220.0
-@export var strike_radius: float = 46.0
+@export var strike_radius: float = 58.0
 @export var base_cooldown: float = 11.0
 @export var storm_duration: float = 1.6
 @export var mobile_max_active_bolts: int = 8
@@ -276,13 +276,13 @@ func _get_game_controller() -> Node:
 	return _game_controller
 
 func _get_strike_count() -> int:
-	return base_strike_count + 2 * upgrade_level
+	return base_strike_count + 3 * upgrade_level
 
 func _get_damage() -> float:
-	return base_damage * pow(1.16, float(upgrade_level))
+	return base_damage * pow(1.20, float(upgrade_level))
 
 func _get_range() -> float:
-	return base_range * pow(1.08, float(upgrade_level))
+	return base_range * pow(1.10, float(upgrade_level))
 
 func _get_cooldown() -> float:
 	return maxf(8.0, base_cooldown - 0.5 * float(upgrade_level))

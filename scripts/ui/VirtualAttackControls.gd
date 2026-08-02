@@ -15,11 +15,11 @@ const MOUSE_TOUCH_INDEX := -2
 @export var auto_radius: float = 22.0
 @export var attack_offset := Vector2(110.0, 90.0)
 @export var auto_offset := Vector2(22.0, 155.0)
-@export var sword_rain_offset := Vector2(110.0, 250.0)
-@export var lightning_offset := Vector2(292.0, 236.0)
-@export var dash_offset := Vector2(265.0, 49.0)
-@export var heal_offset := Vector2(260.0, 145.0)
-@export var scatter_offset := Vector2(202.0, 221.0)
+@export var sword_rain_offset := Vector2(90.0, 280.0)
+@export var lightning_offset := Vector2(272.0, 150.0)
+@export var dash_offset := Vector2(230.0, 45.0)
+@export var heal_offset := Vector2(317.0, 45.0)
+@export var scatter_offset := Vector2(185.0, 220.0)
 
 @export var sword_rain_aim_scale: float = 6.0
 @export var lightning_aim_scale: float = 6.0

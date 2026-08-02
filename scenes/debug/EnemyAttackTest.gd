@@ -3,7 +3,7 @@ extends Node2D
 const PlayerScene := preload("res://scenes/game/Player.tscn")
 const EnemyScene := preload("res://scenes/game/Enemy.tscn")
 const HealthComponentScript := preload("res://scripts/components/HealthComponent.gd")
-const TEST_VISUAL_SCALE := 2.2
+const TEST_VISUAL_SCALE := 1.0
 
 const ENEMY_DATA: Array[Resource] = [
 	preload("res://resources/enemies/wolf.tres"),

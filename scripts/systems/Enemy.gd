@@ -460,7 +460,8 @@ func _perform_attack() -> void:
 func receive_hit(amount: float, hit_direction: Vector2) -> void:
 	if not is_alive:
 		return
-	knockback_velocity += hit_direction.normalized() * (45.0 if enemy_data.boss else 110.0)
+	if not enemy_data.boss:
+		knockback_velocity += hit_direction.normalized() * 110.0
 	health_component.take_damage(amount)
 	var feedback := _get_combat_feedback()
 	if feedback != null:

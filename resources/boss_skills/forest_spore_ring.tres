@@ -1,23 +1,20 @@
 [gd_resource type="Resource" script_class="BossSkillData" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/data/BossSkillData.gd" id="1"]
-[ext_resource type="Texture2D" path="res://assets/images/projectiles/projectile_wizard_orb.png" id="2"]
+[ext_resource type="Resource" path="res://resources/enemies/thorn_porcupine.tres" id="2"]
 
 [resource]
 script = ExtResource("1")
 skill_id = &"forest_spore_ring"
 display_name = "Spore Ring"
-skill_type = &"radial_projectiles"
+skill_type = &"summon"
 min_phase = 3
-cooldown = 8.6
-windup = 0.74
+cooldown = 11.0
+windup = 0.78
 recovery = 0.42
 range_min = 0.0
-range_max = 920.0
-damage_multiplier = 0.58
-telegraph_radius = 250.0
-projectile_count = 16
-projectile_arc_degrees = 360.0
-projectile_speed = 230.0
-sfx_key = &"wizard_orb"
-projectile_texture = ExtResource("2")
+range_max = 1200.0
+telegraph_radius = 240.0
+summon_enemy_data = ExtResource("2")
+summon_count = 3
+sfx_key = &"boss_warning"

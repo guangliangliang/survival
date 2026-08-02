@@ -15,6 +15,7 @@ const ICON_HEALTH := preload("res://assets/images/ui/icons/health.svg")
 const ICON_PROJECTILE := preload("res://assets/images/ui/icons/projectiles.svg")
 const ICON_SCATTER := preload("res://assets/images/ui/icon_laser_sweep.svg")
 const ICON_ARROW := preload("res://assets/images/ui/icons/arrow.svg")
+const ICON_LIGHTNING := preload("res://assets/images/ui/icons/lightning.svg")
 const ICON_HEAL := preload("res://assets/images/ui/icons/heal.svg")
 const BUTTON_TEXT_COLOR := Color("f4e2b2")
 const TEXT_MUTED := Color("b8c9ad")
@@ -49,6 +50,7 @@ var upgrade_catalog: Array[Resource] = [
 	preload("res://resources/upgrades/move_speed.tres"),
 	preload("res://resources/upgrades/max_health.tres"),
 	preload("res://resources/upgrades/sword_rain.tres"),
+	preload("res://resources/upgrades/lightning_storm.tres"),
 	preload("res://resources/upgrades/heal.tres")
 ]
 
@@ -565,6 +567,8 @@ func _get_upgrade_level_effect(upgrade: Resource, level: int) -> String:
 			return "获得右上方支援无人机，发射激光自动索敌"
 		&"scatter_level":
 			return _get_scatter_level_effect(level)
+		&"lightning_storm_level":
+			return _get_lightning_storm_level_effect(level)
 		&"drone_upgrade":
 			return _get_drone_upgrade_effect(level)
 		_:
@@ -598,8 +602,17 @@ func _get_scatter_level_effect(level: int) -> String:
 	var sweep_text := "，扫射一圈半" if level >= 3 else "，扫射一圈"
 	return "激光长度 %.0f，宽度 %.0f，DPS %.0f，冷却 %.1fs%s" % [beam_length, beam_width, dps, cooldown, sweep_text]
 
+func _get_lightning_storm_level_effect(level: int) -> String:
+	var strike_count := 12 + 2 * level
+	var damage := 32.0 * pow(1.16, float(level))
+	var range := 220.0 * pow(1.08, float(level))
+	var cooldown := maxf(8.0, 11.0 - 0.5 * float(level))
+	return "落雷 %d 次，伤害 %.0f，范围 %.0f，冷却 %.1fs" % [strike_count, damage, range, cooldown]
+
 func _get_upgrade_type(upgrade: Resource) -> String:
 	match upgrade.upgrade_id:
+		&"lightning_storm":
+			return "技能"
 		&"flywheel", &"drone":
 			return "装备"
 		&"drone_damage", &"drone_fire_rate", &"drone_range":
@@ -637,6 +650,8 @@ func _get_upgrade_icon(upgrade: Resource) -> Texture2D:
 			return ICON_HEALTH
 		&"sword_rain":
 			return ICON_ARROW
+		&"lightning_storm":
+			return ICON_LIGHTNING
 		&"heal":
 			return ICON_HEAL
 		_:

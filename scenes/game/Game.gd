@@ -15,6 +15,7 @@ const ICON_PROJECTILE := preload("res://assets/images/ui/icons/projectiles.svg")
 const ICON_REFRESH := preload("res://assets/images/ui/icons/refresh.svg")
 const ICON_SCATTER := preload("res://assets/images/ui/icon_laser_sweep.svg")
 const ICON_ARROW := preload("res://assets/images/ui/icons/arrow.svg")
+const ICON_LIGHTNING := preload("res://assets/images/ui/icons/lightning.svg")
 const ICON_HEAL := preload("res://assets/images/ui/icons/heal.svg")
 const WaveEvent := preload("res://scripts/data/WaveEvent.gd")
 const EnemySpawner := preload("res://scripts/managers/EnemySpawner.gd")
@@ -138,6 +139,7 @@ var upgrade_catalog: Array[Resource] = [
 	preload("res://resources/upgrades/move_speed.tres"),
 	preload("res://resources/upgrades/max_health.tres"),
 	preload("res://resources/upgrades/sword_rain.tres"),
+	preload("res://resources/upgrades/lightning_storm.tres"),
 	preload("res://resources/upgrades/heal.tres")
 ]
 
@@ -276,6 +278,7 @@ func _start_game() -> void:
 	InputAdapter.reset_dash_cooldown()
 	InputAdapter.reset_scatter_cooldown()
 	InputAdapter.reset_sword_rain_cooldown()
+	InputAdapter.reset_lightning_storm_cooldown()
 	InputAdapter.reset_heal_cooldown()
 	GameManager.start_run(level_data)
 	player = preload("res://scenes/game/Player.tscn").instantiate()
@@ -487,6 +490,8 @@ func _apply_upgrade_button_palette(button: Button, palette: Dictionary) -> void:
 
 func _get_upgrade_type(upgrade: Resource) -> String:
 	match upgrade.upgrade_id:
+		&"lightning_storm":
+			return "技能"
 		&"flywheel", &"drone":
 			return "装备"
 		&"drone_damage", &"drone_fire_rate", &"drone_range":
@@ -1163,6 +1168,8 @@ func _get_upgrade_icon(upgrade: Resource) -> Texture2D:
 			return ICON_HEALTH
 		&"sword_rain":
 			return ICON_ARROW
+		&"lightning_storm":
+			return ICON_LIGHTNING
 		&"heal":
 			return ICON_HEAL
 		_:

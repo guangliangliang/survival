@@ -13,6 +13,7 @@ signal died
 @onready var drone_weapon = $WeaponsNode/DroneWeapon
 @onready var blossom_scatter = $WeaponsNode/BlossomScatter
 @onready var sword_rain = $WeaponsNode/SwordRainStorm
+@onready var lightning_storm = $WeaponsNode/LightningStorm
 @onready var heal = $WeaponsNode/HealSkill
 
 const FRAME_SIZE := Vector2i(128, 128)
@@ -115,6 +116,7 @@ func apply_upgrade(upgrade: Resource) -> void:
 			drone_weapon.apply_upgrade(upgrade.stat_key, upgrade.amount)
 			blossom_scatter.apply_upgrade(upgrade.stat_key, upgrade.amount)
 			sword_rain.apply_upgrade(upgrade.stat_key, upgrade.amount)
+			lightning_storm.apply_upgrade(upgrade.stat_key, upgrade.amount)
 			heal.apply_upgrade(upgrade.stat_key, upgrade.amount)
 
 func get_health_component() -> Node:

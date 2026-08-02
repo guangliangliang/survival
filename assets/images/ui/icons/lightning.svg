@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" shape-rendering="crispEdges">
+  <defs>
+    <linearGradient id="bolt" x1="0" y1="4" x2="0" y2="60" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#f4ffff"/>
+      <stop offset="0.45" stop-color="#70d8ff"/>
+      <stop offset="1" stop-color="#2f69ff"/>
+    </linearGradient>
+  </defs>
+  <circle cx="32" cy="32" r="25" fill="#10243f" stroke="#7bdcff" stroke-width="4"/>
+  <path d="M37 5 L17 35 H30 L24 59 L49 25 H35 Z" fill="url(#bolt)" stroke="#e8ffff" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M15 18 L6 25 M51 12 L43 22 M55 41 L46 38" stroke="#aeefff" stroke-width="4" stroke-linecap="square"/>
+</svg>

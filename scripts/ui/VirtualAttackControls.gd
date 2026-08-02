@@ -4,6 +4,7 @@ const ICON_DASH := preload("res://assets/images/ui/icons/dash.svg")
 const ICON_SKILL := preload("res://assets/images/ui/icons/skill.svg")
 const ICON_LASER := preload("res://assets/images/ui/icons/laser_sweep.svg")
 const ICON_SWORD := preload("res://assets/images/ui/icons/arrow.svg")
+const ICON_LIGHTNING := preload("res://assets/images/ui/icons/lightning.svg")
 const ICON_HEAL := preload("res://assets/images/ui/icons/heal.svg")
 const ICON_ARROW := preload("res://assets/images/ui/icons/arrow.svg")
 
@@ -15,17 +16,21 @@ const MOUSE_TOUCH_INDEX := -2
 @export var attack_offset := Vector2(110.0, 90.0)
 @export var auto_offset := Vector2(22.0, 155.0)
 @export var sword_rain_offset := Vector2(110.0, 250.0)
+@export var lightning_offset := Vector2(292.0, 236.0)
 @export var dash_offset := Vector2(265.0, 49.0)
 @export var heal_offset := Vector2(260.0, 145.0)
 @export var scatter_offset := Vector2(202.0, 221.0)
 
 @export var sword_rain_aim_scale: float = 6.0
+@export var lightning_aim_scale: float = 6.0
 
 var _attack_touch_index: int = -1
 var _attack_press_time: float = 0.0
 var _auto_flash_time: float = 0.0
 var _sword_rain_touch_index: int = -1
 var _sword_rain_press_position: Vector2 = Vector2.ZERO
+var _lightning_touch_index: int = -1
+var _lightning_press_position: Vector2 = Vector2.ZERO
 
 func _ready() -> void:
 	custom_minimum_size = Vector2(360.0, 360.0)
@@ -37,6 +42,7 @@ func _exit_tree() -> void:
 	InputAdapter.clear_virtual_dash()
 	InputAdapter.clear_virtual_scatter()
 	InputAdapter.clear_virtual_sword_rain()
+	InputAdapter.clear_virtual_lightning_storm()
 	InputAdapter.clear_virtual_heal()
 
 func _process(delta: float) -> void:
@@ -76,6 +82,16 @@ func _handle_press(local_position: Vector2, touch_index: int) -> void:
 			_sword_rain_press_position = local_position
 			InputAdapter.set_virtual_sword_rain_aim_offset(Vector2.ZERO)
 		return
+	if _is_inside_lightning(local_position):
+		if touch_index == MOUSE_TOUCH_INDEX:
+			InputAdapter.request_virtual_lightning_storm()
+			return
+		InputAdapter.begin_virtual_lightning_storm_aim()
+		if InputAdapter.is_virtual_lightning_storm_aiming():
+			_lightning_touch_index = touch_index
+			_lightning_press_position = local_position
+			InputAdapter.set_virtual_lightning_storm_aim_offset(Vector2.ZERO)
+		return
 	if _is_inside_dash(local_position):
 		InputAdapter.request_virtual_dash()
 		return
@@ -99,6 +115,10 @@ func _handle_release(touch_index: int) -> void:
 		_sword_rain_touch_index = -1
 		InputAdapter.confirm_virtual_sword_rain_aim()
 		return
+	if _lightning_touch_index == touch_index:
+		_lightning_touch_index = -1
+		InputAdapter.confirm_virtual_lightning_storm_aim()
+		return
 	if _attack_touch_index == touch_index:
 		_attack_touch_index = -1
 		InputAdapter.set_attack_held(false)
@@ -107,6 +127,10 @@ func _handle_drag(local_position: Vector2, touch_index: int) -> void:
 	if _sword_rain_touch_index == touch_index:
 		var offset := (local_position - _sword_rain_press_position) * sword_rain_aim_scale
 		InputAdapter.set_virtual_sword_rain_aim_offset(offset)
+		return
+	if _lightning_touch_index == touch_index:
+		var offset := (local_position - _lightning_press_position) * lightning_aim_scale
+		InputAdapter.set_virtual_lightning_storm_aim_offset(offset)
 		return
 	if _attack_touch_index != touch_index:
 		return
@@ -122,6 +146,9 @@ func _is_inside_auto(local_position: Vector2) -> bool:
 
 func _is_inside_sword_rain(local_position: Vector2) -> bool:
 	return local_position.distance_to(_sword_rain_center()) <= skill_radius
+
+func _is_inside_lightning(local_position: Vector2) -> bool:
+	return local_position.distance_to(_lightning_center()) <= skill_radius
 
 func _is_inside_dash(local_position: Vector2) -> bool:
 	return local_position.distance_to(_dash_center()) <= skill_radius
@@ -141,6 +168,9 @@ func _auto_center() -> Vector2:
 func _sword_rain_center() -> Vector2:
 	return size - sword_rain_offset
 
+func _lightning_center() -> Vector2:
+	return size - lightning_offset
+
 func _dash_center() -> Vector2:
 	return size - dash_offset
 
@@ -152,6 +182,7 @@ func _scatter_center() -> Vector2:
 
 func _draw() -> void:
 	_draw_sword_rain_button(_sword_rain_center(), InputAdapter.is_sword_rain_ready())
+	_draw_lightning_button(_lightning_center(), InputAdapter.is_lightning_storm_ready())
 	_draw_dash_button(_dash_center(), InputAdapter.is_dash_ready())
 	_draw_heal_button(_heal_center(), InputAdapter.is_heal_ready())
 	_draw_scatter_button(_scatter_center(), InputAdapter.is_scatter_ready())
@@ -208,6 +239,17 @@ func _draw_sword_rain_button(center: Vector2, ready: bool) -> void:
 		draw_arc(center, skill_radius - 4.0, -PI * 0.5, cooldown_angle, 48, Color(1.0, 0.85, 0.4, 0.65), 4.0)
 	draw_circle(center, skill_radius * 0.55, Color(0.85, 0.55, 0.2, base_alpha))
 	_draw_icon(ICON_SWORD, center, 34.0, 0.95 if ready else 0.35)
+
+func _draw_lightning_button(center: Vector2, ready: bool) -> void:
+	var base_alpha := 0.58 if ready else 0.28
+	var accent_alpha := 0.78 if ready else 0.2
+	draw_circle(center, skill_radius, Color(0.04, 0.08, 0.14, 0.55))
+	draw_arc(center, skill_radius - 4.0, -PI * 0.5, PI * 1.5, 48, Color(0.45, 0.82, 1.0, accent_alpha), 4.0)
+	if not ready:
+		var cooldown_angle := -PI * 0.5 + TAU * (1.0 - InputAdapter.get_lightning_storm_cooldown_ratio())
+		draw_arc(center, skill_radius - 4.0, -PI * 0.5, cooldown_angle, 48, Color(0.8, 0.95, 1.0, 0.65), 4.0)
+	draw_circle(center, skill_radius * 0.55, Color(0.22, 0.56, 0.95, base_alpha))
+	_draw_icon(ICON_LIGHTNING, center, 34.0, 0.95 if ready else 0.35)
 
 func _draw_dash_button(center: Vector2, ready: bool) -> void:
 	var base_alpha := 0.58 if ready else 0.28

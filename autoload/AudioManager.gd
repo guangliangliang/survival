@@ -37,6 +37,9 @@ const SFX := {
 	&"laser_sweep": [
 		"res://assets/audio/sfx/sfx_laser_sweep.wav",
 	],
+	&"lightning_storm": [
+		"res://assets/audio/sfx/sfx_laser_sweep.wav",
+	],
 	&"sword_rain": [
 		"res://assets/audio/sfx/sfx_sword_rain.wav",
 	],

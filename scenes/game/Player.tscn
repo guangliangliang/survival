@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=3]
+[gd_scene load_steps=19 format=3]
 
 [ext_resource type="Script" path="res://scripts/systems/Player.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/components/HealthComponent.gd" id="2"]
@@ -16,6 +16,7 @@
 [ext_resource type="Script" path="res://scripts/components/SwordRainStorm.gd" id="16"]
 [ext_resource type="PackedScene" path="res://scenes/game/SwordProjectile.tscn" id="17"]
 [ext_resource type="Script" path="res://scripts/components/HealSkill.gd" id="18"]
+[ext_resource type="Script" path="res://scripts/components/LightningStorm.gd" id="19"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_player"]
 radius = 24.0
@@ -109,6 +110,15 @@ base_sword_count = 40
 base_damage = 20.0
 base_range = 200.0
 base_cooldown = 10.0
+
+[node name="LightningStorm" type="Node2D" parent="WeaponsNode"]
+script = ExtResource("19")
+base_strike_count = 12
+base_damage = 32.0
+base_range = 220.0
+strike_radius = 46.0
+base_cooldown = 11.0
+storm_duration = 1.6
 
 [node name="HealSkill" type="Node2D" parent="WeaponsNode"]
 script = ExtResource("18")

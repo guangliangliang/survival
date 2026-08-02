@@ -1,7 +1,7 @@
 extends Node2D
 
 const EnemyScene := preload("res://scenes/game/Enemy.tscn")
-const HealthComponentScript := preload("res://scripts/components/HealthComponent.gd")
+const PlayerScene := preload("res://scenes/game/Player.tscn")
 
 const BOSS_DATA: Array[Resource] = [
 	preload("res://resources/enemies/alpha_wolf.tres"),
@@ -18,7 +18,7 @@ const BOSS_DATA: Array[Resource] = [
 @onready var attack_button: Button = $CanvasLayer/AttackButton
 
 var current_boss: CharacterBody2D
-var skill_target: StaticBody2D
+var player_dummy: CharacterBody2D
 var current_boss_index: int = 0
 var camera_shake_strength: float = 0.0
 var boss_buttons: Array[Button] = []
@@ -32,7 +32,7 @@ func _ready() -> void:
 	InputAdapter.clear_virtual_inputs()
 	GameManager.start_run()
 	_setup_ui()
-	_create_skill_target()
+	_create_player_dummy()
 	_spawn_boss(0)
 	title_label.text = "Boss 测试"
 	_update_info_label()
@@ -49,9 +49,9 @@ func _process(delta: float) -> void:
 func _draw() -> void:
 	draw_rect(Rect2(-1900, -1200, 3800, 2400), Color("28392f"))
 	draw_rect(Rect2(-1900, -80, 3800, 160), Color("5f5944"))
-	if is_instance_valid(skill_target):
-		draw_circle(skill_target.global_position, 34.0, Color(0.2, 0.8, 1.0, 0.2))
-		draw_arc(skill_target.global_position, 34.0, 0.0, TAU, 48, Color(0.55, 0.92, 1.0, 0.85), 3.0)
+	if is_instance_valid(player_dummy):
+		draw_circle(player_dummy.global_position, 34.0, Color(0.2, 0.8, 1.0, 0.2))
+		draw_arc(player_dummy.global_position, 34.0, 0.0, TAU, 48, Color(0.55, 0.92, 1.0, 0.85), 3.0)
 
 func _setup_ui() -> void:
 	var button_hbox := HBoxContainer.new()
@@ -117,12 +117,10 @@ func _spawn_boss(index: int) -> void:
 	_clear_summons()
 
 	var data: Resource = BOSS_DATA[index].duplicate(true)
-	data.visual_scale_multiplier = data.visual_scale_multiplier * 2.0
-	data.size = data.size * 2.0
 	current_boss = EnemyScene.instantiate() as CharacterBody2D
 	current_boss.name = "%s_TestBoss" % data.enemy_id
 	game_world.add_child(current_boss)
-	current_boss.reset_for_spawn(data, skill_target, Vector2.ZERO)
+	current_boss.reset_for_spawn(data, player_dummy, Vector2.ZERO)
 	title_label.text = "Boss 测试 - %s" % data.display_name
 
 func _handle_input(delta: float) -> void:
@@ -133,20 +131,20 @@ func _handle_input(delta: float) -> void:
 		return
 	if Input.is_action_just_pressed("attack"):
 		_force_boss_attack()
-	if Input.is_action_just_pressed("move_up") and Input.is_action_pressed("move_down"):
+	if Input.is_action_just_pressed("reset_boss"):
 		_spawn_boss(current_boss_index)
 		AudioManager.play_sfx_by_key(&"button_click")
 	_move_boss(delta)
 
 func _move_boss(delta: float) -> void:
 	var move_dir := Vector2.ZERO
-	if Input.is_action_pressed("move_left"):
+	if Input.is_action_pressed("boss_move_left"):
 		move_dir.x -= 1.0
-	if Input.is_action_pressed("move_right"):
+	if Input.is_action_pressed("boss_move_right"):
 		move_dir.x += 1.0
-	if Input.is_action_pressed("move_up"):
+	if Input.is_action_pressed("boss_move_up"):
 		move_dir.y -= 1.0
-	if Input.is_action_pressed("move_down"):
+	if Input.is_action_pressed("boss_move_down"):
 		move_dir.y += 1.0
 	if move_dir.length_squared() <= 0.0:
 		return
@@ -180,7 +178,7 @@ func _update_camera(delta: float) -> void:
 	)
 
 func _update_info_label() -> void:
-	info_label.text = "WASD 移动 Boss | 空格普通攻击 | 强制释放技能会施放已解锁技能 | 阶段按钮设置血量 | W+S 重置 | ESC 返回菜单"
+	info_label.text = "WASD 移动主角 | IJKL 移动 Boss | 空格普通攻击 | 强制释放技能会施放已解锁技能 | 阶段按钮设置血量 | R 重置 | ESC 返回菜单"
 
 func _update_status_label() -> void:
 	if not is_instance_valid(current_boss):
@@ -201,7 +199,7 @@ func _update_status_label() -> void:
 	if current_boss.has_method("get_boss_skill_debug_text"):
 		skill_text = current_boss.call("get_boss_skill_debug_text")
 	status_label.text = "生命值 %.0f / %.0f | 阶段 %d | 攻击次数 %d\n%s\n召唤物 %d | 目标 x %.0f" % [
-		hp, max_hp, phase, attack_count, skill_text, _get_live_summon_count(), skill_target.global_position.x
+		hp, max_hp, phase, attack_count, skill_text, _get_live_summon_count(), player_dummy.global_position.x
 	]
 
 func shake_camera(strength: float) -> void:
@@ -216,27 +214,22 @@ func _on_skill_button_pressed() -> void:
 func _on_phase_button_pressed(phase: int) -> void:
 	_set_boss_phase(phase)
 
-func _create_skill_target() -> void:
-	skill_target = StaticBody2D.new()
-	skill_target.name = "BossSkillTarget"
-	skill_target.add_to_group("player")
-	skill_target.collision_layer = 1
-	skill_target.collision_mask = 0
-	skill_target.global_position = Vector2(440, 0)
+func _create_player_dummy() -> void:
+	player_dummy = PlayerScene.instantiate() as CharacterBody2D
+	player_dummy.name = "BossTestPlayer"
+	player_dummy.process_mode = Node.PROCESS_MODE_ALWAYS
+	game_world.add_child(player_dummy)
+	player_dummy.global_position = Vector2(440, 0)
 
-	var collision := CollisionShape2D.new()
-	var circle := CircleShape2D.new()
-	circle.radius = 32.0
-	collision.shape = circle
-	skill_target.add_child(collision)
+	var ranged := player_dummy.get_node_or_null("WeaponsNode/RangedWeapon")
+	if ranged != null:
+		ranged.firing_enabled = false
 
-	var health := HealthComponentScript.new()
-	health.name = "HealthComponent"
-	health.max_health = 100000.0
-	health.invincible = true
-	skill_target.add_child(health)
-
-	game_world.add_child(skill_target)
+	var health := player_dummy.get_node_or_null("HealthComponent") as Node
+	if health != null:
+		health.max_health = 1000000.0
+		health.current_health = 1000000.0
+		health.invincible = true
 	queue_redraw()
 
 func _set_boss_phase(phase: int) -> void:
@@ -262,12 +255,12 @@ func _set_boss_phase(phase: int) -> void:
 	AudioManager.play_sfx_by_key(&"button_click")
 
 func spawn_enemy_at(data: Resource, spawn_position: Vector2) -> CharacterBody2D:
-	if data == null or data.boss or not is_instance_valid(skill_target):
+	if data == null or data.boss or not is_instance_valid(player_dummy):
 		return null
 	var enemy := EnemyScene.instantiate() as CharacterBody2D
 	enemy.name = "%s_Summon" % data.enemy_id
 	game_world.add_child(enemy)
-	enemy.reset_for_spawn(data.duplicate(true), skill_target, spawn_position)
+	enemy.reset_for_spawn(data.duplicate(true), player_dummy, spawn_position)
 	enemy.released.connect(_on_summon_released)
 	summoned_enemies.append(enemy)
 	return enemy

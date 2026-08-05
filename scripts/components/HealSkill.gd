@@ -13,7 +13,17 @@ func _ready() -> void:
 	InputAdapter.set_heal_cooldown(cooldown_remaining, _get_cooldown())
 
 func _process(delta: float) -> void:
-	cooldown_remaining = maxf(0.0, cooldown_remaining - delta)
+	# 调试场景时，不倒计时冷却
+	var in_test_scene = false
+	var parent_node = get_parent()
+	while parent_node != null:
+		if parent_node.is_in_group("game_controller") and parent_node.has_method("_exit_tree") and parent_node.name == "HealSkillTest":
+			in_test_scene = true
+			break
+		parent_node = parent_node.get_parent()
+	
+	if not in_test_scene:
+		cooldown_remaining = maxf(0.0, cooldown_remaining - delta)
 	InputAdapter.set_heal_cooldown(cooldown_remaining, _get_cooldown())
 	if InputAdapter.consume_heal_requested():
 		_try_cast()
@@ -39,7 +49,16 @@ func apply_upgrade(stat_key: StringName, amount: float) -> void:
 		InputAdapter.set_heal_cooldown(cooldown_remaining, _get_cooldown())
 
 func _try_cast() -> void:
-	if cooldown_remaining > 0.0:
+	# 调试场景时，忽略冷却检查
+	var in_test_scene = false
+	var parent_node = get_parent()
+	while parent_node != null:
+		if parent_node.is_in_group("game_controller") and parent_node.has_method("_exit_tree") and parent_node.name == "HealSkillTest":
+			in_test_scene = true
+			break
+		parent_node = parent_node.get_parent()
+	
+	if not in_test_scene and cooldown_remaining > 0.0:
 		return
 	var player := _get_player()
 	if player == null or not player.has_method("get_health_component"):

@@ -21,6 +21,8 @@ var damage_button: Button
 var reset_health_button: Button
 var reset_cooldown_button: Button
 var upgrade_button: Button
+var infinite_skill_button: Button
+var infinite_skill_enabled := false
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -32,6 +34,10 @@ func _ready() -> void:
 	_build_ui()
 	_damage_player(AUTO_TEST_START_HEALTH, "Player starts injured so healing is visible.")
 	_update_status()
+	
+	# 设置 process_priority = -10，让这个节点的 _process 更早运行，在 HealSkill.gd 之前
+	set_process_priority(-10)
+	
 	if OS.get_cmdline_user_args().has("--auto-test"):
 		_run_auto_test.call_deferred()
 
@@ -42,6 +48,8 @@ func _exit_tree() -> void:
 func _process(_delta: float) -> void:
 	if is_instance_valid(player):
 		camera.global_position = player.global_position
+	if infinite_skill_enabled:
+		_force_infinite_cooldown()
 	_update_status()
 	if Input.is_action_just_pressed("ui_cancel"):
 		get_tree().change_scene_to_file("res://scenes/menu/MainMenu.tscn")
@@ -145,6 +153,10 @@ func _build_ui() -> void:
 	upgrade_button.pressed.connect(_on_upgrade_pressed)
 	buttons.add_child(upgrade_button)
 
+	infinite_skill_button = _make_button("无限技能: 关")
+	infinite_skill_button.pressed.connect(_on_infinite_skill_pressed)
+	buttons.add_child(infinite_skill_button)
+
 	var menu_button := _make_button("Main Menu")
 	menu_button.pressed.connect(_on_menu_pressed)
 	buttons.add_child(menu_button)
@@ -169,6 +181,21 @@ func _make_button(text: String) -> Button:
 
 func _on_damage_pressed() -> void:
 	_damage_player(TEST_DAMAGE, "Damage applied. Now cast heal.")
+
+func _on_infinite_skill_pressed() -> void:
+	infinite_skill_enabled = not infinite_skill_enabled
+	infinite_skill_button.text = "无限技能: 开" if infinite_skill_enabled else "无限技能: 关"
+	if infinite_skill_enabled:
+		_force_infinite_cooldown()
+		_set_message("无限技能已开启：CD 每帧重置。")
+	else:
+		_set_message("无限技能已关闭。")
+
+func _force_infinite_cooldown() -> void:
+	var heal_skill := _get_heal_skill()
+	if heal_skill != null:
+		heal_skill.set("cooldown_remaining", 0.0)
+	InputAdapter.reset_heal_cooldown()
 
 func _on_cast_pressed() -> void:
 	if not InputAdapter.is_heal_ready():
@@ -246,7 +273,7 @@ func _update_status() -> void:
 		level_label.text = "Heal level: %d   Amount: %d%% max HP" % [skill_level, int(heal_percent * 100.0)]
 		upgrade_button.disabled = skill_level >= HealUpgrade.max_level
 
-	cast_button.disabled = remaining > 0.0
+	cast_button.disabled = not infinite_skill_enabled and remaining > 0.0
 
 func _set_message(message: String) -> void:
 	if message_label != null:

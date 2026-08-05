@@ -63,13 +63,19 @@ func _gui_input(event: InputEvent) -> void:
 		_handle_drag(event.position, event.index)
 		accept_event()
 	elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+		if _is_using_touch_input():
+			accept_event()
+			return
 		if event.pressed:
 			_handle_press(event.position, MOUSE_TOUCH_INDEX)
 		else:
 			_handle_release(MOUSE_TOUCH_INDEX)
 		accept_event()
-	elif event is InputEventMouseMotion and _attack_touch_index == MOUSE_TOUCH_INDEX:
+	elif event is InputEventMouseMotion and not _is_using_touch_input() and _attack_touch_index == MOUSE_TOUCH_INDEX:
 		_handle_drag(event.position, MOUSE_TOUCH_INDEX)
+
+func _is_using_touch_input() -> bool:
+	return DisplayServer.is_touchscreen_available() or OS.has_feature("mobile") or OS.has_feature("web")
 
 func _handle_press(local_position: Vector2, touch_index: int) -> void:
 	if _is_inside_sword_rain(local_position):

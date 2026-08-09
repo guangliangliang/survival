@@ -13,6 +13,7 @@ var virtual_lightning_storm_aiming: bool = false
 var virtual_lightning_storm_aim_offset: Vector2 = Vector2.ZERO
 var virtual_lightning_storm_cast_requested: bool = false
 var virtual_heal_requested: bool = false
+var virtual_sand_toggle_requested: bool = false
 var attack_held: bool = false
 var auto_attack_enabled: bool = true
 var dash_cooldown_remaining: float = 0.0
@@ -163,6 +164,15 @@ func consume_virtual_sword_rain_cast() -> bool:
 	virtual_sword_rain_cast_requested = false
 	return requested
 
+func consume_sand_toggle_requested() -> bool:
+
+	var requested := virtual_sand_toggle_requested or Input.is_action_just_pressed("sand_toggle")
+	virtual_sand_toggle_requested = false
+	return requested
+
+func request_virtual_sand_toggle() -> void:
+	virtual_sand_toggle_requested = true
+
 func consume_virtual_lightning_storm_cast() -> bool:
 	var requested := virtual_lightning_storm_cast_requested
 	virtual_lightning_storm_cast_requested = false
@@ -301,4 +311,5 @@ func clear_virtual_inputs() -> void:
 	clear_virtual_sword_rain()
 	clear_virtual_lightning_storm()
 	clear_virtual_heal()
+	virtual_sand_toggle_requested = false
 	attack_held = false

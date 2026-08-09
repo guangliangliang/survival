@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="CharacterData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/CharacterData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+character_id = &"sandman"
+display_name = "沙人"
+description = "以散沙化作躯体与双手，擅长近战压制和区域控场。"
+combat_profile = &"sandman"

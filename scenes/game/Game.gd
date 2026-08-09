@@ -140,7 +140,10 @@ var upgrade_catalog: Array[Resource] = [
 	preload("res://resources/upgrades/max_health.tres"),
 	preload("res://resources/upgrades/sword_rain.tres"),
 	preload("res://resources/upgrades/lightning_storm.tres"),
-	preload("res://resources/upgrades/heal.tres")
+	preload("res://resources/upgrades/heal.tres"),
+	preload("res://resources/upgrades/sand_fissure.tres"),
+	preload("res://resources/upgrades/sand_tornado.tres"),
+	preload("res://resources/upgrades/sand_cave.tres")
 ]
 
 func _ready() -> void:
@@ -404,6 +407,8 @@ func _roll_upgrade_choices(avoid_current: bool) -> bool:
 func _get_available_upgrades() -> Array[Resource]:
 	var available: Array[Resource] = []
 	for upgrade in upgrade_catalog:
+		if upgrade.character_id != &"" and (GameManager.selected_character == null or upgrade.character_id != GameManager.selected_character.character_id):
+			continue
 		if _is_upgrade_available(upgrade):
 			available.append(upgrade)
 	return available
@@ -821,6 +826,8 @@ func _run_boss_pool_test() -> void:
 
 func _run_upgrade_exhaustion_test() -> void:
 	for upgrade in upgrade_catalog:
+		if upgrade.character_id != &"" and (GameManager.selected_character == null or upgrade.character_id != GameManager.selected_character.character_id):
+			continue
 		upgrade_levels[upgrade.upgrade_id] = upgrade.max_level
 	upgrade_pending = 1
 	_show_upgrade_choices()

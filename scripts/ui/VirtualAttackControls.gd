@@ -7,6 +7,9 @@ const ICON_SWORD := preload("res://assets/images/ui/icons/arrow.svg")
 const ICON_LIGHTNING := preload("res://assets/images/ui/icons/lightning.svg")
 const ICON_HEAL := preload("res://assets/images/ui/icons/heal.svg")
 const ICON_ARROW := preload("res://assets/images/ui/icons/arrow.svg")
+const ICON_SAND_FISSURE := preload("res://assets/images/ui/icons/sand_fissure.svg")
+const ICON_SAND_TORNADO := preload("res://assets/images/ui/icons/sand_tornado.svg")
+const ICON_SAND_CAVE := preload("res://assets/images/ui/icons/sand_cave.svg")
 
 const MOUSE_TOUCH_INDEX := -2
 
@@ -78,6 +81,9 @@ func _is_using_touch_input() -> bool:
 	return DisplayServer.is_touchscreen_available() or OS.has_feature("mobile") or OS.has_feature("web")
 
 func _handle_press(local_position: Vector2, touch_index: int) -> void:
+	if _is_sandman() and _is_inside_auto(local_position):
+		InputAdapter.request_virtual_sand_toggle()
+		return
 	if _is_inside_sword_rain(local_position):
 		if touch_index == MOUSE_TOUCH_INDEX:
 			InputAdapter.request_virtual_sword_rain()
@@ -187,6 +193,11 @@ func _scatter_center() -> Vector2:
 	return size - scatter_offset
 
 func _draw() -> void:
+	if _is_sandman():
+		_draw_sandman_buttons()
+		_draw_attack_button(_attack_center(), _attack_touch_index != -1)
+		_draw_auto_button(_auto_center(), true)
+		return
 	_draw_sword_rain_button(_sword_rain_center(), InputAdapter.is_sword_rain_ready())
 	_draw_lightning_button(_lightning_center(), InputAdapter.is_lightning_storm_ready())
 	_draw_dash_button(_dash_center(), InputAdapter.is_dash_ready())
@@ -194,6 +205,22 @@ func _draw() -> void:
 	_draw_scatter_button(_scatter_center(), InputAdapter.is_scatter_ready())
 	_draw_attack_button(_attack_center(), _attack_touch_index != -1)
 	_draw_auto_button(_auto_center(), InputAdapter.is_auto_attack_enabled())
+
+func _is_sandman() -> bool:
+	return GameManager.selected_character != null and GameManager.selected_character.combat_profile == &"sandman"
+
+func _draw_sandman_buttons() -> void:
+	_draw_sand_skill_button(_scatter_center(), ICON_SAND_FISSURE, InputAdapter.is_scatter_ready(), Color("c7772b"))
+	_draw_sand_skill_button(_sword_rain_center(), ICON_SAND_TORNADO, InputAdapter.is_sword_rain_ready(), Color("e1ad4e"))
+	_draw_sand_skill_button(_lightning_center(), ICON_SAND_CAVE, InputAdapter.is_lightning_storm_ready(), Color("8e5527"))
+	_draw_dash_button(_dash_center(), InputAdapter.is_dash_ready())
+	_draw_heal_button(_heal_center(), InputAdapter.is_heal_ready())
+
+func _draw_sand_skill_button(center: Vector2, icon: Texture2D, ready: bool, color: Color) -> void:
+	draw_circle(center, skill_radius, Color(0.12, 0.07, 0.025, 0.7))
+	draw_arc(center, skill_radius - 4.0, -PI * 0.5, PI * 1.5, 48, color.lightened(0.3), 4.0)
+	draw_circle(center, skill_radius * 0.55, Color(color, 0.72 if ready else 0.28))
+	_draw_icon(icon, center, 34.0, 0.95 if ready else 0.35)
 
 func _draw_attack_button(center: Vector2, pressed: bool) -> void:
 	var press_ratio := 0.0

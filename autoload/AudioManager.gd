@@ -37,6 +37,11 @@ const SFX := {
 	&"laser_sweep": [
 		"res://assets/audio/sfx/sfx_laser_sweep.wav",
 	],
+	&"sand_ball": ["res://assets/audio/sfx/sfx_player_rifle.wav"],
+	&"sand_blade": ["res://assets/audio/sfx/sfx_enemy_melee_swing.wav"],
+	&"sand_fissure": ["res://assets/audio/sfx/sfx_dash_cast.wav"],
+	&"sand_tornado": ["res://assets/audio/sfx/sfx_flywheel_loop.wav"],
+	&"sand_cave": ["res://assets/audio/sfx/sfx_enemy_projectile_land.wav"],
 	&"lightning_storm": [
 		"res://assets/audio/sfx/sfx_lightning_storm.wav",
 	],
@@ -82,6 +87,8 @@ const SFX_POOL_SIZE := 18
 const UI_POOL_SIZE := 6
 const MOBILE_SFX_THROTTLE := {
 	&"bullet_hit": 0.05,
+	&"sand_ball": 0.12,
+	&"sand_blade": 0.18,
 	&"enemy_death": 0.08,
 	&"enemy_melee_swing": 0.12,
 	&"enemy_rifle": 0.1,

@@ -75,6 +75,8 @@ var _combat_feedback: Node = null
 var _experience_pool: Node = null
 var _visual_effects: Node = null
 var _game_controller: Node = null
+var slow_multiplier: float = 1.0
+var slow_time: float = 0.0
 
 const DESPAWN_CHECK_INTERVAL := 0.25
 
@@ -116,11 +118,19 @@ func _ready() -> void:
 		enemy_data = EnemyDataResource.new()
 	_apply_data()
 
+func apply_slow(multiplier: float, duration: float) -> void:
+	slow_multiplier = minf(slow_multiplier, clampf(multiplier, 0.12, 1.0))
+	slow_time = maxf(slow_time, duration)
+
 func _physics_process(delta: float) -> void:
 	if not is_alive or not GameManager.run_active:
 		velocity = Vector2.ZERO
 		return
 	active_time += delta
+	if slow_time > 0.0:
+		slow_time = maxf(0.0, slow_time - delta)
+		if slow_time <= 0.0:
+			slow_multiplier = 1.0
 	attack_timer = maxf(0.0, attack_timer - delta)
 	if flash_timer > 0.0:
 		flash_timer -= delta
@@ -156,7 +166,7 @@ func _physics_process(delta: float) -> void:
 			return
 		if far_lod:
 			_update_facing(direction)
-			velocity = direction * enemy_data.move_speed
+			velocity = direction * enemy_data.move_speed * slow_multiplier
 			if knockback_velocity.length_squared() > 1.0:
 				velocity += knockback_velocity
 				knockback_velocity = knockback_velocity.move_toward(Vector2.ZERO, 700.0 * delta)
@@ -173,13 +183,13 @@ func _physics_process(delta: float) -> void:
 			move_direction = cached_separation_direction
 		_update_facing(move_direction)
 		if knockback_velocity.length_squared() > 1.0:
-			velocity = move_direction * enemy_data.move_speed + knockback_velocity
+			velocity = move_direction * enemy_data.move_speed * slow_multiplier + knockback_velocity
 			knockback_velocity = knockback_velocity.move_toward(Vector2.ZERO, 700.0 * delta)
 			move_and_slide()
 			_update_visual_animation(delta)
 			return
 		if not in_attack_range:
-			velocity = move_direction * enemy_data.move_speed
+			velocity = move_direction * enemy_data.move_speed * slow_multiplier
 			move_and_slide()
 		else:
 			velocity = Vector2.ZERO
@@ -210,6 +220,8 @@ func _physics_process(delta: float) -> void:
 	_update_despawn_check(delta)
 
 func reset_for_spawn(data: Resource, player_target: Node2D, spawn_position: Vector2, map_node: Node2D = null) -> void:
+	slow_multiplier = 1.0
+	slow_time = 0.0
 	enemy_data = data
 	target = player_target
 	world_map = map_node

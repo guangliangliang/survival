@@ -1,4 +1,4 @@
-[gd_scene load_steps=19 format=3]
+[gd_scene load_steps=20 format=3]
 
 [ext_resource type="Script" path="res://scripts/systems/Player.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/components/HealthComponent.gd" id="2"]
@@ -17,6 +17,7 @@
 [ext_resource type="PackedScene" path="res://scenes/game/SwordProjectile.tscn" id="17"]
 [ext_resource type="Script" path="res://scripts/components/HealSkill.gd" id="18"]
 [ext_resource type="Script" path="res://scripts/components/LightningStorm.gd" id="19"]
+[ext_resource type="Script" path="res://scripts/components/SandmanController.gd" id="20"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_player"]
 radius = 24.0
@@ -124,3 +125,7 @@ storm_duration = 1.6
 script = ExtResource("18")
 base_heal_percent = 0.3
 base_cooldown = 15.0
+
+[node name="SandmanController" type="Node2D" parent="WeaponsNode"]
+z_index = 4
+script = ExtResource("20")

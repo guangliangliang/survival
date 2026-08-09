@@ -7,3 +7,4 @@ extends Resource
 @export var stat_key: StringName
 @export var amount: float
 @export var max_level: int = 5
+@export var character_id: StringName = &""

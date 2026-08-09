@@ -38,7 +38,8 @@ var level_catalog: Array[Resource] = [
 
 var character_catalog: Array[Resource] = [
 	preload("res://resources/characters/sentinel.tres"),
-	preload("res://resources/characters/vanguard.tres")
+	preload("res://resources/characters/vanguard.tres"),
+	preload("res://resources/characters/sandman.tres")
 ]
 
 func is_mobile_performance_profile() -> bool:

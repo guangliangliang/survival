@@ -15,6 +15,7 @@ signal died
 @onready var sword_rain = $WeaponsNode/SwordRainStorm
 @onready var lightning_storm = $WeaponsNode/LightningStorm
 @onready var heal = $WeaponsNode/HealSkill
+@onready var sandman = $WeaponsNode/SandmanController
 
 const FRAME_SIZE := Vector2i(128, 128)
 const ANIM_FRAME_COUNT := 4
@@ -72,6 +73,13 @@ func _apply_selected_character() -> void:
 		body_sprite.texture = character_data.body_texture
 	if character_data.rifle_texture != null:
 		ranged_weapon.set_arms_texture(character_data.rifle_texture)
+	var is_sandman: bool = character_data.combat_profile == &"sandman"
+	body_sprite.visible = not is_sandman
+	ranged_weapon.firing_enabled = not is_sandman
+	ranged_weapon.visible = not is_sandman
+	for component in [blossom_scatter, sword_rain, lightning_storm]:
+		component.process_mode = Node.PROCESS_MODE_DISABLED if is_sandman else Node.PROCESS_MODE_INHERIT
+	sandman.set_active(is_sandman)
 
 func _physics_process(delta: float) -> void:
 	if not is_alive:
@@ -118,6 +126,7 @@ func apply_upgrade(upgrade: Resource) -> void:
 			sword_rain.apply_upgrade(upgrade.stat_key, upgrade.amount)
 			lightning_storm.apply_upgrade(upgrade.stat_key, upgrade.amount)
 			heal.apply_upgrade(upgrade.stat_key, upgrade.amount)
+			sandman.apply_upgrade(upgrade.stat_key, upgrade.amount)
 
 func get_health_component() -> Node:
 	return health_component
